@@ -1,0 +1,313 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-background: #fafafa;          /* gray-50 */
+    --color-foreground: #1a1a1a;          /* gray-900 */
+    --color-border: rgba(0,0,0,0.08);     /* black/8 */
+    --color-input: #ffffff;               /* white */
+    --color-ring: #3b82f6;                /* blue-500 */
+
+    --color-card: #ffffff;                /* white */
+    --color-card-foreground: #1a1a1a;     /* gray-900 */
+
+    --color-popover: #ffffff;             /* white */
+    --color-popover-foreground: #1a1a1a;  /* gray-900 */
+
+    --color-primary: #1a1a1a;             /* gray-900 */
+    --color-primary-foreground: #ffffff;  /* white */
+
+    --color-secondary: #404040;           /* gray-700 */
+    --color-secondary-foreground: #ffffff;/* white */
+
+    --color-accent: #2563EB;              /* pitchhood blue */
+    --color-accent-foreground: #ffffff;   /* white */
+
+    --color-muted: #f4f4f5;               /* zinc-100 */
+    --color-muted-foreground: #6b7280;    /* gray-500 */
+
+    --color-destructive: #ef4444;         /* red-500 */
+    --color-destructive-foreground: #ffffff; /* white */
+
+    --color-success: #10b981;             /* emerald-500 */
+    --color-success-foreground: #ffffff;  /* white */
+
+    --color-warning: #f59e0b;             /* amber-500 */
+    --color-warning-foreground: #1a1a1a;  /* gray-900 */
+
+    --color-error: #ef4444;               /* red-500 */
+    --color-error-foreground: #ffffff;    /* white */
+  }
+
+  .dark {
+    --color-background: #0f0f0f;
+    --color-foreground: #f0f0f0;
+    --color-border: rgba(255,255,255,0.08);
+    --color-input: #1a1a1a;
+    --color-ring: #60a5fa;
+
+    --color-card: #161616;
+    --color-card-foreground: #f0f0f0;
+
+    --color-popover: #1a1a1a;
+    --color-popover-foreground: #f0f0f0;
+
+    --color-primary: #f0f0f0;
+    --color-primary-foreground: #0f0f0f;
+
+    --color-secondary: #a3a3a3;
+    --color-secondary-foreground: #0f0f0f;
+
+    --color-accent: #60a5fa;
+    --color-accent-foreground: #0f0f0f;
+
+    --color-muted: #262626;
+    --color-muted-foreground: #a3a3a3;
+
+    --color-destructive: #f87171;
+    --color-destructive-foreground: #0f0f0f;
+
+    --color-success: #34d399;
+    --color-success-foreground: #0f0f0f;
+
+    --color-warning: #fbbf24;
+    --color-warning-foreground: #0f0f0f;
+
+    --color-error: #f87171;
+    --color-error-foreground: #0f0f0f;
+  }
+
+  * {
+    scroll-behavior: smooth;
+    scroll-padding-top: 64px;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+  }
+
+  caption, .caption, .label-text {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    letter-spacing: 0.025em;
+  }
+
+  code, pre, .mono, .data-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .pm-topbar {
+    @apply fixed top-0 left-0 right-0 z-[100] bg-card border-b h-16 flex items-center;
+    border-color: var(--color-border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .pm-panel {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 18px;
+    color: var(--color-foreground);
+  }
+
+  .pm-kicker {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted-foreground);
+    margin-bottom: 2px;
+  }
+
+  .pm-h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-foreground);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .pm-muted {
+    color: var(--color-muted-foreground);
+  }
+
+  .pm-label {
+    display: block;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-foreground);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+
+  .pm-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-input);
+    color: var(--color-foreground);
+    outline: none;
+    transition: border-color 150ms, box-shadow 150ms;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+
+  .pm-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  }
+
+  .pm-input::placeholder {
+    color: var(--color-muted-foreground);
+  }
+
+  .pm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-muted-foreground);
+    cursor: pointer;
+    transition: all 150ms;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .pm-btn:hover {
+    background: var(--color-muted);
+    color: var(--color-foreground);
+  }
+
+  .pm-nav-link {
+    @apply relative flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-[250ms];
+    color: var(--color-muted-foreground);
+  }
+
+  .pm-nav-link:hover {
+    color: var(--color-foreground);
+    background-color: var(--color-muted);
+  }
+
+  .pm-nav-link.active {
+    color: var(--color-foreground);
+    background-color: var(--color-muted);
+    font-weight: 600;
+  }
+
+  .pm-nav-link.active::after {
+    content: '';
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full;
+    background-color: var(--color-accent);
+  }
+
+  .pm-btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-[250ms] min-h-[44px];
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .pm-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.16);
+  }
+
+  .pm-btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .pm-btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-[250ms] min-h-[44px];
+    color: var(--color-muted-foreground);
+  }
+
+  .pm-btn-ghost:hover {
+    color: var(--color-foreground);
+    background-color: var(--color-muted);
+  }
+
+  .pm-mobile-menu {
+    @apply fixed inset-0 z-[150] bg-card flex flex-col;
+  }
+
+  /* ── Sidebar ── */
+  .pm-sidebar {
+    @apply fixed top-0 left-0 bottom-0 z-[100] flex-col w-56;
+    background: var(--color-card);
+    border-right: 1px solid var(--color-border);
+    padding-top: 20px;
+    padding-bottom: 24px;
+  }
+
+  .pm-sidebar-brand {
+    @apply px-5 mb-5;
+  }
+
+  .pm-sidebar-link {
+    @apply flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200;
+    color: var(--color-muted-foreground);
+  }
+
+  .pm-sidebar-link:hover {
+    background: var(--color-muted);
+    color: var(--color-foreground);
+  }
+
+  .pm-sidebar-link.active {
+    background: var(--color-muted);
+    color: var(--color-foreground);
+    font-weight: 600;
+  }
+
+  .pm-sidebar-quick-action {
+    @apply flex items-center px-3 py-1.5 text-xs transition-all duration-200 rounded-lg;
+    color: var(--color-muted-foreground);
+    font-family: 'Source Sans 3', sans-serif;
+  }
+
+  .pm-sidebar-quick-action:hover {
+    color: var(--color-foreground);
+  }
+
+  .pm-breadcrumb {
+    @apply flex items-center gap-1.5 text-xs;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--color-muted-foreground);
+    letter-spacing: 0.025em;
+  }
+
+  .pm-status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    font-family: 'IBM Plex Sans', sans-serif;
+    letter-spacing: 0.025em;
+  }
+}
