@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -26,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      console.log('[AuthContext] Initial session loaded. User:', session?.user?.id ?? 'none');
     });
 
     // Listen for auth changes
@@ -35,6 +35,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      console.log('[AuthContext] Auth state changed. Event:', _event, '| User:', session?.user?.id ?? 'none');
+
+      // After sign-in, verify profile row exists (auto-created by DB trigger)
+      if (_event === 'SIGNED_IN' && session?.user) {
+        supabase
+          .from('profiles')
+          .select('id, full_name, onboarding_completed')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data, error }) => {
+            if (error) {
+              console.warn('[AuthContext] Profile row NOT found for user:', session.user.id, '| Error:', error.message);
+            } else {
+              console.log('[AuthContext] ✅ Profile row EXISTS for user:', session.user.id, '| Data:', data);
+            }
+          });
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -47,8 +64,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       password,
       options: {
         data: {
-          full_name: metadata?.fullName || '',
-          avatar_url: metadata?.avatarUrl || ''
+          full_name: (metadata as any)?.fullName || '',
+          avatar_url: (metadata as any)?.avatarUrl || ''
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`
       }
@@ -88,12 +105,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Get User Profile from Database
   const getUserProfile = async () => {
     if (!user) return null;
+    console.log('[AuthContext] getUserProfile called for user:', user.id);
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
-    if (error) throw error;
+    if (error) {
+      console.error('[AuthContext] getUserProfile error:', error.message);
+      throw error;
+    }
+    console.log('[AuthContext] getUserProfile result:', data);
     return data;
   };
 

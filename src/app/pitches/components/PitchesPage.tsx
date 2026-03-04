@@ -3,9 +3,14 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
-import { artistStore, contactStore, linkStore, pitchStore, pitchRecipientStore, initStore } from '@/lib/store';
-import type { Artist, Contact, Pitch } from '@/lib/types';
-import { PITCH_STATUSES } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
+
+const PITCH_STATUSES = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'sent', label: 'Sent' },
+  { value: 'hold', label: 'Hold' },
+  { value: 'placed', label: 'Placed' },
+];
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   draft: { bg: 'var(--color-muted)', text: 'var(--color-muted-foreground)' },
@@ -13,6 +18,23 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   hold: { bg: '#fef3c7', text: '#92400e' },
   placed: { bg: '#d1fae5', text: '#065f46' },
 };
+
+interface SupabasePitch {
+  id: string;
+  title: string;
+  status: string;
+  notes: string | null;
+  links: string[] | null;
+  created_at: string;
+  artist_id: string | null;
+  recipients: any;
+}
+
+interface SupabaseArtist {
+  id: string;
+  name: string;
+  genre: string | null;
+}
 
 function StatusBadge({ status }: { status: string }) {
   const s = STATUS_STYLES[status] ?? STATUS_STYLES.draft;
@@ -24,51 +46,22 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 interface PitchModalProps {
-  pitch: Pitch | null;
+  pitch: SupabasePitch | null;
+  artists: SupabaseArtist[];
   onClose: () => void;
   onSave: () => void;
 }
 
-function PitchModal({ pitch, onClose, onSave }: PitchModalProps) {
-  const [artists] = useState<Artist[]>(() => artistStore.getAll());
-  const [allContacts] = useState<Contact[]>(() => contactStore.getAll());
-
+function PitchModal({ pitch, artists, onClose, onSave }: PitchModalProps) {
+  const supabase = createClient();
   const [form, setForm] = useState({
     title: pitch?.title ?? '',
-    artistId: pitch?.artistId ?? '',
-    trackUrl: pitch?.trackUrl ?? '',
-    status: (pitch?.status ?? 'draft') as Pitch['status'],
+    artist_id: pitch?.artist_id ?? '',
+    status: pitch?.status ?? 'draft',
     notes: pitch?.notes ?? '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
-  const [linkedContacts, setLinkedContacts] = useState<Contact[]>([]);
-
-  useEffect(() => {
-    if (pitch) {
-      const existing = pitchRecipientStore.getByPitch(pitch.id).map((pr) => pr.contactId);
-      setSelectedContactIds(existing);
-    }
-    if (pitch?.artistId) {
-      const links = linkStore.getByArtist(pitch.artistId);
-      const contacts = links.map((l) => allContacts.find((c) => c.id === l.contactId)).filter(Boolean) as Contact[];
-      setLinkedContacts(contacts);
-    }
-  }, []);
-
-  const handleArtistChange = (artistId: string) => {
-    setForm((p) => ({ ...p, artistId }));
-    setErrors((p) => { const e = { ...p }; delete e.artistId; return e; });
-    if (!artistId) { setLinkedContacts([]); setSelectedContactIds([]); return; }
-    const links = linkStore.getByArtist(artistId);
-    const contacts = links.map((l) => allContacts.find((c) => c.id === l.contactId)).filter(Boolean) as Contact[];
-    setLinkedContacts(contacts);
-    setSelectedContactIds(contacts.map((c) => c.id));
-  };
-
-  const toggleContact = (cid: string) => {
-    setSelectedContactIds((prev) => prev.includes(cid) ? prev.filter((id) => id !== cid) : [...prev, cid]);
-  };
+  const [saving, setSaving] = useState(false);
 
   const update = (k: keyof typeof form, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -78,23 +71,40 @@ function PitchModal({ pitch, onClose, onSave }: PitchModalProps) {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.title.trim()) e.title = 'Title is required';
-    if (!form.artistId) e.artistId = 'Select an artist';
+    if (!form.artist_id) e.artist_id = 'Select an artist';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    let savedPitch: Pitch;
-    if (pitch) {
-      savedPitch = pitchStore.update(pitch.id, form) as Pitch;
-    } else {
-      savedPitch = pitchStore.create(form);
+    setSaving(true);
+    try {
+      if (pitch) {
+        console.log('[PitchModal] Updating pitch:', pitch.id, form);
+        const { error } = await supabase
+          .from('pitches')
+          .update({ title: form.title, artist_id: form.artist_id || null, status: form.status, notes: form.notes })
+          .eq('id', pitch.id);
+        if (error) throw error;
+        console.log('[PitchModal] ✅ Pitch updated successfully');
+      } else {
+        console.log('[PitchModal] Creating new pitch:', form);
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error } = await supabase
+          .from('pitches')
+          .insert({ title: form.title, artist_id: form.artist_id || null, status: form.status, notes: form.notes, user_id: user?.id });
+        if (error) throw error;
+        console.log('[PitchModal] ✅ Pitch created successfully');
+      }
+      onSave();
+      onClose();
+    } catch (err: any) {
+      console.error('[PitchModal] ❌ Save error:', err?.message ?? err);
+    } finally {
+      setSaving(false);
     }
-    pitchRecipientStore.setForPitch(savedPitch.id, selectedContactIds);
-    onSave();
-    onClose();
   };
 
   return (
@@ -116,53 +126,16 @@ function PitchModal({ pitch, onClose, onSave }: PitchModalProps) {
 
           <div>
             <label className="pm-label">Artist <span className="text-red-500">*</span></label>
-            <select className="pm-input" value={form.artistId} onChange={(e) => handleArtistChange(e.target.value)}>
+            <select className="pm-input" value={form.artist_id} onChange={(e) => update('artist_id', e.target.value)}>
               <option value="">Select artist...</option>
               {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
-            {errors.artistId && <p className="text-xs text-red-500 mt-1">{errors.artistId}</p>}
-          </div>
-
-          {form.artistId && (
-            <div>
-              <label className="pm-label">Recipients</label>
-              {linkedContacts.length === 0 ? (
-                <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>No contacts linked to this artist yet. Go to Artists to add recipients.</p>
-              ) : (
-                <div className="space-y-1.5 mt-1">
-                  {linkedContacts.map((c) => {
-                    const link = linkStore.getByArtist(form.artistId).find((l) => l.contactId === c.id);
-                    return (
-                      <label key={c.id} className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer" style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedContactIds.includes(c.id)}
-                          onChange={() => toggleContact(c.id)}
-                          className="rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium" style={{ color: 'var(--color-foreground)' }}>{c.fullName}</span>
-                          <span className="text-xs ml-2" style={{ color: 'var(--color-muted-foreground)' }}>{link?.relationshipType} @ {c.company}</span>
-                          {link?.isPrimary && (
-                            <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--color-accent)', color: 'var(--color-accent-foreground)' }}>Primary</span>
-                          )}
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div>
-            <label className="pm-label">Track URL</label>
-            <input className="pm-input" value={form.trackUrl} onChange={(e) => update('trackUrl', e.target.value)} placeholder="https://soundcloud.com/..." />
+            {errors.artist_id && <p className="text-xs text-red-500 mt-1">{errors.artist_id}</p>}
           </div>
 
           <div>
             <label className="pm-label">Status</label>
-            <select className="pm-input" value={form.status} onChange={(e) => update('status', e.target.value as Pitch['status'])}>
+            <select className="pm-input" value={form.status} onChange={(e) => update('status', e.target.value)}>
               {PITCH_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
@@ -174,7 +147,9 @@ function PitchModal({ pitch, onClose, onSave }: PitchModalProps) {
 
           <div className="flex gap-2 justify-end pt-2">
             <button type="button" onClick={onClose} className="pm-btn">Cancel</button>
-            <button type="submit" className="pm-btn-primary">Save Pitch</button>
+            <button type="submit" disabled={saving} className="pm-btn-primary">
+              {saving ? 'Saving...' : 'Save Pitch'}
+            </button>
           </div>
         </form>
       </div>
@@ -183,14 +158,13 @@ function PitchModal({ pitch, onClose, onSave }: PitchModalProps) {
 }
 
 interface PitchRowProps {
-  pitch: Pitch;
+  pitch: SupabasePitch;
   artistName: string;
-  recipientCount: number;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-function PitchRow({ pitch, artistName, recipientCount, onEdit, onDelete }: PitchRowProps) {
+function PitchRow({ pitch, artistName, onEdit, onDelete }: PitchRowProps) {
   return (
     <div className="pm-panel flex items-center gap-4 flex-wrap">
       <div className="flex-1 min-w-0">
@@ -200,15 +174,10 @@ function PitchRow({ pitch, artistName, recipientCount, onEdit, onDelete }: Pitch
         </div>
         <div className="flex items-center gap-3 mt-0.5 flex-wrap">
           <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>{artistName}</span>
-          <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>·</span>
-          <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>{recipientCount} recipient{recipientCount !== 1 ? 's' : ''}</span>
-          {pitch.trackUrl && (
+          {pitch.notes && (
             <>
               <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>·</span>
-              <a href={pitch.trackUrl} target="_blank" rel="noopener noreferrer" className="text-xs flex items-center gap-1" style={{ color: 'var(--color-accent)' }} onClick={(e) => e.stopPropagation()}>
-                <Icon name="MusicalNoteIcon" size={12} variant="outline" />
-                Track
-              </a>
+              <span className="text-xs truncate max-w-[200px]" style={{ color: 'var(--color-muted-foreground)' }}>{pitch.notes}</span>
             </>
           )}
         </div>
@@ -226,40 +195,80 @@ function PitchRow({ pitch, artistName, recipientCount, onEdit, onDelete }: Pitch
 }
 
 export default function PitchesPage() {
-  const [pitches, setPitches] = useState<Pitch[]>([]);
-  const [artists, setArtists] = useState<Artist[]>([]);
-  const [editTarget, setEditTarget] = useState<Pitch | null>(null);
+  const supabase = createClient();
+  const [pitches, setPitches] = useState<SupabasePitch[]>([]);
+  const [artists, setArtists] = useState<SupabaseArtist[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editTarget, setEditTarget] = useState<SupabasePitch | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  const refresh = () => {
-    setPitches(pitchStore.getAll());
-    setArtists(artistStore.getAll());
+  const fetchData = async () => {
+    console.log('[PitchesPage] 🔄 Fetching pitches and artists from Supabase...');
+    setLoading(true);
+    try {
+      // Fetch pitches
+      console.log('[PitchesPage] Querying pitches table...');
+      const { data: pitchData, error: pitchError } = await supabase
+        .from('pitches')
+        .select('id, title, status, notes, links, created_at, artist_id, recipients')
+        .order('created_at', { ascending: false });
+
+      if (pitchError) {
+        console.error('[PitchesPage] ❌ Pitches query error:', pitchError.message);
+      } else {
+        console.log('[PitchesPage] ✅ Pitches fetched:', pitchData?.length ?? 0, 'rows', pitchData);
+      }
+
+      // Fetch artists
+      console.log('[PitchesPage] Querying artists table...');
+      const { data: artistData, error: artistError } = await supabase
+        .from('artists')
+        .select('id, name, genre')
+        .order('name', { ascending: true });
+
+      if (artistError) {
+        console.error('[PitchesPage] ❌ Artists query error:', artistError.message);
+      } else {
+        console.log('[PitchesPage] ✅ Artists fetched:', artistData?.length ?? 0, 'rows', artistData);
+      }
+
+      setPitches(pitchData ?? []);
+      setArtists(artistData ?? []);
+    } catch (err: any) {
+      console.error('[PitchesPage] ❌ Unexpected error:', err?.message ?? err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    initStore();
-    refresh();
+    fetchData();
   }, []);
 
-  const getArtistName = (id: string) => artists.find((a) => a.id === id)?.name ?? '—';
-  const getRecipientCount = (pitchId: string) => pitchRecipientStore.getByPitch(pitchId).length;
+  const getArtistName = (id: string | null) => artists.find((a) => a.id === id)?.name ?? '—';
 
   const filtered = pitches.filter((p) => {
     const q = search.toLowerCase();
-    const name = getArtistName(p.artistId).toLowerCase();
+    const name = getArtistName(p.artist_id).toLowerCase();
     const matchSearch = !q || p.title.toLowerCase().includes(q) || name.includes(q);
     const matchStatus = !statusFilter || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const handleEdit = (p: Pitch) => { setEditTarget(p); setShowModal(true); };
+  const handleEdit = (p: SupabasePitch) => { setEditTarget(p); setShowModal(true); };
   const handleNew = () => { setEditTarget(null); setShowModal(true); };
-  const handleDelete = (p: Pitch) => {
+  const handleDelete = async (p: SupabasePitch) => {
     if (!confirm(`Delete pitch "${p.title}"?`)) return;
-    pitchStore.delete(p.id);
-    refresh();
+    console.log('[PitchesPage] Deleting pitch:', p.id);
+    const { error } = await supabase.from('pitches').delete().eq('id', p.id);
+    if (error) {
+      console.error('[PitchesPage] ❌ Delete error:', error.message);
+    } else {
+      console.log('[PitchesPage] ✅ Pitch deleted successfully');
+      fetchData();
+    }
   };
 
   const stats = PITCH_STATUSES.map((s) => ({ ...s, count: pitches.filter((p) => p.status === s.value).length }));
@@ -300,7 +309,15 @@ export default function PitchesPage() {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="pm-panel text-center py-12">
+              <svg className="animate-spin h-6 w-6 mx-auto mb-3" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-muted-foreground)' }}>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="pm-muted">Loading pitches from Supabase...</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="pm-panel text-center py-12">
               <Icon name="PaperAirplaneIcon" size={36} variant="outline" className="mx-auto mb-3" style={{ color: 'var(--color-muted-foreground)' }} />
               <p className="pm-muted">{search || statusFilter ? 'No pitches match your filters.' : 'No pitches yet. Create your first pitch.'}</p>
@@ -311,8 +328,7 @@ export default function PitchesPage() {
                 <PitchRow
                   key={p.id}
                   pitch={p}
-                  artistName={getArtistName(p.artistId)}
-                  recipientCount={getRecipientCount(p.id)}
+                  artistName={getArtistName(p.artist_id)}
                   onEdit={() => handleEdit(p)}
                   onDelete={() => handleDelete(p)}
                 />
@@ -325,8 +341,9 @@ export default function PitchesPage() {
       {showModal && (
         <PitchModal
           pitch={editTarget}
+          artists={artists}
           onClose={() => setShowModal(false)}
-          onSave={refresh}
+          onSave={fetchData}
         />
       )}
     </div>
