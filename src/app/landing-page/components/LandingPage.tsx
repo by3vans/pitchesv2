@@ -106,7 +106,7 @@ function FadeUp({ children, delay = 0, className = '' }: { children: React.React
 function NavDropdownMenu({ items }: { items: DropdownItem[] }) {
   return (
     <div style={{
-      position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+      position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(50%)',
       background: 'rgba(255,255,255,0.98)', backdropFilter: 'blur(20px)',
       border: '1px solid rgba(0,0,0,0.08)', borderRadius: 10, padding: '6px 0',
       minWidth: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 200,
@@ -168,9 +168,7 @@ export default function LandingPage() {
 
   // Custom cursor
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
+    const onMove = (e: MouseEvent) => { setMousePos({ x: e.clientX, y: e.clientY }); };
     window.addEventListener('mousemove', onMove);
     return () => window.removeEventListener('mousemove', onMove);
   }, []);
@@ -298,8 +296,9 @@ export default function LandingPage() {
           position: relative;
           display: flex;
           align-items: flex-start;
-          padding-top: 90px;
-          overflow: visible;
+          padding-top: 130px;
+          padding-right: clamp(16px, 3vw, 40px);
+          overflow: hidden;
         }
         .hero-mockup-frame {
           width: 100%;
@@ -316,7 +315,7 @@ export default function LandingPage() {
           .nav-login-desktop { display: none !important; }
           .hero-disco { grid-template-columns: 1fr !important; min-height: auto !important; }
           .hero-disco-left { padding: 120px 24px 40px 24px !important; }
-          .hero-disco-right { padding-top: 0 !important; padding-bottom: 0 !important; }
+          .hero-disco-right { padding-top: 0 !important; padding-right: 0 !important; padding-bottom: 0 !important; overflow: hidden !important; }
           .hero-mockup-frame { border-radius: 12px 12px 0 0 !important; }
           .features-grid { grid-template-columns: 1fr !important; }
           .features-grid > div { grid-column: span 1 !important; }
@@ -341,14 +340,14 @@ export default function LandingPage() {
           .mockup-metrics { grid-template-columns: repeat(2, 1fr) !important; }
           .mockup-cards { grid-template-columns: 1fr !important; }
           /* Mobile mockup: full bleed, product-forward like Disco.ac */
-          .hero-section-mobile { overflow: hidden !important; }
+          .hero-section-mobile { overflow: hidden !important; padding-bottom: 20px !important; }
           .hero-disco-right {
             padding: 0 !important;
             margin: 0 !important;
             width: 100vw !important;
             position: relative !important;
             left: 50% !important;
-            transform: translateX(-50%) !important;
+            transform: translateX(-40%) !important;
           }
           .hero-mockup-frame {
             border-radius: 16px 16px 0 0 !important;

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+
 interface PitchCard {
   initials: string;
   gradient: string;
@@ -16,6 +17,7 @@ interface PitchCard {
 }
 
 // ─── Animation phases ────────────────────────────────────────────────────────
+
 const EXISTING_CARDS: PitchCard[] = [
   {
     initials: 'MJ', gradient: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
@@ -60,6 +62,8 @@ function useTypingAnimation(
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cursorRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [cursorOn, setCursorOn] = useState(true);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
     if (!active) {
@@ -70,6 +74,7 @@ function useTypingAnimation(
       if (cursorRef.current) clearInterval(cursorRef.current);
       return;
     }
+
     setShowCursor(true);
     setCursorOn(true);
     cursorRef.current = setInterval(() => setCursorOn(c => !c), 530);
@@ -82,9 +87,10 @@ function useTypingAnimation(
       } else {
         if (cursorRef.current) clearInterval(cursorRef.current);
         setShowCursor(false);
-        onDone?.();
+        onDoneRef.current?.();
       }
     }
+
     timerRef.current = setTimeout(typeNext, 120);
 
     return () => {
@@ -97,6 +103,7 @@ function useTypingAnimation(
 }
 
 // ─── Pitch Card ───────────────────────────────────────────────────────────────
+
 function PitchCardItem({ card, highlight = false, compact = false }: { card: PitchCard; highlight?: boolean; compact?: boolean }) {
   return (
     <div style={{
@@ -107,7 +114,7 @@ function PitchCardItem({ card, highlight = false, compact = false }: { card: Pit
       transition: 'all 0.5s ease',
       boxShadow: highlight ? '0 0 0 3px rgba(29,78,216,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 8, marginBottom: compact ? 5 : 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 8, marginBottom: compact ? 4 : 6 }}>
         <div style={{
           width: compact ? 24 : 30, height: compact ? 24 : 30, borderRadius: '50%',
           background: card.gradient,
@@ -115,7 +122,7 @@ function PitchCardItem({ card, highlight = false, compact = false }: { card: Pit
           fontSize: compact ? '0.55rem' : '0.65rem', fontWeight: 700, color: '#fff', flexShrink: 0,
         }}>{card.initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: compact ? '0.65rem' : '0.72rem', fontWeight: 600, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</div>
+          <div style={{ fontSize: compact ? '0.6rem' : '0.65rem', fontWeight: 600, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</div>
           <span style={{
             display: 'inline-block', fontSize: compact ? '0.55rem' : '0.6rem', fontWeight: 600,
             color: card.statusColor, background: card.statusBg,
@@ -123,14 +130,15 @@ function PitchCardItem({ card, highlight = false, compact = false }: { card: Pit
           }}>{card.status}</span>
         </div>
       </div>
-      <div style={{ fontSize: compact ? '0.65rem' : '0.72rem', fontWeight: 700, color: '#111', marginBottom: 2 }}>{card.title}</div>
-      <div style={{ fontSize: compact ? '0.58rem' : '0.65rem', color: '#6b7280' }}>{card.label}</div>
-      <div style={{ fontSize: compact ? '0.55rem' : '0.6rem', color: '#9ca3af', marginTop: 3 }}>{card.date}</div>
+      <div style={{ fontSize: compact ? '0.6rem' : '0.65rem', fontWeight: 600, color: '#111', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.title}</div>
+      <div style={{ fontSize: compact ? '0.55rem' : '0.6rem', color: '#6b7280', marginBottom: 2 }}>{card.label}</div>
+      <div style={{ fontSize: compact ? '0.5rem' : '0.55rem', color: '#9ca3af' }}>{card.date}</div>
     </div>
   );
 }
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
+
 function Sidebar() {
   return (
     <div className="demo-sidebar" style={{
@@ -140,16 +148,17 @@ function Sidebar() {
       fontSize: '0.7rem',
     }}>
       {/* Logo */}
-      <div style={{ padding: '0 14px 14px', borderBottom: '1px solid #f0f0ee', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ padding: '0 14px 12px', borderBottom: '1px solid #f3f4f6', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{
             width: 24, height: 24, borderRadius: 6, background: '#1d4ed8',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '0.65rem', fontWeight: 900, color: '#fff',
           }}>P</div>
-          <span style={{ fontWeight: 700, fontSize: '0.75rem', color: '#111', letterSpacing: '-0.01em' }}>Pitchhood</span>
+          <span style={{ fontWeight: 700, color: '#111', fontSize: '0.7rem' }}>Pitchhood</span>
         </div>
       </div>
+
       {/* Nav items */}
       {[{ label: 'Dashboard', icon: '⊞' }, { label: 'Pitches', icon: '◈', active: true }, { label: 'Artists', icon: '♪' }, { label: 'Contacts', icon: '◎' }].map(item => (
         <div key={item.label} style={{
@@ -164,7 +173,8 @@ function Sidebar() {
           <span>{item.label}</span>
         </div>
       ))}
-      <div style={{ padding: '10px 14px 4px', fontSize: '0.58rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', marginTop: 4 }}>WORKFLOW</div>
+
+      <div style={{ padding: '10px 14px 4px', fontSize: '0.5rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em' }}>WORKFLOW</div>
       {[{ label: 'Activity', icon: '◷' }, { label: 'Reminders', icon: '🔔' }, { label: 'Templates', icon: '▤' }].map(item => (
         <div key={item.label} style={{
           padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 7,
@@ -178,29 +188,8 @@ function Sidebar() {
   );
 }
 
-// ─── Metrics Bar ─────────────────────────────────────────────────────────────
-function MetricsBar({ totalPitches, compact = false }: { totalPitches: number; compact?: boolean }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: compact ? 6 : 10, marginBottom: compact ? 10 : 14 }}>
-      {[
-        { label: 'Total Pitches', value: String(totalPitches) },
-        { label: 'Approval Rate', value: '62%' },
-        { label: 'Avg Review', value: '12d' },
-        { label: 'Recent (7D)', value: '3' },
-      ].map(m => (
-        <div key={m.label} style={{
-          background: '#fff', border: '1px solid #e5e7eb',
-          borderRadius: compact ? 6 : 8, padding: compact ? '5px 7px' : '8px 10px',
-        }}>
-          <div style={{ fontSize: compact ? '0.45rem' : '0.6rem', color: '#9ca3af', marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.label}</div>
-          <div style={{ fontSize: compact ? '0.7rem' : '0.9rem', fontWeight: 700, color: '#111' }}>{m.value}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ─── Main Demo Component ──────────────────────────────────────────────────────
+
 export default function AnimatedPitchDemo() {
   const [phase, setPhase] = useState(0);
   const [btnPulse, setBtnPulse] = useState(false);
@@ -215,8 +204,13 @@ export default function AnimatedPitchDemo() {
   const [newCardHighlight, setNewCardHighlight] = useState(false);
   const [totalPitches, setTotalPitches] = useState(3);
   const [isMobile, setIsMobile] = useState(false);
+
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
+
+  // Separate timer refs to avoid nested setTimeout cleanup issues
+  const timerARef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerBRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Detect mobile
   useEffect(() => {
@@ -241,8 +235,9 @@ export default function AnimatedPitchDemo() {
     setTotalPitches(3);
   }, []);
 
-  // Field typing sequence
-  const fieldOrder = FORM_FIELDS.map(f => f.key);
+  // Stable fieldOrder derived once
+  const fieldOrder = useMemo(() => FORM_FIELDS.map(f => f.key), []);
+
   const [currentFieldIdx, setCurrentFieldIdx] = useState(0);
   const currentField = fieldOrder[currentFieldIdx];
   const currentFieldData = FORM_FIELDS[currentFieldIdx];
@@ -252,18 +247,17 @@ export default function AnimatedPitchDemo() {
     phase === 3 && activeField === currentField,
     80,
     () => {
-      // Field done typing
       if (currentFieldIdx < fieldOrder.length - 1) {
         const nextIdx = currentFieldIdx + 1;
         const nextKey = fieldOrder[nextIdx];
         if (nextKey === 'status') {
           setActiveField(null);
-          setTimeout(() => {
+          timerARef.current = setTimeout(() => {
             setStatusOpen(true);
-            setTimeout(() => {
+            timerBRef.current = setTimeout(() => {
               setStatusSelected(true);
               setStatusOpen(false);
-              setTimeout(() => {
+              timerARef.current = setTimeout(() => {
                 setCurrentFieldIdx(nextIdx + 1);
                 setActiveField(fieldOrder[nextIdx + 1]);
               }, 600);
@@ -271,7 +265,7 @@ export default function AnimatedPitchDemo() {
           }, 300);
         } else {
           setFieldValues(prev => ({ ...prev, [currentField]: currentFieldData?.value || '' }));
-          setTimeout(() => {
+          timerARef.current = setTimeout(() => {
             setCurrentFieldIdx(nextIdx);
             setActiveField(nextKey);
           }, 200);
@@ -279,35 +273,34 @@ export default function AnimatedPitchDemo() {
       } else {
         setFieldValues(prev => ({ ...prev, [currentField]: currentFieldData?.value || '' }));
         setActiveField(null);
-        setTimeout(() => setPhase(4), 600);
+        timerARef.current = setTimeout(() => setPhase(4), 600);
       }
     }
   );
 
   // Phase controller
   useEffect(() => {
-    let t: ReturnType<typeof setTimeout>;
     if (phase === 0) {
-      t = setTimeout(() => setPhase(1), 1800);
+      timerARef.current = setTimeout(() => setPhase(1), 1800);
     } else if (phase === 1) {
       setBtnPulse(true);
-      t = setTimeout(() => {
+      timerARef.current = setTimeout(() => {
         setBtnPulse(false);
         setPhase(2);
       }, 900);
     } else if (phase === 2) {
       setModalOpen(true);
-      t = setTimeout(() => {
+      timerARef.current = setTimeout(() => {
         setPhase(3);
         setCurrentFieldIdx(0);
         setActiveField(fieldOrder[0]);
       }, 700);
     } else if (phase === 4) {
       setSavePulse(true);
-      t = setTimeout(() => {
+      timerARef.current = setTimeout(() => {
         setSavePulse(false);
         setShowCheck(true);
-        t = setTimeout(() => {
+        timerBRef.current = setTimeout(() => {
           setShowCheck(false);
           setModalOpen(false);
           setPhase(5);
@@ -316,20 +309,24 @@ export default function AnimatedPitchDemo() {
     } else if (phase === 5) {
       setTotalPitches(4);
       setShowNewCard(true);
-      t = setTimeout(() => {
+      timerARef.current = setTimeout(() => {
         setNewCardHighlight(true);
-        t = setTimeout(() => {
+        timerBRef.current = setTimeout(() => {
           setNewCardHighlight(false);
           setPhase(6);
         }, 2000);
       }, 200);
     } else if (phase === 6) {
-      t = setTimeout(() => {
+      timerARef.current = setTimeout(() => {
         reset();
       }, 3000);
     }
-    return () => clearTimeout(t);
-  }, [phase]);
+
+    return () => {
+      if (timerARef.current) clearTimeout(timerARef.current);
+      if (timerBRef.current) clearTimeout(timerBRef.current);
+    };
+  }, [phase, fieldOrder, reset]);
 
   // Sync displayed value into fieldValues while typing
   useEffect(() => {
@@ -346,10 +343,6 @@ export default function AnimatedPitchDemo() {
   };
 
   const isFieldActive = (key: string) => phase === 3 && activeField === key;
-
-  // Mobile: cards show 1-col, sidebar hidden, compact spacing
-  const cardsGridCols = isMobile ? '1fr 1fr' : 'repeat(3, 1fr)';
-  const modalFormCols = isMobile ? '1fr' : '1fr 1fr';
 
   return (
     <>
@@ -370,16 +363,17 @@ export default function AnimatedPitchDemo() {
           .demo-metric-value { font-size: 0.7rem !important; }
         }
       `}</style>
+
       <div style={{
         background: '#f8f8f6',
         display: 'flex',
-        height: isMobile ? 360 : 420,
+        height: isMobile ? 480 : 420,
         overflow: 'hidden',
         position: 'relative',
         fontFamily: 'Barlow, -apple-system, sans-serif',
         fontSize: '0.72rem',
       }}>
-        {/* Sidebar — hidden on mobile via CSS class */}
+        {/* Sidebar */}
         <Sidebar />
 
         {/* Main content */}
@@ -390,7 +384,7 @@ export default function AnimatedPitchDemo() {
             padding: isMobile ? '7px 10px' : '10px 16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <div className="demo-topbar-label" style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 500, letterSpacing: '0.05em' }}>
+            <div className="demo-topbar-label" style={{ fontSize: '0.62rem', color: '#9ca3af', fontWeight: 500, letterSpacing: '0.04em' }}>
               MANAGEMENT / <span style={{ color: '#111', fontWeight: 600 }}>Pitches</span>
             </div>
             <button
@@ -412,9 +406,9 @@ export default function AnimatedPitchDemo() {
           </div>
 
           {/* Content area */}
-          <div style={{ flex: 1, padding: isMobile ? '10px 10px' : '14px 16px', overflowY: 'auto' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '8px' : '12px', display: 'flex', flexDirection: 'column', gap: isMobile ? 6 : 8 }}>
             {/* Metrics */}
-            <div className="demo-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: isMobile ? 4 : 10, marginBottom: isMobile ? 10 : 14 }}>
+            <div className="demo-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: isMobile ? 4 : 6 }}>
               {[
                 { label: 'Total Pitches', value: String(totalPitches) },
                 { label: 'Approval Rate', value: '62%' },
@@ -425,14 +419,14 @@ export default function AnimatedPitchDemo() {
                   background: '#fff', border: '1px solid #e5e7eb',
                   borderRadius: isMobile ? 6 : 8, padding: isMobile ? '5px 6px' : '8px 10px',
                 }}>
-                  <div className="demo-metric-label" style={{ fontSize: isMobile ? '0.45rem' : '0.6rem', color: '#9ca3af', marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.label}</div>
-                  <div className="demo-metric-value" style={{ fontSize: isMobile ? '0.7rem' : '0.9rem', fontWeight: 700, color: '#111' }}>{m.value}</div>
+                  <div className="demo-metric-label" style={{ fontSize: '0.5rem', color: '#9ca3af', marginBottom: 2 }}>{m.label}</div>
+                  <div className="demo-metric-value" style={{ fontSize: '0.85rem', fontWeight: 700, color: '#111' }}>{m.value}</div>
                 </div>
               ))}
             </div>
 
             {/* Status tabs */}
-            <div style={{ display: 'flex', gap: isMobile ? 4 : 6, marginBottom: isMobile ? 10 : 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {[
                 { label: `${totalPitches} Total`, active: true },
                 { label: '3 New', color: '#1d4ed8', bg: '#dbeafe' },
@@ -450,7 +444,7 @@ export default function AnimatedPitchDemo() {
             </div>
 
             {/* Cards grid */}
-            <div className="demo-cards-grid" style={{ display: 'grid', gridTemplateColumns: cardsGridCols, gap: isMobile ? 6 : 10 }}>
+            <div className="demo-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? 6 : 8 }}>
               {EXISTING_CARDS.map(card => (
                 <PitchCardItem key={card.name + card.title} card={card} compact={isMobile} />
               ))}
@@ -487,16 +481,16 @@ export default function AnimatedPitchDemo() {
               overflowY: 'auto',
             }}>
               {/* Modal header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? 10 : 16 }}>
-                <div style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 700, color: '#111' }}>New Pitch</div>
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#6b7280', cursor: 'default' }}>✕</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#111' }}>New Pitch</div>
+                <div style={{ fontSize: '0.7rem', color: '#9ca3af', cursor: 'default' }}>✕</div>
               </div>
 
               {/* Form fields */}
-              <div className="demo-modal-form" style={{ display: 'grid', gridTemplateColumns: modalFormCols, gap: isMobile ? '7px 10px' : '10px 14px' }}>
+              <div className="demo-modal-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px', marginBottom: 12 }}>
                 {FORM_FIELDS.slice(0, 4).map(field => (
                   <div key={field.key}>
-                    <div className="demo-field-label" style={{ fontSize: '0.6rem', fontWeight: 600, color: '#6b7280', marginBottom: 4, letterSpacing: '0.04em' }}>{field.label.toUpperCase()}</div>
+                    <div className="demo-field-label" style={{ fontSize: '0.55rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.06em', marginBottom: 3 }}>{field.label.toUpperCase()}</div>
                     <div className="demo-field-input" style={{
                       border: `1.5px solid ${isFieldActive(field.key) ? '#1d4ed8' : '#e5e7eb'}`,
                       borderRadius: 7, padding: '6px 10px',
@@ -512,7 +506,7 @@ export default function AnimatedPitchDemo() {
 
                 {/* Status dropdown */}
                 <div>
-                  <div className="demo-field-label" style={{ fontSize: '0.6rem', fontWeight: 600, color: '#6b7280', marginBottom: 4, letterSpacing: '0.04em' }}>STATUS</div>
+                  <div className="demo-field-label" style={{ fontSize: '0.55rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.06em', marginBottom: 3 }}>STATUS</div>
                   <div className="demo-field-input" style={{
                     border: `1.5px solid ${statusOpen ? '#1d4ed8' : '#e5e7eb'}`,
                     borderRadius: 7, padding: '6px 10px',
@@ -549,7 +543,7 @@ export default function AnimatedPitchDemo() {
 
                 {/* Notes — full width */}
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div className="demo-field-label" style={{ fontSize: '0.6rem', fontWeight: 600, color: '#6b7280', marginBottom: 4, letterSpacing: '0.04em' }}>NOTES</div>
+                  <div className="demo-field-label" style={{ fontSize: '0.55rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.06em', marginBottom: 3 }}>NOTES</div>
                   <div className="demo-field-input" style={{
                     border: `1.5px solid ${isFieldActive('notes') ? '#1d4ed8' : '#e5e7eb'}`,
                     borderRadius: 7, padding: '6px 10px',
@@ -565,7 +559,7 @@ export default function AnimatedPitchDemo() {
               </div>
 
               {/* Save button */}
-              <div style={{ marginTop: isMobile ? 10 : 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <div style={{
                   padding: '7px 14px', borderRadius: 7, fontSize: isMobile ? '0.62rem' : '0.7rem',
                   fontWeight: 500, color: '#6b7280', background: '#f3f4f6',
