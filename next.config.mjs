@@ -6,8 +6,8 @@ const nextConfig = {
   distDir: process.env.DIST_DIR || '.next',
 
   typescript: {
-      ignoreBuildErrors: true,
-    },
+    ignoreBuildErrors: true,
+  },
 
   eslint: {
     ignoreDuringBuilds: true,
@@ -21,11 +21,11 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: '/pitches-listing-dashboard',
+        destination: '/landing-page',
         permanent: false,
       },
     ];
-  }
+  },
 };
 
 export default nextConfig;
