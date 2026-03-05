@@ -1,5 +1,1 @@
-import { redirect } from 'next/navigation';
-
-export default function ArtistsPage() {
-  redirect('/artists');
-}
+export { default } from './ArtistsListingDashboard';
