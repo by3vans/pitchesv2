@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,7 +20,6 @@ function getStrength(password: string): { score: number; label: string; color: s
   if (/[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
-
   if (score <= 1) return { score, label: 'Weak', color: '#EF4444' };
   if (score <= 2) return { score, label: 'Fair', color: '#F59E0B' };
   if (score <= 3) return { score, label: 'Good', color: '#3B82F6' };
@@ -29,6 +28,8 @@ function getStrength(password: string): { score: number; label: string; color: s
 
 export default function PasswordResetConfirmationPage() {
   const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,18 +44,20 @@ export default function PasswordResetConfirmationPage() {
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   useEffect(() => {
-    // Verify an active recovery session exists before allowing password update
-    const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        console.log('[PasswordReset] Active session found for user:', session.user.id);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[PasswordReset] Active session found for user:', session.user.id);
+        }
         setSessionReady(true);
       } else {
-        console.warn('[PasswordReset] No active session — user may need to click the reset link again');
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[PasswordReset] No active session — user may need to click the reset link again');
+        }
         setError('Your password reset link has expired or is invalid. Please request a new one.');
       }
     });
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (success) {
@@ -87,15 +90,17 @@ export default function PasswordResetConfirmationPage() {
 
     setLoading(true);
     try {
-      const supabase = createClient();
       const { data, error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
-      console.log('[PasswordReset] Password updated successfully for user:', data?.user?.id ?? 'unknown');
-      // Sign out after password reset so user logs in fresh with new password
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[PasswordReset] Password updated successfully for user:', data?.user?.id ?? 'unknown');
+      }
+
       await supabase.auth.signOut();
       setSuccess(true);
-    } catch (err: any) {
-      setError(err?.message || 'Something went wrong. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -168,9 +173,7 @@ export default function PasswordResetConfirmationPage() {
                         <div
                           key={i}
                           className="h-1 flex-1 rounded-full transition-all duration-300"
-                          style={{
-                            backgroundColor: i <= strength.score ? strength.color : '#E5E7EB',
-                          }}
+                          style={{ backgroundColor: i <= strength.score ? strength.color : '#E5E7EB' }}
                         />
                       ))}
                     </div>
@@ -194,8 +197,7 @@ export default function PasswordResetConfirmationPage() {
                     placeholder="••••••••"
                     required
                     className={`w-full border rounded px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-300 focus:outline-none transition-colors ${
-                      mismatch
-                        ? 'border-red-300 focus:border-red-400' :'border-gray-200 focus:border-gray-400'
+                      mismatch ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-gray-400'
                     }`}
                   />
                   <button
@@ -300,6 +302,7 @@ export default function PasswordResetConfirmationPage() {
             backgroundSize: '40px 40px',
           }}
         />
+
         <div
           className="relative z-10"
           style={{
@@ -319,6 +322,7 @@ export default function PasswordResetConfirmationPage() {
                 <span className="text-[11px] text-gray-400 font-mono">app.pitchhood.com</span>
               </div>
             </div>
+
             <div className="bg-[#111111] px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
@@ -350,6 +354,7 @@ export default function PasswordResetConfirmationPage() {
             </div>
           </div>
         </div>
+
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
