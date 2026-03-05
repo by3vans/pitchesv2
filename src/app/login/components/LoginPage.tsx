@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 
 type Tab = 'login' | 'signup';
-
 type ErrorType = 'oauth' | 'network' | 'credentials' | 'general';
 
 interface AuthError {
@@ -15,9 +14,9 @@ interface AuthError {
   type: ErrorType;
 }
 
-function getOAuthErrorMessage(err: any): AuthError {
-  const msg = err?.message?.toLowerCase() || '';
-  const code = err?.code || err?.error_code || '';
+function getOAuthErrorMessage(err: unknown): AuthError {
+  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  const code = (err as Record<string, string>)?.code || (err as Record<string, string>)?.error_code || '';
 
   if (msg.includes('popup_closed') || msg.includes('popup closed') || msg.includes('user closed')) {
     return { message: 'Sign-in popup was closed. Please try again.', type: 'oauth' };
@@ -34,9 +33,9 @@ function getOAuthErrorMessage(err: any): AuthError {
   return { message: 'Google sign-in failed. Please try again.', type: 'oauth' };
 }
 
-function getCredentialErrorMessage(err: any): AuthError {
-  const msg = err?.message?.toLowerCase() || '';
-  const code = err?.code || err?.error_code || '';
+function getCredentialErrorMessage(err: unknown): AuthError {
+  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  const code = (err as Record<string, string>)?.code || (err as Record<string, string>)?.error_code || '';
 
   if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch') || msg.includes('networkerror')) {
     return { message: 'Network error. Please check your internet connection and try again.', type: 'network' };
@@ -59,13 +58,20 @@ function getCredentialErrorMessage(err: any): AuthError {
   if (msg.includes('email already') || msg.includes('already registered') || code === 'user_already_exists') {
     return { message: 'An account with this email already exists. Try signing in instead.', type: 'credentials' };
   }
-  return { message: err?.message || 'Something went wrong. Please try again.', type: 'general' };
+  return { message: err instanceof Error ? err.message : 'Something went wrong. Please try again.', type: 'general' };
 }
+
+const artistCards = [
+  { initials: 'MJ', name: 'MARCUS JAMES', genre: 'R&B · Soul', score: '9.2', color: '#7C3AED' },
+  { initials: 'AL', name: 'ANA LIMA', genre: 'Pop · Electronic', score: '8.7', color: '#DC2626' },
+  { initials: 'DK', name: 'DJ KURO', genre: 'Hip-Hop · Trap', score: '7.9', color: '#2563EB' },
+  { initials: 'SR', name: 'SOFIA RAMOS', genre: 'Indie · Folk', score: '8.1', color: '#059669' },
+];
 
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, signUp } = useAuth();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [tab, setTab] = useState<Tab>('login');
   const [email, setEmail] = useState('');
@@ -80,6 +86,11 @@ export default function LoginPage() {
     try {
       const redirectTo = `${window.location.origin}/auth/callback`;
 
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[LoginPage] handleGoogleAuth called');
+        console.log('[LoginPage] redirectTo URL:', redirectTo);
+      }
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -91,10 +102,22 @@ export default function LoginPage() {
         },
       });
 
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[LoginPage] signInWithOAuth response data:', data);
+        console.log('[LoginPage] signInWithOAuth error:', error);
+      }
+
       if (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[LoginPage] OAuth error:', error.message, error);
+        }
         throw error;
       }
-    } catch (err: any) {
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[LoginPage] OAuth initiated — browser should redirect to Google now');
+      }
+    } catch (err: unknown) {
       setAuthError(getOAuthErrorMessage(err));
       setGoogleLoading(false);
     }
@@ -109,27 +132,15 @@ export default function LoginPage() {
         await signIn(email, password);
         router.push('/dashboard');
       } else {
-        if (password.length < 8) {
-          setAuthError({ message: 'Password must be at least 8 characters.', type: 'credentials' });
-          setLoading(false);
-          return;
-        }
         await signUp(email, password);
         router.push('/onboarding-profile-setup');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setAuthError(getCredentialErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
-
-  const artistCards = [
-    { initials: 'MJ', name: 'MARCUS JAMES', genre: 'R&B · Soul', score: '9.2', color: '#7C3AED' },
-    { initials: 'AL', name: 'ANA LIMA', genre: 'Pop · Electronic', score: '8.7', color: '#DC2626' },
-    { initials: 'DK', name: 'DJ KURO', genre: 'Hip-Hop · Trap', score: '7.9', color: '#2563EB' },
-    { initials: 'SR', name: 'SOFIA RAMOS', genre: 'Indie · Folk', score: '8.1', color: '#059669' },
-  ];
 
   const errorIconMap: Record<ErrorType, JSX.Element> = {
     oauth: (
@@ -175,7 +186,7 @@ export default function LoginPage() {
           Welcome back.
         </h1>
         <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-          Track every pitch you send to labels, A&amp;Rs, and managers — all in one place.
+          Manage your A&amp;R pipeline, review pitches, and discover the next big artist.
         </p>
 
         {/* Tab Toggle */}
@@ -273,8 +284,11 @@ export default function LoginPage() {
 
           {authError && (
             <div className={`flex items-start gap-2.5 rounded px-3 py-2.5 border text-xs ${
-              authError.type === 'network' ?'bg-amber-50 border-amber-200 text-amber-800'
-                : authError.type === 'oauth' ?'bg-orange-50 border-orange-200 text-orange-800' :'bg-red-50 border-red-100 text-red-700'
+              authError.type === 'network'
+                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                : authError.type === 'oauth'
+                ? 'bg-orange-50 border-orange-200 text-orange-800'
+                : 'bg-red-50 border-red-100 text-red-700'
             }`}>
               {errorIconMap[authError.type]}
               <span>{authError.message}</span>
@@ -341,6 +355,7 @@ export default function LoginPage() {
             backgroundSize: '40px 40px',
           }}
         />
+
         <div
           className="relative z-10"
           style={{
@@ -360,10 +375,11 @@ export default function LoginPage() {
                 <span className="text-[11px] text-gray-400 font-mono">app.pitchhood.com</span>
               </div>
             </div>
+
             <div className="bg-[#111111] px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
-                <span className="text-[10px] text-gray-500">Pitch Pipeline</span>
+                <span className="text-[10px] text-gray-500">A&amp;R Pipeline</span>
               </div>
               <div className="space-y-2">
                 {artistCards.map((artist) => (
@@ -391,6 +407,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
