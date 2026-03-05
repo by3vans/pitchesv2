@@ -415,7 +415,7 @@ export default function NotificationsCenter() {
   ];
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--color-background)' }}>
+    <div className="flex min-h-screen" style={{ background: 'var(--pm-background)' }}>
       <Sidebar />
       <main className="flex-1 md:ml-56 pt-16 md:pt-0">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-5">
@@ -458,7 +458,7 @@ export default function NotificationsCenter() {
                 key={card.label}
                 className="flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-white"
                 style={{
-                  borderColor: card.accent ? 'var(--color-foreground)' : card.highlight ? '#fca5a5' : '#e5e7eb',
+                  borderColor: card.accent ? 'var(--pm-foreground)' : card.highlight ? '#fca5a5' : '#e5e7eb',
                   background: card.highlight ? '#fff5f5' : 'white',
                 }}
               >
