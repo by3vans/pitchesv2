@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const errorDescription = searchParams.get('error_description');
   const next = searchParams.get('next') ?? '/dashboard';
 
-  const appUrl = 'https://pitchesv23594.builtwithrocket.new';
+  const appUrl = 'https://pitchhood.vercel.app';
 
   console.log('[auth/callback] ✅ Route hit!');
   console.log('[auth/callback] Incoming URL:', request.url);

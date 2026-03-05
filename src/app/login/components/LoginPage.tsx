@@ -24,7 +24,7 @@ export default function LoginPage() {
     setError('');
     setGoogleLoading(true);
     try {
-      const redirectTo = `https://pitchesv23594.builtwithrocket.new/auth/callback`;
+      const redirectTo = `https://pitchhood.vercel.app/auth/callback`;
       console.log('[LoginPage] handleGoogleAuth called');
       console.log('[LoginPage] redirectTo URL:', redirectTo);
 
