@@ -9,7 +9,6 @@ import ExternalLinksSection from './ExternalLinksSection';
 import AutoSaveIndicator from './AutoSaveIndicator';
 import { useToast } from '@/components/ui/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import { useSubmissionProgress } from '@/hooks/useSubmissionProgress';
 import Sidebar from '@/components/common/Sidebar';
 import {
   artistStore,
@@ -71,7 +70,6 @@ export default function PitchCreationForm() {
   const [autoSave, setAutoSave] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
-  const { runSteps } = useSubmissionProgress('pitch');
 
   // Artist autocomplete
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -222,13 +220,13 @@ export default function PitchCreationForm() {
     showToast('Draft saved', 'success');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    runSteps(async () => {
+    try {
       const pitch = await pitchStore.create({
         title: form.pitchTitle,
         artistId: form.artistId,
@@ -258,13 +256,20 @@ export default function PitchCreationForm() {
         if (newContact) createdExternalIds.push(newContact.id);
       }
 
-      await pitchRecipientStore.setForPitch(pitch.id, [...allRecipientIds, ...createdExternalIds]);
+      await pitchRecipientStore.setForPitch(pitch.id, [
+        ...allRecipientIds,
+        ...createdExternalIds,
+      ]);
 
       showToast(`Pitch "${form.pitchTitle}" submitted successfully!`, 'success');
-
-      // Redirect to success modal with real pitch ID
       router.push(`/pitch-creation-success-modal?pitchId=${pitch.id}`);
-    });
+
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      if (process.env.NODE_ENV === 'development') console.error('[handleSubmit]', msg);
+      showToast('Failed to create pitch. Please try again.', 'error');
+      setIsSubmitting(false);
+    }
   };
 
   const inputClass = (field: string) =>
