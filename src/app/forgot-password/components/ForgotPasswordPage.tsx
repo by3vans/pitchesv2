@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+
 import Image from 'next/image';
+
 import Link from 'next/link';
+
 import { createClient } from '@/lib/supabase/client';
 
 const artistCards = [
@@ -13,6 +16,8 @@ const artistCards = [
 ];
 
 export default function ForgotPasswordPage() {
+  const supabase = useMemo(() => createClient(), []);
+
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,15 +27,17 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
+
     try {
-      const supabase = createClient();
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `https://pitchhood.vercel.app/password-reset-confirmation`,
+        redirectTo: `${window.location.origin}/password-reset-confirmation`,
       });
+
       if (resetError) throw resetError;
+
       setSent(true);
-    } catch (err: any) {
-      setError(err?.message || 'Something went wrong. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -161,6 +168,7 @@ export default function ForgotPasswordPage() {
             backgroundSize: '40px 40px',
           }}
         />
+
         <div
           className="relative z-10"
           style={{
@@ -180,6 +188,7 @@ export default function ForgotPasswordPage() {
                 <span className="text-[11px] text-gray-400 font-mono">app.pitchhood.com</span>
               </div>
             </div>
+
             <div className="bg-[#111111] px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
@@ -193,7 +202,7 @@ export default function ForgotPasswordPage() {
                   >
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[11px] font-bold"
-                      style={{ backgroundColor: artist.color }}
+                      style={{ background: artist.color }}
                     >
                       {artist.initials}
                     </div>
@@ -211,6 +220,7 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
         </div>
+
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
