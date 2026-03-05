@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
 import { createClient } from '@/lib/supabase/client';
@@ -57,7 +57,7 @@ interface PitchModalProps {
 }
 
 function PitchModal({ pitch, artists, onClose, onSave }: PitchModalProps) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [form, setForm] = useState({
     title: pitch?.title ?? '',
     artist_id: pitch?.artist_id ?? '',
@@ -199,7 +199,7 @@ function PitchRow({ pitch, artistName, onEdit, onDelete }: PitchRowProps) {
 }
 
 export default function PitchesPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [pitches, setPitches] = useState<SupabasePitch[]>([]);
   const [artists, setArtists] = useState<SupabaseArtist[]>([]);
   const [loading, setLoading] = useState(true);
