@@ -24,7 +24,7 @@ export default function LoginPage() {
     setError('');
     setGoogleLoading(true);
     try {
-      const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`;
+      const redirectTo = `https://pitchhood.com/auth/callback`;
       console.log('[LoginPage] handleGoogleAuth called');
       console.log('[LoginPage] redirectTo URL:', redirectTo);
 
