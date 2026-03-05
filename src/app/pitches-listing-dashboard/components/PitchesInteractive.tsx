@@ -31,6 +31,16 @@ interface Pitch {
   reminderCount?: number;
 }
 
+interface EditingPitch {
+  id: string;
+  title: string;
+  artistId: string;
+  trackUrl: string;
+  status: string;
+  notes: string;
+  createdAt: string;
+}
+
 interface FilterState {
   search: string;
   status: string;
@@ -39,17 +49,17 @@ interface FilterState {
   sortOrder: 'asc' | 'desc';
 }
 
-const STATUS_OPTIONS: {value: StatusType;label: string;}[] = [
-{ value: 'novo', label: 'Novo' },
-{ value: 'em_analise', label: 'Em Análise' },
-{ value: 'aprovado', label: 'Aprovado' },
-{ value: 'rejeitado', label: 'Rejeitado' },
-{ value: 'pendente', label: 'Pendente' },
-{ value: 'arquivado', label: 'Arquivado' }];
+const STATUS_OPTIONS: { value: StatusType; label: string }[] = [
+  { value: 'novo', label: 'Novo' },
+  { value: 'em_analise', label: 'Em Análise' },
+  { value: 'aprovado', label: 'Aprovado' },
+  { value: 'rejeitado', label: 'Rejeitado' },
+  { value: 'pendente', label: 'Pendente' },
+  { value: 'arquivado', label: 'Arquivado' },
+];
 
 const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
 
-// Map Supabase pitch status to display StatusType
 const DB_STATUS_MAP: Record<string, StatusType> = {
   draft: 'novo',
   new: 'novo',
@@ -68,7 +78,7 @@ const DB_STATUS_MAP: Record<string, StatusType> = {
   arquivado: 'arquivado',
 };
 
-function PitchCardSkeleton({ viewMode }: {viewMode: 'card' | 'list';}) {
+function PitchCardSkeleton({ viewMode }: { viewMode: 'card' | 'list' }) {
   if (viewMode === 'list') {
     return (
       <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-gray-200 bg-white animate-pulse">
@@ -82,7 +92,8 @@ function PitchCardSkeleton({ viewMode }: {viewMode: 'card' | 'list';}) {
           <div className="h-3 w-20 bg-gray-100 rounded" />
         </div>
         <div className="h-5 w-5 bg-gray-200 rounded shrink-0" />
-      </div>);
+      </div>
+    );
   }
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden animate-pulse">
@@ -99,16 +110,18 @@ function PitchCardSkeleton({ viewMode }: {viewMode: 'card' | 'list';}) {
           <div className="h-5 w-16 bg-gray-200 rounded-full" />
         </div>
       </div>
-    </div>);
+    </div>
+  );
 }
 
 function StatsBarSkeleton() {
   return (
     <div className="flex gap-3 flex-wrap animate-pulse">
-      {Array.from({ length: 6 }).map((_, i) =>
-      <div key={i} className="h-8 w-24 bg-gray-200 rounded-lg" />
-      )}
-    </div>);
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-8 w-24 bg-gray-200 rounded-lg" />
+      ))}
+    </div>
+  );
 }
 
 function SummaryCardSkeleton() {
@@ -158,7 +171,7 @@ function EmptyPitchesState({ hasFilters, onClearFilters }: { hasFilters: boolean
   );
 }
 
-function Spinner({ size = 13 }: {size?: number;}) {
+function Spinner({ size = 13 }: { size?: number }) {
   return (
     <svg
       className="animate-spin"
@@ -169,7 +182,8 @@ function Spinner({ size = 13 }: {size?: number;}) {
       aria-hidden="true">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>);
+    </svg>
+  );
 }
 
 interface SummaryCardProps {
@@ -199,38 +213,8 @@ function SummaryCard({ icon, label, value, sub, accent }: SummaryCardProps) {
         <p className="text-xl font-bold text-gray-900 leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</p>
         {sub && <p className="text-xs text-gray-400 mt-0.5" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{sub}</p>}
       </div>
-    </div>);
-}
-
-// Helper to convert a stored pitch to the display Pitch format
-function storedToDisplay(p: StoredPitch, artistName: string): Pitch {
-  const statusMap: Record<string, StatusType> = {
-    draft: 'novo',
-    sent: 'em_analise',
-    hold: 'pendente',
-    placed: 'aprovado'
-  };
-  const d = new Date(p.createdAt);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return {
-    id: p.id,
-    title: p.title,
-    artist: artistName,
-    artistImage: '',
-    artistImageAlt: `${artistName} artist`,
-    status: statusMap[p.status] ?? 'novo',
-    category: '',
-    tags: [],
-    submittedAt: `${day}/${month}/${year}`,
-    label: '',
-    description: p.notes || ''
-  };
-}
-
-function loadPitchesFromStore(): Pitch[] {
-  return [];
+    </div>
+  );
 }
 
 interface PaginationProps {
@@ -267,10 +251,9 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
     <div className="flex flex-col gap-3 pt-4 mt-4 border-t border-gray-100">
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-gray-400" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-          {isLoading ?
-          <span className="inline-block h-3 w-28 bg-gray-200 rounded animate-pulse" /> :
-          totalItems === 0 ? 'No results' : `${startItem}–${endItem} of ${totalItems}`
-          }
+          {isLoading ? (
+            <span className="inline-block h-3 w-28 bg-gray-200 rounded animate-pulse" />
+          ) : totalItems === 0 ? 'No results' : `${startItem}–${endItem} of ${totalItems}`}
         </span>
         <div className="flex items-center gap-1.5">
           <label className="text-xs text-gray-400" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Per page:</label>
@@ -281,57 +264,61 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
             aria-label="Items per page"
             className="text-xs rounded-lg px-2 py-1.5 border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-            {PAGE_SIZE_OPTIONS.map((s) =>
-            <option key={s} value={s}>{s}</option>
-            )}
+            {PAGE_SIZE_OPTIONS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
           </select>
         </div>
       </div>
-      {totalPages > 1 &&
-      <div className="flex items-center justify-center gap-1 flex-wrap" role="navigation" aria-label="Pagination">
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 flex-wrap" role="navigation" aria-label="Pagination">
           <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1 || isLoading}
-          aria-label="Previous page"
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
-          style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1 || isLoading}
+            aria-label="Previous page"
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
+            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
             <Icon name="ChevronLeftIcon" size={13} variant="outline" aria-hidden="true" />
             <span className="hidden sm:inline">Prev</span>
           </button>
           {getPageNumbers().map((page, idx) =>
-        page === '...' ?
-        <span key={`ellipsis-${idx}`} className="px-2 py-2 text-xs text-gray-400" aria-hidden="true">…</span> :
-        <button
-          key={page}
-          onClick={() => onPageChange(page as number)}
-          disabled={isLoading}
-          aria-label={`Page ${page}`}
-          aria-current={currentPage === page ? 'page' : undefined}
-          className={`min-w-[36px] min-h-[36px] px-2.5 py-2 rounded-lg text-xs border transition-all disabled:cursor-not-allowed ${
-          currentPage === page ?
-          'bg-blue-600 border-blue-600 text-white font-semibold' : 'border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'}`
-          }
-          style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+            page === '...' ? (
+              <span key={`ellipsis-${idx}`} className="px-2 py-2 text-xs text-gray-400" aria-hidden="true">…</span>
+            ) : (
+              <button
+                key={page}
+                onClick={() => onPageChange(page as number)}
+                disabled={isLoading}
+                aria-label={`Page ${page}`}
+                aria-current={currentPage === page ? 'page' : undefined}
+                className={`min-w-[36px] min-h-[36px] px-2.5 py-2 rounded-lg text-xs border transition-all disabled:cursor-not-allowed ${
+                  currentPage === page
+                    ? 'bg-blue-600 border-blue-600 text-white font-semibold'
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
+                }`}
+                style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
                 {page}
               </button>
-        )}
+            )
+          )}
           <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages || isLoading}
-          aria-label="Next page"
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
-          style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || isLoading}
+            aria-label="Next page"
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
+            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
             <span className="hidden sm:inline">Next</span>
             <Icon name="ChevronRightIcon" size={13} variant="outline" aria-hidden="true" />
           </button>
         </div>
-      }
-    </div>);
+      )}
+    </div>
+  );
 }
 
 export default function PitchesInteractive() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [isLoading, setIsLoading] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
@@ -340,9 +327,8 @@ export default function PitchesInteractive() {
     status: '',
     category: '',
     sortBy: 'date',
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   });
-
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -352,8 +338,7 @@ export default function PitchesInteractive() {
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const [editingPitch, setEditingPitch] = useState<StoredPitch | null>(null);
+  const [editingPitch, setEditingPitch] = useState<EditingPitch | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const prevFiltersRef = useRef(filters);
 
@@ -363,13 +348,11 @@ export default function PitchesInteractive() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        // Fall back to local store if not authenticated
-        setPitches(loadPitchesFromStore());
+        setPitches([]);
         setIsLoading(false);
         return;
       }
 
-      // Fetch pitches for this user
       const { data: pitchRows, error: pitchError } = await supabase
         .from('pitches')
         .select('id, title, artist_id, status, notes, created_at, updated_at')
@@ -378,13 +361,11 @@ export default function PitchesInteractive() {
 
       if (pitchError) throw pitchError;
 
-      // Fetch artists for name lookup
       const { data: artistRows } = await supabase
         .from('artists')
         .select('id, name, genre, avatar_url')
         .eq('user_id', user.id);
 
-      // Fetch reminders for badge counts
       const { data: reminderRows } = await supabase
         .from('reminders')
         .select('pitch_id, status')
@@ -426,10 +407,11 @@ export default function PitchesInteractive() {
       });
 
       setPitches(mapped);
-    } catch (err: any) {
-      console.error('[PitchesInteractive] Failed to fetch pitches:', err?.message);
-      // Fall back to local store on error
-      setPitches(loadPitchesFromStore());
+    } catch (err: unknown) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[PitchesInteractive] Failed to fetch pitches:', err instanceof Error ? err.message : err);
+      }
+      setPitches([]);
     } finally {
       setIsLoading(false);
     }
@@ -437,7 +419,7 @@ export default function PitchesInteractive() {
 
   useEffect(() => {
     fetchPitches();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Realtime subscription ───────────────────────────────────────────────────
@@ -450,16 +432,8 @@ export default function PitchesInteractive() {
 
       channel = supabase
         .channel('pitches-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'pitches', filter: `user_id=eq.${user.id}` },
-          () => { fetchPitches(); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reminders', filter: `user_id=eq.${user.id}` },
-          () => { fetchPitches(); }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pitches', filter: `user_id=eq.${user.id}` }, () => { fetchPitches(); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reminders', filter: `user_id=eq.${user.id}` }, () => { fetchPitches(); })
         .subscribe();
     };
 
@@ -467,26 +441,25 @@ export default function PitchesInteractive() {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for real-time refresh events dispatched by the Header's subscription
   useEffect(() => {
     const handleRealtimeRefresh = () => { fetchPitches(); };
     window.addEventListener('realtime-refresh', handleRealtimeRefresh);
     return () => window.removeEventListener('realtime-refresh', handleRealtimeRefresh);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Trigger skeleton on filter/search/sort changes
   useEffect(() => {
     const prev = prevFiltersRef.current;
     const changed =
-    prev.search !== filters.search ||
-    prev.status !== filters.status ||
-    prev.category !== filters.category ||
-    prev.sortBy !== filters.sortBy ||
-    prev.sortOrder !== filters.sortOrder;
+      prev.search !== filters.search ||
+      prev.status !== filters.status ||
+      prev.category !== filters.category ||
+      prev.sortBy !== filters.sortBy ||
+      prev.sortOrder !== filters.sortOrder;
 
     if (changed && !isLoading) {
       setIsFilterLoading(true);
@@ -504,27 +477,22 @@ export default function PitchesInteractive() {
     if (filters.search) {
       const q = filters.search.toLowerCase();
       result = result.filter((p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.artist.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q)) ||
-      p.category.toLowerCase().includes(q)
+        p.title.toLowerCase().includes(q) ||
+        p.artist.toLowerCase().includes(q) ||
+        p.tags.some((t) => t.toLowerCase().includes(q)) ||
+        p.category.toLowerCase().includes(q)
       );
     }
 
-    if (filters.status) {
-      result = result.filter((p) => p.status === filters.status);
-    }
-
-    if (filters.category) {
-      result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
-    }
+    if (filters.status) result = result.filter((p) => p.status === filters.status);
+    if (filters.category) result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
 
     result.sort((a, b) => {
       let cmp = 0;
-      if (filters.sortBy === 'artist') cmp = a.artist.localeCompare(b.artist);else
-      if (filters.sortBy === 'title') cmp = a.title.localeCompare(b.title);else
-      if (filters.sortBy === 'status') cmp = a.status.localeCompare(b.status);else
-      {
+      if (filters.sortBy === 'artist') cmp = a.artist.localeCompare(b.artist);
+      else if (filters.sortBy === 'title') cmp = a.title.localeCompare(b.title);
+      else if (filters.sortBy === 'status') cmp = a.status.localeCompare(b.status);
+      else {
         const parseDate = (d: string) => {
           const [day, month, year] = d.split('/');
           return new Date(+year, +month - 1, +day).getTime();
@@ -541,32 +509,29 @@ export default function PitchesInteractive() {
   const safePage = Math.min(currentPage, totalPages);
   const paginatedPitches = filteredPitches.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  // Live status counts from real data
   const stats = useMemo(() => ({
     total: pitches.length,
     novo: pitches.filter((p) => p.status === 'novo').length,
     em_analise: pitches.filter((p) => p.status === 'em_analise').length,
     aprovado: pitches.filter((p) => p.status === 'aprovado').length,
     rejeitado: pitches.filter((p) => p.status === 'rejeitado').length,
-    pendente: pitches.filter((p) => p.status === 'pendente').length
+    pendente: pitches.filter((p) => p.status === 'pendente').length,
   }), [pitches]);
 
   const summaryMetrics = useMemo(() => {
     const total = pitches.length;
     const approved = pitches.filter((p) => p.status === 'aprovado').length;
     const reviewed = pitches.filter((p) => ['aprovado', 'rejeitado', 'em_analise'].includes(p.status)).length;
-    const approvalRate = reviewed > 0 ? Math.round(approved / reviewed * 100) : 0;
+    const approvalRate = reviewed > 0 ? Math.round((approved / reviewed) * 100) : 0;
     const now = new Date();
     const reviewedPitches = pitches.filter((p) => ['aprovado', 'rejeitado'].includes(p.status));
-    const avgDays = reviewedPitches.length > 0 ?
-    Math.round(
-      reviewedPitches.reduce((sum, p) => {
-        const [day, month, year] = p.submittedAt.split('/');
-        const submitted = new Date(+year, +month - 1, +day);
-        return sum + Math.max(0, Math.floor((now.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24)));
-      }, 0) / reviewedPitches.length
-    ) :
-    0;
+    const avgDays = reviewedPitches.length > 0
+      ? Math.round(reviewedPitches.reduce((sum, p) => {
+          const [day, month, year] = p.submittedAt.split('/');
+          const submitted = new Date(+year, +month - 1, +day);
+          return sum + Math.max(0, Math.floor((now.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24)));
+        }, 0) / reviewedPitches.length)
+      : 0;
     const recentCount = pitches.filter((p) => {
       const [day, month, year] = p.submittedAt.split('/');
       const submitted = new Date(+year, +month - 1, +day);
@@ -580,7 +545,7 @@ export default function PitchesInteractive() {
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
@@ -601,14 +566,12 @@ export default function PitchesInteractive() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('pitches').delete().in('id', Array.from(selectedIds)).eq('user_id', user.id);
-      } else {
-        selectedIds.forEach((id) => pitchStore.delete(id));
       }
       await fetchPitches();
       setSelectedIds(new Set());
       setCurrentPage(1);
     } catch {
-      console.error('Failed to delete pitches');
+      if (process.env.NODE_ENV === 'development') console.error('Failed to delete pitches');
     } finally {
       setIsBulkDeleting(false);
     }
@@ -618,11 +581,10 @@ export default function PitchesInteractive() {
     setIsBulkUpdating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      // Map display status back to DB status
       const dbStatusReverseMap: Record<StatusType, string> = {
         novo: 'draft',
-        em_analise: 'sent',
-        aprovado: 'placed',
+        em_analise: 'in_review',
+        aprovado: 'approved',
         rejeitado: 'rejected',
         pendente: 'hold',
         arquivado: 'archived',
@@ -634,14 +596,10 @@ export default function PitchesInteractive() {
           .in('id', Array.from(selectedIds))
           .eq('user_id', user.id);
         await fetchPitches();
-      } else {
-        setPitches((prev) =>
-          prev.map((p) => selectedIds.has(p.id) ? { ...p, status: bulkStatusValue } : p)
-        );
       }
       setSelectedIds(new Set());
     } catch {
-      console.error('Failed to update pitch statuses');
+      if (process.env.NODE_ENV === 'development') console.error('Failed to update pitch statuses');
     } finally {
       setIsBulkUpdating(false);
     }
@@ -651,7 +609,7 @@ export default function PitchesInteractive() {
     const selected = pitches.filter((p) => selectedIds.has(p.id));
     const header = 'ID,Title,Artist,Status,Category,Label,Submitted';
     const rows = selected.map((p) =>
-    `${p.id},"${p.title}","${p.artist}",${p.status},${p.category},"${p.label}",${p.submittedAt}`
+      `${p.id},"${p.title}","${p.artist}",${p.status},${p.category},"${p.label}",${p.submittedAt}`
     ).join('\n');
     const csv = `${header}\n${rows}`;
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -664,16 +622,8 @@ export default function PitchesInteractive() {
     setSelectedIds(new Set());
   };
 
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-    setCurrentPage(1);
-    setSelectedIds(new Set());
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    setSelectedIds(new Set());
-  };
+  const handlePageSizeChange = (size: number) => { setPageSize(size); setCurrentPage(1); setSelectedIds(new Set()); };
+  const handlePageChange = (page: number) => { setCurrentPage(page); setSelectedIds(new Set()); };
 
   const handleEditPitch = (pitch: Pitch) => {
     setEditingPitch({
@@ -683,7 +633,7 @@ export default function PitchesInteractive() {
       trackUrl: '',
       status: 'draft',
       notes: pitch.description || '',
-      createdAt: pitch.submittedAt
+      createdAt: pitch.submittedAt,
     });
     setIsEditModalOpen(true);
   };
@@ -701,7 +651,7 @@ export default function PitchesInteractive() {
       if (searchInput) { searchInput.focus(); searchInput.select(); }
     },
     onFilter: () => setFiltersOpen((prev) => !prev),
-    onHelp: () => setShowHelpModal(true)
+    onHelp: () => setShowHelpModal(true),
   });
 
   return (
@@ -787,52 +737,45 @@ export default function PitchesInteractive() {
             </div>
 
             {/* Select-all row */}
-            {!showSkeleton && paginatedPitches.length > 0 &&
-            <div className="flex items-center gap-3 mb-3 px-1">
+            {!showSkeleton && paginatedPitches.length > 0 && (
+              <div className="flex items-center gap-3 mb-3 px-1">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <div
-                  role="checkbox"
-                  aria-checked={allPageSelected ? true : someSelected ? 'mixed' : false}
-                  aria-label={allPageSelected ? 'Deselect all pitches on this page' : 'Select all pitches on this page'}
-                  tabIndex={0}
-                  onClick={toggleSelectAll}
-                  onKeyDown={(e) => {if (e.key === ' ' || e.key === 'Enter') {e.preventDefault();toggleSelectAll();}}}
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
-                  allPageSelected ?
-                  'bg-gray-900 border-gray-900' :
-                  someSelected ?
-                  'bg-gray-400 border-gray-400' : 'border-gray-300 hover:border-gray-500'}`
-                  }>
-                    {(allPageSelected || someSelected) &&
-                  <Icon name="MinusIcon" size={10} variant="outline" className="text-gray-500" />
-                  }
-                    {allPageSelected &&
-                  <Icon name="CheckIcon" size={10} variant="outline" className="text-gray-500" />
-                  }
+                    role="checkbox"
+                    aria-checked={allPageSelected ? true : someSelected ? 'mixed' : false}
+                    aria-label={allPageSelected ? 'Deselect all pitches on this page' : 'Select all pitches on this page'}
+                    tabIndex={0}
+                    onClick={toggleSelectAll}
+                    onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleSelectAll(); } }}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
+                      allPageSelected ? 'bg-gray-900 border-gray-900' : someSelected ? 'bg-gray-400 border-gray-400' : 'border-gray-300 hover:border-gray-500'
+                    }`}>
+                    {(allPageSelected || someSelected) && <Icon name="MinusIcon" size={10} variant="outline" className="text-white" />}
+                    {allPageSelected && <Icon name="CheckIcon" size={10} variant="outline" className="text-white" />}
                   </div>
                   <span className="text-xs text-gray-500" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
                     {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
                   </span>
                 </label>
               </div>
-            }
+            )}
 
             {/* Bulk Action Toolbar */}
-            {selectionMode &&
-            <div
-              className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 px-3 py-3 rounded-xl border"
-              style={{ background: '#1d4ed8', borderColor: '#2563EB' }}
-              role="toolbar"
-              aria-label={`Bulk actions for ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''}`}>
+            {selectionMode && (
+              <div
+                className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 px-3 py-3 rounded-xl border"
+                style={{ background: '#1d4ed8', borderColor: '#2563EB' }}
+                role="toolbar"
+                aria-label={`Bulk actions for ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''}`}>
                 <div className="flex items-center justify-between sm:justify-start gap-2">
                   <span className="text-xs font-semibold text-white" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
                     {selectedIds.size} pitch{selectedIds.size !== 1 ? 'es' : ''} selected
                   </span>
                   <button
-                  onClick={clearSelection}
-                  disabled={isBulkProcessing}
-                  aria-label="Clear selection"
-                  className="sm:hidden flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    onClick={clearSelection}
+                    disabled={isBulkProcessing}
+                    aria-label="Clear selection"
+                    className="sm:hidden flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     <Icon name="XMarkIcon" size={13} variant="outline" aria-hidden="true" />
                     Clear
                   </button>
@@ -840,109 +783,108 @@ export default function PitchesInteractive() {
                 <div className="flex items-center gap-2 flex-wrap sm:ml-auto">
                   <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
                     <select
-                    value={bulkStatusValue}
-                    onChange={(e) => setBulkStatusValue(e.target.value as StatusType)}
-                    disabled={isBulkProcessing}
-                    aria-label="Select new status for bulk update"
-                    className="flex-1 sm:flex-none text-xs rounded-lg px-2 py-2 border border-blue-400 bg-blue-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                    style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                      {STATUS_OPTIONS.map((s) =>
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                    )}
+                      value={bulkStatusValue}
+                      onChange={(e) => setBulkStatusValue(e.target.value as StatusType)}
+                      disabled={isBulkProcessing}
+                      aria-label="Select new status for bulk update"
+                      className="flex-1 sm:flex-none text-xs rounded-lg px-2 py-2 border border-blue-400 bg-blue-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                      style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                      {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                     <button
-                    onClick={handleBulkStatusUpdate}
-                    disabled={isBulkProcessing}
-                    aria-label={isBulkUpdating ? 'Updating status…' : `Update status of ${selectedIds.size} selected`}
-                    aria-busy={isBulkUpdating}
-                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                      onClick={handleBulkStatusUpdate}
+                      disabled={isBulkProcessing}
+                      aria-label={isBulkUpdating ? 'Updating status…' : `Update status of ${selectedIds.size} selected`}
+                      aria-busy={isBulkUpdating}
+                      className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
                       {isBulkUpdating ? <Spinner size={13} /> : <Icon name="ArrowPathIcon" size={13} variant="outline" aria-hidden="true" />}
                       <span>{isBulkUpdating ? 'Updating…' : 'Update'}</span>
                     </button>
                   </div>
                   <button
-                  onClick={handleBulkExport}
-                  disabled={isBulkProcessing}
-                  aria-label={`Export ${selectedIds.size} selected pitches as CSV`}
-                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                    onClick={handleBulkExport}
+                    disabled={isBulkProcessing}
+                    aria-label={`Export ${selectedIds.size} selected pitches as CSV`}
+                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
                     <Icon name="ArrowDownTrayIcon" size={13} variant="outline" aria-hidden="true" />
                     <span>Export</span>
                   </button>
                   <button
-                  onClick={handleBulkDelete}
-                  disabled={isBulkProcessing}
-                  aria-label={isBulkDeleting ? 'Deleting…' : `Delete ${selectedIds.size} selected pitches`}
-                  aria-busy={isBulkDeleting}
-                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                    onClick={handleBulkDelete}
+                    disabled={isBulkProcessing}
+                    aria-label={isBulkDeleting ? 'Deleting…' : `Delete ${selectedIds.size} selected pitches`}
+                    aria-busy={isBulkDeleting}
+                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
                     {isBulkDeleting ? <Spinner size={13} /> : <Icon name="TrashIcon" size={13} variant="outline" aria-hidden="true" />}
                     <span>{isBulkDeleting ? 'Deleting…' : 'Delete'}</span>
                   </button>
                   <button
-                  onClick={clearSelection}
-                  disabled={isBulkProcessing}
-                  aria-label="Clear selection"
-                  className="hidden sm:flex items-center gap-1 text-xs px-2 py-2 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                    onClick={clearSelection}
+                    disabled={isBulkProcessing}
+                    aria-label="Clear selection"
+                    className="hidden sm:flex items-center gap-1 text-xs px-2 py-2 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
                     <Icon name="XMarkIcon" size={13} variant="outline" aria-hidden="true" />
                   </button>
                 </div>
               </div>
-            }
+            )}
 
             {/* Pitches Grid / List */}
             <div aria-live="polite" aria-busy={showSkeleton} role="region" aria-label="Pitches list">
-              {showSkeleton ?
-              viewMode === 'card' ?
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {Array.from({ length: pageSize }).map((_, i) =>
-                <PitchCardSkeleton key={i} viewMode="card" />
-                )}
-                  </div> :
-              <div className="space-y-2">
-                    {Array.from({ length: pageSize }).map((_, i) =>
-                <PitchCardSkeleton key={i} viewMode="list" />
-                )}
-                  </div> :
-              filteredPitches.length === 0 ?
-              <EmptyPitchesState hasFilters={hasActiveFilters} onClearFilters={() => setFilters({ search: '', status: '', category: '', sortBy: 'date', sortOrder: 'desc' })} /> :
-              viewMode === 'card' ?
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {paginatedPitches.map((pitch) =>
-                <PitchCard
-                  key={pitch.id}
-                  pitch={pitch}
-                  viewMode="card"
-                  isSelected={selectedIds.has(pitch.id)}
-                  onToggleSelect={toggleSelect}
-                  selectionMode={selectionMode}
-                  onEdit={handleEditPitch} />
-                )}
-                </div> :
-              <div className="space-y-2">
-                  {paginatedPitches.map((pitch) =>
-                <PitchCard
-                  key={pitch.id}
-                  pitch={pitch}
-                  viewMode="list"
-                  isSelected={selectedIds.has(pitch.id)}
-                  onToggleSelect={toggleSelect}
-                  selectionMode={selectionMode}
-                  onEdit={handleEditPitch} />
-                )}
+              {showSkeleton ? (
+                viewMode === 'card' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {Array.from({ length: pageSize }).map((_, i) => <PitchCardSkeleton key={i} viewMode="card" />)}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {Array.from({ length: pageSize }).map((_, i) => <PitchCardSkeleton key={i} viewMode="list" />)}
+                  </div>
+                )
+              ) : filteredPitches.length === 0 ? (
+                <EmptyPitchesState
+                  hasFilters={hasActiveFilters}
+                  onClearFilters={() => setFilters({ search: '', status: '', category: '', sortBy: 'date', sortOrder: 'desc' })} />
+              ) : viewMode === 'card' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {paginatedPitches.map((pitch) => (
+                    <PitchCard
+                      key={pitch.id}
+                      pitch={pitch}
+                      viewMode="card"
+                      isSelected={selectedIds.has(pitch.id)}
+                      onToggleSelect={toggleSelect}
+                      selectionMode={selectionMode}
+                      onEdit={handleEditPitch} />
+                  ))}
                 </div>
-              }
+              ) : (
+                <div className="space-y-2">
+                  {paginatedPitches.map((pitch) => (
+                    <PitchCard
+                      key={pitch.id}
+                      pitch={pitch}
+                      viewMode="list"
+                      isSelected={selectedIds.has(pitch.id)}
+                      onToggleSelect={toggleSelect}
+                      selectionMode={selectionMode}
+                      onEdit={handleEditPitch} />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Pagination */}
-            {!showSkeleton && filteredPitches.length > 0 &&
-            <Pagination
-              currentPage={safePage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalItems={filteredPitches.length}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-              isLoading={showSkeleton} />
-            }
+            {!showSkeleton && filteredPitches.length > 0 && (
+              <Pagination
+                currentPage={safePage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={filteredPitches.length}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                isLoading={showSkeleton} />
+            )}
           </div>
         </div>
       </main>
@@ -958,9 +900,7 @@ export default function PitchesInteractive() {
         </div>
       </footer>
 
-      {showHelpModal &&
-      <ShortcutsHelpModal onClose={() => setShowHelpModal(false)} />
-      }
+      {showHelpModal && <ShortcutsHelpModal onClose={() => setShowHelpModal(false)} />}
 
       <NewPitchModal
         isOpen={isEditModalOpen}
@@ -970,5 +910,6 @@ export default function PitchesInteractive() {
           fetchPitches();
         }}
         editPitch={editingPitch ?? undefined} />
-    </div>);
+    </div>
+  );
 }
