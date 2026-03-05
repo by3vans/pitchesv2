@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
@@ -9,6 +9,13 @@ import { useAuth } from '@/contexts/AuthContext';
 const GENRES = [
   'Pop', 'Hip-Hop', 'R&B', 'Electronic', 'Indie',
   'Rock', 'Jazz', 'Latin', 'Afrobeats', 'Country', 'Folk', 'Classical',
+];
+
+const artistCards = [
+  { initials: 'MJ', name: 'MARCUS JAMES', genre: 'R&B · Soul', score: '9.2', color: '#7C3AED' },
+  { initials: 'AL', name: 'ANA LIMA', genre: 'Pop · Electronic', score: '8.7', color: '#DC2626' },
+  { initials: 'DK', name: 'DJ KURO', genre: 'Hip-Hop · Trap', score: '7.9', color: '#2563EB' },
+  { initials: 'SR', name: 'SOFIA RAMOS', genre: 'Indie · Folk', score: '8.1', color: '#059669' },
 ];
 
 interface FormData {
@@ -30,7 +37,7 @@ interface FormErrors {
 export default function OnboardingProfileSetup() {
   const router = useRouter();
   const { user } = useAuth();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<FormData>({
@@ -68,7 +75,7 @@ export default function OnboardingProfileSetup() {
     if (errors.genres) setErrors(prev => ({ ...prev, genres: undefined }));
   };
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
       setErrors(prev => ({ ...prev, avatar: 'Please upload an image file (JPG, PNG, WebP)' }));
       return;
@@ -82,14 +89,14 @@ export default function OnboardingProfileSetup() {
     const reader = new FileReader();
     reader.onload = (e) => setAvatarPreview(e.target?.result as string);
     reader.readAsDataURL(file);
-  };
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file) handleFileSelect(file);
-  }, []);
+  }, [handleFileSelect]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -120,7 +127,6 @@ export default function OnboardingProfileSetup() {
     try {
       let avatarUrl: string | null = null;
 
-      // Upload avatar if provided
       if (avatarFile) {
         const ext = avatarFile.name.split('.').pop();
         const filePath = `${user.id}/avatar.${ext}`;
@@ -129,7 +135,9 @@ export default function OnboardingProfileSetup() {
           .upload(filePath, avatarFile, { upsert: true });
 
         if (uploadError) {
-          console.log('Avatar upload error:', uploadError.message);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Avatar upload error:', uploadError.message);
+          }
         } else {
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
@@ -138,7 +146,6 @@ export default function OnboardingProfileSetup() {
         }
       }
 
-      // Upsert profile data
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -152,26 +159,21 @@ export default function OnboardingProfileSetup() {
         }, { onConflict: 'id' });
 
       if (profileError) {
-        console.error('Profile save error:', profileError.message);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Profile save error:', profileError.message);
+        }
         setErrors({ submit: profileError.message });
         return;
       }
 
       setSuccess(true);
       setTimeout(() => router.push('/dashboard'), 1500);
-    } catch (err: any) {
-      setErrors({ submit: err?.message || 'Something went wrong. Please try again.' });
+    } catch (err: unknown) {
+      setErrors({ submit: err instanceof Error ? err.message : 'Something went wrong. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
-
-  const artistCards = [
-    { initials: 'MJ', name: 'MARCUS JAMES', genre: 'R&B · Soul', score: '9.2', color: '#7C3AED' },
-    { initials: 'AL', name: 'ANA LIMA', genre: 'Pop · Electronic', score: '8.7', color: '#DC2626' },
-    { initials: 'DK', name: 'DJ KURO', genre: 'Hip-Hop · Trap', score: '7.9', color: '#2563EB' },
-    { initials: 'SR', name: 'SOFIA RAMOS', genre: 'Indie · Folk', score: '8.1', color: '#059669' },
-  ];
 
   return (
     <div className="min-h-screen flex">
@@ -245,7 +247,6 @@ export default function OnboardingProfileSetup() {
               Profile Photo <span className="text-gray-300 normal-case tracking-normal font-normal">(optional)</span>
             </label>
             <div className="flex items-center gap-4">
-              {/* Avatar Preview */}
               <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden flex-shrink-0 bg-gray-50 flex items-center justify-center">
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
@@ -255,7 +256,6 @@ export default function OnboardingProfileSetup() {
                   </svg>
                 )}
               </div>
-              {/* Drop Zone */}
               <div
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -263,7 +263,8 @@ export default function OnboardingProfileSetup() {
                 onClick={() => fileInputRef.current?.click()}
                 className={`flex-1 border-2 border-dashed rounded-lg px-4 py-3 cursor-pointer transition-colors text-center ${
                   isDragging
-                    ? 'border-blue-400 bg-blue-50' :'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    ? 'border-blue-400 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 <p className="text-xs text-gray-500">
@@ -354,12 +355,11 @@ export default function OnboardingProfileSetup() {
                     onClick={() => toggleGenre(genre)}
                     className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-all ${
                       selected
-                        ? 'bg-gray-900 text-white border-gray-900' :'bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700'
+                        ? 'bg-gray-900 text-white border-gray-900'
+                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700'
                     }`}
                   >
-                    {selected && (
-                      <span className="mr-1">✓</span>
-                    )}
+                    {selected && <span className="mr-1">✓</span>}
                     {genre}
                   </button>
                 );
@@ -411,7 +411,6 @@ export default function OnboardingProfileSetup() {
 
       {/* Right Panel — Platform Preview */}
       <div className="hidden md:flex flex-1 bg-[#0f0f0f] items-center justify-center relative overflow-hidden">
-        {/* Subtle grid background */}
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -421,7 +420,6 @@ export default function OnboardingProfileSetup() {
           }}
         />
 
-        {/* Floating app mockup */}
         <div
           className="relative z-10"
           style={{
@@ -441,6 +439,7 @@ export default function OnboardingProfileSetup() {
                 <span className="text-[11px] text-gray-400 font-mono">app.pitchhood.com</span>
               </div>
             </div>
+
             <div className="bg-[#111111] px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
@@ -473,7 +472,6 @@ export default function OnboardingProfileSetup() {
           </div>
         </div>
 
-        {/* Ambient glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
