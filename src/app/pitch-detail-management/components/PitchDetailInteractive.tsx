@@ -617,7 +617,7 @@ export default function PitchDetailInteractive() {
               </div>
 
               {/* Notes Section */}
-              <NotesSection initialNotes={mockNotes} />
+              <NotesSection pitchId={pitchData.id} />
             </div>
           </div>
 

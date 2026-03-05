@@ -406,6 +406,77 @@ export const pitchRecipientStore = {
   },
 };
 
+// ─── Pitch Note Store ─────────────────────────────────────────────────────────
+
+export interface PitchNote {
+  id: string;
+  pitchId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function toPitchNote(row: Record<string, unknown>): PitchNote {
+  return {
+    id: row.id as string,
+    pitchId: row.pitch_id as string,
+    userId: row.user_id as string,
+    content: row.content as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export const pitchNoteStore = {
+  async getByPitch(pitchId: string): Promise<PitchNote[]> {
+    const { data, error } = await supabase
+      .from('pitch_notes')
+      .select('*')
+      .eq('pitch_id', pitchId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      if (process.env.NODE_ENV === 'development') console.error('[pitchNoteStore.getByPitch]', error.message);
+      return [];
+    }
+    return (data ?? []).map(toPitchNote);
+  },
+
+  async create(pitchId: string, content: string): Promise<PitchNote | null> {
+    const userId = await getUserId();
+    if (!userId) return null;
+    const { data, error } = await supabase
+      .from('pitch_notes')
+      .insert({ pitch_id: pitchId, user_id: userId, content })
+      .select()
+      .single();
+    if (error) {
+      if (process.env.NODE_ENV === 'development') console.error('[pitchNoteStore.create]', error.message);
+      return null;
+    }
+    return data ? toPitchNote(data) : null;
+  },
+
+  async update(id: string, content: string): Promise<PitchNote | null> {
+    const { data, error } = await supabase
+      .from('pitch_notes')
+      .update({ content, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      if (process.env.NODE_ENV === 'development') console.error('[pitchNoteStore.update]', error.message);
+      return null;
+    }
+    return data ? toPitchNote(data) : null;
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase.from('pitch_notes').delete().eq('id', id);
+    if (error && process.env.NODE_ENV === 'development') console.error('[pitchNoteStore.delete]', error.message);
+  },
+};
+
 // initStore is no longer needed (Supabase handles persistence)
 // Kept as no-op for backwards compatibility if called anywhere
 export function initStore(): void {}

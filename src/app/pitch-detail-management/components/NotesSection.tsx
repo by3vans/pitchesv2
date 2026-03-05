@@ -1,72 +1,75 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Icon from '@/components/ui/AppIcon';
-
-interface Note {
-  id: number;
-  author: string;
-  role: string;
-  content: string;
-  timestamp: string;
-  version: number;
-}
+import { pitchNoteStore } from '@/lib/store';
+import type { PitchNote } from '@/lib/store';
 
 interface NotesSectionProps {
-  initialNotes: Note[];
+  pitchId: string;
 }
 
-// Parse a timestamp string like "02/03/2026 14:30" into a Date for comparison
-function parseTimestamp(ts: string): Date | null {
-  // Try pt-BR format: dd/mm/yyyy hh:mm
-  const match = ts.match(/(\d{2})\/(\d{2})\/(\d{4})(?:[,\s]+(\d{2}):(\d{2}))?/);
-  if (match) {
-    const [, dd, mm, yyyy, hh = '0', min = '0'] = match;
-    return new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min));
-  }
-  // Fallback: native parse
-  const d = new Date(ts);
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso);
+  const day   = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year  = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const mins  = String(d.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} às ${hours}:${mins}`;
+}
+
+function parseTimestamp(iso: string): Date | null {
+  const d = new Date(iso);
   return isNaN(d.getTime()) ? null : d;
 }
 
-export default function NotesSection({ initialNotes }: NotesSectionProps) {
-  const [notes, setNotes] = useState<Note[]>(initialNotes);
+export default function NotesSection({ pitchId }: NotesSectionProps) {
+  const [notes, setNotes] = useState<PitchNote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [newNote, setNewNote] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
   const [activeTab, setActiveTab] = useState<'notes' | 'history'>('notes');
-
-  // Search & date-range filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const handleAddNote = () => {
-    if (!newNote.trim()) return;
-    const note: Note = {
-      id: Date.now(),
-      author: 'Você',
-      role: 'A&R Manager',
-      content: newNote.trim(),
-      timestamp: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      version: notes.length + 1,
-    };
-    setNotes([note, ...notes]);
-    setNewNote('');
+  const fetchNotes = useCallback(async () => {
+    setLoading(true);
+    const data = await pitchNoteStore.getByPitch(pitchId);
+    setNotes(data);
+    setLoading(false);
+  }, [pitchId]);
+
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || saving) return;
+    setSaving(true);
+    const created = await pitchNoteStore.create(pitchId, newNote.trim());
+    if (created) {
+      setNotes((prev) => [created, ...prev]);
+      setNewNote('');
+    }
+    setSaving(false);
   };
 
-  const handleEdit = (note: Note) => {
-    setEditingId(note.id);
-    setEditContent(note.content);
-  };
-
-  const handleSaveEdit = (id: number) => {
-    setNotes(notes.map(n => n.id === id ? { ...n, content: editContent } : n));
+  const handleSaveEdit = async (id: string) => {
+    if (!editContent.trim()) return;
+    const updated = await pitchNoteStore.update(id, editContent.trim());
+    if (updated) {
+      setNotes((prev) => prev.map((n) => n.id === id ? updated : n));
+    }
     setEditingId(null);
   };
 
-  const handleDelete = (id: number) => {
-    setNotes(notes.filter(n => n.id !== id));
+  const handleDelete = async (id: string) => {
+    await pitchNoteStore.delete(id);
+    setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
   const clearFilters = () => {
@@ -77,30 +80,17 @@ export default function NotesSection({ initialNotes }: NotesSectionProps) {
 
   const hasActiveFilters = searchQuery.trim() !== '' || startDate !== '' || endDate !== '';
 
-  // Filtered notes (shared between tabs)
   const filteredNotes = useMemo(() => {
     return notes.filter((note) => {
-      // Text search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matches =
-          note.content.toLowerCase().includes(q) ||
-          note.author.toLowerCase().includes(q) ||
-          note.role.toLowerCase().includes(q);
-        if (!matches) return false;
+        if (!note.content.toLowerCase().includes(q)) return false;
       }
-      // Date range
       if (startDate || endDate) {
-        const noteDate = parseTimestamp(note.timestamp);
+        const noteDate = parseTimestamp(note.createdAt);
         if (!noteDate) return true;
-        if (startDate) {
-          const start = new Date(startDate + 'T00:00:00');
-          if (noteDate < start) return false;
-        }
-        if (endDate) {
-          const end = new Date(endDate + 'T23:59:59');
-          if (noteDate > end) return false;
-        }
+        if (startDate && noteDate < new Date(startDate + 'T00:00:00')) return false;
+        if (endDate && noteDate > new Date(endDate + 'T23:59:59')) return false;
       }
       return true;
     });
@@ -122,223 +112,157 @@ export default function NotesSection({ initialNotes }: NotesSectionProps) {
           </button>
         ))}
         <span className="ml-auto text-xs text-muted-foreground">
-          {hasActiveFilters ? `${filteredNotes.length} of ${notes.length}` : `${notes.length}`} nota{notes.length !== 1 ? 's' : ''}
+          {hasActiveFilters ? `${filteredNotes.length} de ${notes.length}` : `${notes.length}`} nota{notes.length !== 1 ? 's' : ''}
         </span>
       </div>
 
-      {/* ── Search & Date-Range Filters ── */}
+      {/* Search & Date Filters */}
       <div className="space-y-2">
-        {/* Search bar */}
         <div className="relative">
-          <Icon
-            name="MagnifyingGlassIcon"
-            size={14}
-            variant="outline"
-            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ color: 'var(--color-muted-foreground)' }}
-          />
+          <Icon name="MagnifyingGlassIcon" size={14} variant="outline" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-muted-foreground)' }} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search notes by content, author, or role…"
+            placeholder="Buscar nas notas..."
             className="w-full pl-9 pr-8 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]"
-            style={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-foreground)',
-              fontFamily: 'Inter, sans-serif',
-            }}
+            style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}
             aria-label="Search notes"
           />
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded transition-colors hover:bg-muted min-h-[32px] min-w-[32px] flex items-center justify-center"
-              style={{ color: 'var(--color-muted-foreground)' }}
-              aria-label="Clear search"
-            >
+            <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted min-h-[32px] min-w-[32px] flex items-center justify-center" style={{ color: 'var(--color-muted-foreground)' }} aria-label="Clear search">
               <Icon name="XMarkIcon" size={13} variant="outline" />
             </button>
           )}
         </div>
 
-        {/* Date range row — stacks on mobile */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="flex items-center gap-1.5">
-            <label
-              className="text-xs font-medium shrink-0 w-8"
-              style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.65rem' }}
-            >
-              From
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="flex-1 px-3 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]"
-              style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}
-              aria-label="Filter notes from date"
-            />
+            <label className="text-xs font-medium shrink-0 w-8" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.65rem' }}>De</label>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex-1 px-3 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]" style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)' }} aria-label="Filter notes from date" />
           </div>
           <div className="flex items-center gap-1.5">
-            <label
-              className="text-xs font-medium shrink-0 w-8"
-              style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.65rem' }}
-            >
-              To
-            </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 px-3 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]"
-              style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}
-              aria-label="Filter notes to date"
-            />
+            <label className="text-xs font-medium shrink-0 w-8" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.65rem' }}>Até</label>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="flex-1 px-3 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]" style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)' }} aria-label="Filter notes to date" />
           </div>
         </div>
 
-        {/* Clear + active filter indicator row */}
         {hasActiveFilters && (
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'Inter, sans-serif' }}>
-              Showing {filteredNotes.length} of {notes.length} note{notes.length !== 1 ? 's' : ''}
-            </p>
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg border transition-all hover:bg-muted min-h-[36px]"
-              style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted-foreground)', fontFamily: 'Inter, sans-serif' }}
-              aria-label="Clear all filters"
-            >
+            <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Mostrando {filteredNotes.length} de {notes.length}</p>
+            <button onClick={clearFilters} className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg border transition-all hover:bg-muted min-h-[36px]" style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted-foreground)' }}>
               <Icon name="XMarkIcon" size={12} variant="outline" />
-              Clear
+              Limpar
             </button>
           </div>
         )}
       </div>
 
-      {activeTab === 'notes' && (
+      {/* Loading */}
+      {loading ? (
+        <div className="text-center py-8">
+          <svg className="animate-spin h-6 w-6 mx-auto" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-muted-foreground)' }}>
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
+        </div>
+      ) : (
         <>
-          {/* Add Note */}
-          <div className="space-y-2">
-            <textarea
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Adicionar uma nota sobre este pitch..."
-              rows={3}
-              className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-accent transition-all"
-              style={{ borderColor: 'var(--color-border)' }}
-            />
-            <div className="flex justify-end">
-              <button
-                onClick={handleAddNote}
-                disabled={!newNote.trim()}
-                className="pm-btn-primary text-sm px-4 py-2 min-h-[36px] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
-              >
-                <Icon name="PlusIcon" size={14} variant="outline" />
-                Adicionar Nota
-              </button>
-            </div>
-          </div>
-
-          {/* Notes List */}
-          <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-            {filteredNotes.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Icon name="DocumentTextIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" />
-                <p className="text-sm">
-                  {hasActiveFilters ? 'No notes match your search or date range.' : 'Nenhuma nota adicionada ainda.'}
-                </p>
-                {hasActiveFilters && (
+          {activeTab === 'notes' && (
+            <>
+              {/* Add Note */}
+              <div className="space-y-2">
+                <textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAddNote(); }}
+                  placeholder="Adicionar uma nota sobre este pitch... (⌘+Enter para salvar)"
+                  rows={3}
+                  className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-accent transition-all"
+                  style={{ borderColor: 'var(--color-border)' }}
+                />
+                <div className="flex justify-end">
                   <button
-                    onClick={clearFilters}
-                    className="mt-2 text-xs underline"
-                    style={{ color: 'var(--color-muted-foreground)' }}
+                    onClick={handleAddNote}
+                    disabled={!newNote.trim() || saving}
+                    className="pm-btn-primary text-sm px-4 py-2 min-h-[36px] disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Clear filters
+                    <Icon name="PlusIcon" size={14} variant="outline" />
+                    {saving ? 'Salvando...' : 'Adicionar Nota'}
                   </button>
-                )}
-              </div>
-            )}
-            {filteredNotes.map((note) => (
-              <div key={note.id} className="p-4 rounded-lg border bg-muted/20 group" style={{ borderColor: 'var(--color-border)' }}>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <span className="text-sm font-semibold text-foreground">{note.author}</span>
-                    <span className="text-xs text-muted-foreground ml-2">{note.role}</span>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleEdit(note)}
-                      className="p-1.5 rounded hover:bg-muted transition-colors"
-                      aria-label="Editar nota"
-                    >
-                      <Icon name="PencilIcon" size={13} variant="outline" className="text-muted-foreground" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(note.id)}
-                      className="p-1.5 rounded hover:bg-red-50 transition-colors"
-                      aria-label="Excluir nota"
-                    >
-                      <Icon name="TrashIcon" size={13} variant="outline" className="text-red-500" />
-                    </button>
-                  </div>
                 </div>
-                {editingId === note.id ? (
-                  <div className="space-y-2">
-                    <textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 text-sm rounded-lg border bg-white text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-accent"
-                      style={{ borderColor: 'var(--color-border)' }}
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => setEditingId(null)} className="pm-btn-ghost text-xs px-3 py-1.5 min-h-[32px]">Cancelar</button>
-                      <button onClick={() => handleSaveEdit(note.id)} className="pm-btn-primary text-xs px-3 py-1.5 min-h-[32px]">Salvar</button>
-                    </div>
+              </div>
+
+              {/* Notes List */}
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                {filteredNotes.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Icon name="DocumentTextIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" />
+                    <p className="text-sm">{hasActiveFilters ? 'Nenhuma nota encontrada.' : 'Nenhuma nota adicionada ainda.'}</p>
+                    {hasActiveFilters && <button onClick={clearFilters} className="mt-2 text-xs underline" style={{ color: 'var(--color-muted-foreground)' }}>Limpar filtros</button>}
                   </div>
                 ) : (
-                  <p className="text-sm text-foreground leading-relaxed">{note.content}</p>
+                  filteredNotes.map((note) => (
+                    <div key={note.id} className="p-4 rounded-lg border bg-muted/20 group" style={{ borderColor: 'var(--color-border)' }}>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="text-xs text-muted-foreground">{formatTimestamp(note.createdAt)}</p>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => { setEditingId(note.id); setEditContent(note.content); }} className="p-1.5 rounded hover:bg-muted transition-colors" aria-label="Editar nota">
+                            <Icon name="PencilIcon" size={13} variant="outline" className="text-muted-foreground" />
+                          </button>
+                          <button onClick={() => handleDelete(note.id)} className="p-1.5 rounded hover:bg-red-50 transition-colors" aria-label="Excluir nota">
+                            <Icon name="TrashIcon" size={13} variant="outline" className="text-red-500" />
+                          </button>
+                        </div>
+                      </div>
+                      {editingId === note.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 text-sm rounded-lg border bg-white text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-accent"
+                            style={{ borderColor: 'var(--color-border)' }}
+                            autoFocus
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <button onClick={() => setEditingId(null)} className="pm-btn-ghost text-xs px-3 py-1.5 min-h-[32px]">Cancelar</button>
+                            <button onClick={() => handleSaveEdit(note.id)} className="pm-btn-primary text-xs px-3 py-1.5 min-h-[32px]">Salvar</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                      )}
+                    </div>
+                  ))
                 )}
-                <p className="text-xs text-muted-foreground mt-2">{note.timestamp}</p>
               </div>
-            ))}
-          </div>
-        </>
-      )}
+            </>
+          )}
 
-      {activeTab === 'history' && (
-        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-          {filteredNotes.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Icon name="ClockIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" />
-              <p className="text-sm">
-                {hasActiveFilters ? 'No history entries match your search or date range.' : 'No history entries yet.'}
-              </p>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="mt-2 text-xs underline"
-                  style={{ color: 'var(--color-muted-foreground)' }}
-                >
-                  Clear filters
-                </button>
+          {activeTab === 'history' && (
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              {filteredNotes.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Icon name="ClockIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" />
+                  <p className="text-sm">{hasActiveFilters ? 'Nenhum resultado.' : 'Sem histórico ainda.'}</p>
+                </div>
+              ) : (
+                filteredNotes.map((note, idx) => (
+                  <div key={note.id} className="flex items-start gap-3 p-3 rounded-lg border" style={{ borderColor: 'var(--color-border)' }}>
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">
+                      {notes.length - idx}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground line-clamp-2">{note.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formatTimestamp(note.createdAt)}</p>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           )}
-          {filteredNotes.map((note) => (
-            <div key={note.id} className="flex items-start gap-3 p-3 rounded-lg border" style={{ borderColor: 'var(--color-border)' }}>
-              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">
-                v{note.version}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground line-clamp-2">{note.content}</p>
-                <p className="text-xs text-muted-foreground mt-1">{note.author} · {note.timestamp}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        </>
       )}
     </div>
   );
