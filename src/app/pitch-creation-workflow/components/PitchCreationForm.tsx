@@ -18,7 +18,6 @@ import {
   linkStore,
   pitchStore,
   pitchRecipientStore,
-  initStore,
 } from '@/lib/store';
 import type { Artist, Contact, ArtistRecipientLink } from '@/lib/types';
 import { PITCH_STATUSES } from '@/lib/types';
@@ -42,7 +41,7 @@ interface FormData {
   artistId: string;
   pitchTitle: string;
   trackUrl: string;
-  status: 'draft' | 'sent' | 'hold' | 'placed';
+  status: 'draft' | 'new' | 'in_review' | 'approved' | 'rejected';
   notes: string;
   links: LinkEntry[];
 }
@@ -96,9 +95,10 @@ export default function PitchCreationForm() {
   const [confirmRemoveExternal, setConfirmRemoveExternal] = useState<string | null>(null);
 
   useEffect(() => {
-    initStore();
-    setArtists(artistStore.getAll());
-    setIsHydrated(true);
+    artistStore.getAll().then((data) => {
+      setArtists(data);
+      setIsHydrated(true);
+    });
   }, []);
 
   const triggerAutoSave = useCallback(() => {
@@ -120,16 +120,17 @@ export default function PitchCreationForm() {
     a.name.toLowerCase().includes(artistQuery.toLowerCase())
   );
 
-  const handleArtistSelect = (artist: Artist) => {
+  const handleArtistSelect = async (artist: Artist) => {
     setSelectedArtist(artist);
     setArtistQuery(artist.name);
     setArtistDropdownOpen(false);
     setForm((prev) => ({ ...prev, artistId: artist.id }));
     setErrors((prev) => { const e = { ...prev }; delete e.artistId; return e; });
 
-    // Fetch linked recipients
-    const links = linkStore.getByArtist(artist.id);
-    const allContacts = contactStore.getAll();
+    const [links, allContacts] = await Promise.all([
+      linkStore.getByArtist(artist.id),
+      contactStore.getAll(),
+    ]);
     const linked = links
       .map((l) => {
         const contact = allContacts.find((c) => c.id === l.contactId);
@@ -137,7 +138,6 @@ export default function PitchCreationForm() {
       })
       .filter(Boolean) as { contact: Contact; link: ArtistRecipientLink }[];
 
-    // Sort: primary first
     linked.sort((a, b) => (b.link.isPrimary ? 1 : 0) - (a.link.isPrimary ? 1 : 0));
     setLinkedContacts(linked);
     setSelectedContactIds(linked.map((l) => l.contact.id));
@@ -235,9 +235,8 @@ export default function PitchCreationForm() {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Run step-by-step progress, then save
-    runSteps(() => {
-      const pitch = pitchStore.create({
+    runSteps(async () => {
+      const pitch = await pitchStore.create({
         title: form.pitchTitle,
         artistId: form.artistId,
         trackUrl: form.trackUrl,
@@ -245,13 +244,17 @@ export default function PitchCreationForm() {
         notes: form.notes,
       });
 
-      // Save linked contact recipients
+      if (!pitch) {
+        showToast('Failed to create pitch. Please try again.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
       const allRecipientIds = [...selectedContactIds];
 
-      // For external recipients, we create contacts on the fly and add them
       const createdExternalIds: string[] = [];
-      externalRecipients.forEach((ext) => {
-        const newContact = contactStore.create({
+      for (const ext of externalRecipients) {
+        const newContact = await contactStore.create({
           fullName: ext.fullName,
           email: ext.email,
           role: ext.role || 'Other',
@@ -259,14 +262,15 @@ export default function PitchCreationForm() {
           phone: '',
           notes: 'Added as external recipient',
         });
-        createdExternalIds.push(newContact.id);
-      });
+        if (newContact) createdExternalIds.push(newContact.id);
+      }
 
-      pitchRecipientStore.setForPitch(pitch.id, [...allRecipientIds, ...createdExternalIds]);
+      await pitchRecipientStore.setForPitch(pitch.id, [...allRecipientIds, ...createdExternalIds]);
 
       showToast(`Pitch "${form.pitchTitle}" submitted successfully!`, 'success');
       setSavedPitchTitle(form.pitchTitle);
       setSubmitted(true);
+      setIsSubmitting(false);
     });
   };
 

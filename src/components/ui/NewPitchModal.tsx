@@ -18,7 +18,6 @@ import {
   linkStore,
   pitchStore,
   pitchRecipientStore,
-  initStore,
 } from '@/lib/store';
 import type { Artist, Contact, ArtistRecipientLink } from '@/lib/types';
 import { PITCH_STATUSES } from '@/lib/types';
@@ -42,7 +41,7 @@ interface FormData {
   artistId: string;
   pitchTitle: string;
   trackUrl: string;
-  status: 'draft' | 'sent' | 'hold' | 'placed';
+  status: 'draft' | 'new' | 'in_review' | 'approved' | 'rejected';
   notes: string;
   links: LinkEntry[];
 }
@@ -290,10 +289,11 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
   const [templateNameError, setTemplateNameError] = useState('');
 
   useEffect(() => {
-    initStore();
-    setArtists(artistStore.getAll());
-    setTemplates(templateStore.getAll());
-    setIsHydrated(true);
+    artistStore.getAll().then((data) => {
+      setArtists(data);
+      setTemplates(templateStore.getAll());
+      setIsHydrated(true);
+    });
   }, []);
 
   // Lock body scroll when modal is open
@@ -398,26 +398,34 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
       notes: editPitch.notes || '',
       links: [],
     });
-    const artist = artists.find((a) => a.id === editPitch.artistId);
-    if (artist) {
-      setSelectedArtist(artist);
-      setArtistQuery(artist.name);
-      const links = linkStore.getByArtist(artist.id);
-      const allContacts = contactStore.getAll();
-      const linked = links
-        .map((l) => {
-          const contact = allContacts.find((c) => c.id === l.contactId);
-          return contact ? { contact, link: l } : null;
-        })
-        .filter(Boolean) as { contact: Contact; link: ArtistRecipientLink }[];
-      linked.sort((a, b) => (b.link.isPrimary ? 1 : 0) - (a.link.isPrimary ? 1 : 0));
-      setLinkedContacts(linked);
-      const existingRecipients = pitchRecipientStore.getByPitch(editPitch.id);
-      setSelectedContactIds(existingRecipients.map((r) => r.contactId));
-    }
-    // Map stored status back to footerStatus
+    const loadEditArtist = async () => {
+      const artist = artists.find((a) => a.id === editPitch.artistId);
+      if (artist) {
+        setSelectedArtist(artist);
+        setArtistQuery(artist.name);
+        const [links, allContacts] = await Promise.all([
+          linkStore.getByArtist(artist.id),
+          contactStore.getAll(),
+        ]);
+        const linked = links
+          .map((l) => {
+            const contact = allContacts.find((c) => c.id === l.contactId);
+            return contact ? { contact, link: l } : null;
+          })
+          .filter(Boolean) as { contact: Contact; link: ArtistRecipientLink }[];
+        linked.sort((a, b) => (b.link.isPrimary ? 1 : 0) - (a.link.isPrimary ? 1 : 0));
+        setLinkedContacts(linked);
+        const existingRecipients = await pitchRecipientStore.getByPitch(editPitch.id);
+        setSelectedContactIds(existingRecipients.map((r) => r.contactId));
+      }
+    };
+    loadEditArtist();
     const statusMap: Record<string, 'draft' | 'ready' | 'sent'> = {
       draft: 'draft',
+      new: 'draft',
+      in_review: 'ready',
+      approved: 'sent',
+      rejected: 'draft',
       hold: 'ready',
       sent: 'sent',
       placed: 'sent',
@@ -430,15 +438,17 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     a.name.toLowerCase().includes(artistQuery.toLowerCase())
   );
 
-  const handleArtistSelect = (artist: Artist) => {
+  const handleArtistSelect = async (artist: Artist) => {
     setSelectedArtist(artist);
     setArtistQuery(artist.name);
     setArtistDropdownOpen(false);
     setForm((prev) => ({ ...prev, artistId: artist.id }));
     setErrors((prev) => { const e = { ...prev }; delete e.artistId; return e; });
 
-    const links = linkStore.getByArtist(artist.id);
-    const allContacts = contactStore.getAll();
+    const [links, allContacts] = await Promise.all([
+      linkStore.getByArtist(artist.id),
+      contactStore.getAll(),
+    ]);
     const linked = links
       .map((l) => {
         const contact = allContacts.find((c) => c.id === l.contactId);
@@ -572,16 +582,14 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Map footerStatus to PitchStatus
     const pitchStatus: FormData['status'] =
-      footerStatus === 'sent' ? 'sent' : footerStatus === 'ready' ? 'hold' : 'draft';
+      footerStatus === 'sent' ? 'approved' : footerStatus === 'ready' ? 'in_review' : 'draft';
 
-    try {
-      runSteps(() => {
-        let pitch: import('@/lib/types').Pitch;
+    runSteps(async () => {
+      try {
+        let pitch: import('@/lib/types').Pitch | null;
         if (editPitch) {
-          // Update existing pitch
-          const updated = pitchStore.update(editPitch.id, {
+          pitch = await pitchStore.update(editPitch.id, {
             title: form.pitchTitle,
             artistId: form.artistId,
             trackUrl: form.trackUrl,
@@ -590,14 +598,8 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
               ? `${form.notes ? form.notes + '\n\n' : ''}⏰ Follow-up reminder set for ${reminderDays} days after creation.`
               : form.notes,
           });
-          if (!updated) {
-            showToast('Failed to update pitch. Please try again.', 'error');
-            setIsSubmitting(false);
-            return;
-          }
-          pitch = updated;
         } else {
-          pitch = pitchStore.create({
+          pitch = await pitchStore.create({
             title: form.pitchTitle,
             artistId: form.artistId,
             trackUrl: form.trackUrl,
@@ -608,10 +610,16 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
           });
         }
 
+        if (!pitch) {
+          showToast('Failed to save pitch. Please try again.', 'error');
+          setIsSubmitting(false);
+          return;
+        }
+
         const allRecipientIds = [...selectedContactIds];
         const createdExternalIds: string[] = [];
-        externalRecipients.forEach((ext) => {
-          const newContact = contactStore.create({
+        for (const ext of externalRecipients) {
+          const newContact = await contactStore.create({
             fullName: ext.fullName,
             email: ext.email,
             role: ext.role || 'Other',
@@ -619,10 +627,10 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
             phone: '',
             notes: 'Added as external recipient',
           });
-          createdExternalIds.push(newContact.id);
-        });
+          if (newContact) createdExternalIds.push(newContact.id);
+        }
 
-        pitchRecipientStore.setForPitch(pitch.id, [...allRecipientIds, ...createdExternalIds]);
+        await pitchRecipientStore.setForPitch(pitch.id, [...allRecipientIds, ...createdExternalIds]);
 
         const totalRecipients = allRecipientIds.length + createdExternalIds.length;
         const reminderDate = reminderEnabled
@@ -636,11 +644,11 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
         setConfirmedAt(new Date().toISOString());
         setSubmitted(true);
         setIsSubmitting(false);
-      });
-    } catch (error) {
-      showToast('Failed to submit pitch. Please try again.', 'error');
-      setIsSubmitting(false);
-    }
+      } catch (error) {
+        showToast('Failed to submit pitch. Please try again.', 'error');
+        setIsSubmitting(false);
+      }
+    });
   };
 
   const inputClass = (field: string) =>
@@ -1428,7 +1436,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                     <>
                       <svg className="animate-spin" style={{ width: 16, height: 16 }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a10 10 0 0110-10V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
                       {editPitch ? 'Saving…' : 'Sending…'}
                     </>

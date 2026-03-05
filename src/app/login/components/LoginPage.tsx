@@ -78,9 +78,7 @@ export default function LoginPage() {
     setAuthError(null);
     setGoogleLoading(true);
     try {
-      const redirectTo = `https://pitchhood.vercel.app/auth/callback`;
-      console.log('[LoginPage] handleGoogleAuth called');
-      console.log('[LoginPage] redirectTo URL:', redirectTo);
+      const redirectTo = `${window.location.origin}/auth/callback`;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -93,17 +91,10 @@ export default function LoginPage() {
         },
       });
 
-      console.log('[LoginPage] signInWithOAuth response data:', data);
-      console.log('[LoginPage] signInWithOAuth error:', error);
-
       if (error) {
-        console.error('[LoginPage] OAuth error:', error.message, error);
         throw error;
       }
-
-      console.log('[LoginPage] OAuth initiated — browser should redirect to Google now');
     } catch (err: any) {
-      console.error('[LoginPage] handleGoogleAuth catch block:', err);
       setAuthError(getOAuthErrorMessage(err));
       setGoogleLoading(false);
     }
@@ -118,6 +109,11 @@ export default function LoginPage() {
         await signIn(email, password);
         router.push('/dashboard');
       } else {
+        if (password.length < 8) {
+          setAuthError({ message: 'Password must be at least 8 characters.', type: 'credentials' });
+          setLoading(false);
+          return;
+        }
         await signUp(email, password);
         router.push('/onboarding-profile-setup');
       }
@@ -179,7 +175,7 @@ export default function LoginPage() {
           Welcome back.
         </h1>
         <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-          Manage your A&amp;R pipeline, review pitches, and discover the next big artist.
+          Track every pitch you send to labels, A&amp;Rs, and managers — all in one place.
         </p>
 
         {/* Tab Toggle */}
@@ -367,7 +363,7 @@ export default function LoginPage() {
             <div className="bg-[#111111] px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
-                <span className="text-[10px] text-gray-500">A&amp;R Pipeline</span>
+                <span className="text-[10px] text-gray-500">Pitch Pipeline</span>
               </div>
               <div className="space-y-2">
                 {artistCards.map((artist) => (

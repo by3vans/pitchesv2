@@ -14,9 +14,6 @@ import ShortcutsHelpModal from '@/components/ui/ShortcutsHelpModal';
 import NewPitchModal from '@/components/ui/NewPitchModal';
 import { createClient } from '@/lib/supabase/client';
 
-import { pitchStore, artistStore, initStore } from '@/lib/store';
-import type { Pitch as StoredPitch } from '@/lib/types';
-
 type StatusType = 'novo' | 'em_analise' | 'aprovado' | 'rejeitado' | 'pendente' | 'arquivado';
 
 interface Pitch {
@@ -55,6 +52,8 @@ const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
 // Map Supabase pitch status to display StatusType
 const DB_STATUS_MAP: Record<string, StatusType> = {
   draft: 'novo',
+  new: 'novo',
+  in_review: 'em_analise',
   sent: 'em_analise',
   hold: 'pendente',
   placed: 'aprovado',
@@ -231,13 +230,7 @@ function storedToDisplay(p: StoredPitch, artistName: string): Pitch {
 }
 
 function loadPitchesFromStore(): Pitch[] {
-  initStore();
-  const stored = pitchStore.getAll();
-  const artists = artistStore.getAll();
-  return stored.map((p) => {
-    const artist = artists.find((a) => a.id === p.artistId);
-    return storedToDisplay(p, artist?.name ?? 'Unknown Artist');
-  });
+  return [];
 }
 
 interface PaginationProps {
@@ -683,20 +676,15 @@ export default function PitchesInteractive() {
   };
 
   const handleEditPitch = (pitch: Pitch) => {
-    const stored = pitchStore.getById(pitch.id);
-    if (stored) {
-      setEditingPitch(stored);
-    } else {
-      setEditingPitch({
-        id: pitch.id,
-        title: pitch.title,
-        artistId: '',
-        trackUrl: '',
-        status: 'draft',
-        notes: pitch.description || '',
-        createdAt: pitch.submittedAt
-      });
-    }
+    setEditingPitch({
+      id: pitch.id,
+      title: pitch.title,
+      artistId: '',
+      trackUrl: '',
+      status: 'draft',
+      notes: pitch.description || '',
+      createdAt: pitch.submittedAt
+    });
     setIsEditModalOpen(true);
   };
 

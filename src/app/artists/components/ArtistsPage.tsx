@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
-import { artistStore, contactStore, linkStore, initStore } from '@/lib/store';
+import { artistStore, contactStore, linkStore } from '@/lib/store';
 import type { Artist, Contact, ArtistRecipientLink } from '@/lib/types';
 import { RELATIONSHIP_TYPES } from '@/lib/types';
 import { useToast } from '@/components/ui/Toast';
@@ -23,18 +23,26 @@ function ArtistModal({ artist, onClose, onSave }: ArtistModalProps) {
   const [name, setName] = useState(artist?.name ?? '');
   const [notes, setNotes] = useState(artist?.notes ?? '');
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
   const [showSpotify, setShowSpotify] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { setError('Name is required'); return; }
-    if (artist) {
-      artistStore.update(artist.id, { name: name.trim(), notes });
-    } else {
-      artistStore.create({ name: name.trim(), notes });
+    setSaving(true);
+    try {
+      if (artist) {
+        await artistStore.update(artist.id, { name: name.trim(), notes });
+      } else {
+        await artistStore.create({ name: name.trim(), notes });
+      }
+      onSave();
+      onClose();
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to save artist');
+    } finally {
+      setSaving(false);
     }
-    onSave();
-    onClose();
   };
 
   const handleSpotifySelect = (data: any) => {
@@ -54,11 +62,7 @@ function ArtistModal({ artist, onClose, onSave }: ArtistModalProps) {
               type="button"
               onClick={() => setShowSpotify(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-              style={{
-                background: '#1DB954',
-                color: 'white',
-                border: 'none',
-              }}
+              style={{ background: '#1DB954', color: 'white', border: 'none' }}
               title="Fetch artist metadata from Spotify"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="white" aria-hidden="true">
@@ -94,15 +98,17 @@ function ArtistModal({ artist, onClose, onSave }: ArtistModalProps) {
             />
           </div>
           <div className="flex gap-2 justify-end pt-2">
-            <button type="button" onClick={onClose} className="pm-btn">Cancel</button>
-            <button type="submit" className="pm-btn-primary">Save</button>
+            <button type="button" onClick={onClose} className="pm-btn" disabled={saving}>Cancel</button>
+            <button type="submit" className="pm-btn-primary" disabled={saving}>
+              {saving ? 'Saving...' : 'Save'}
+            </button>
           </div>
         </form>
       </div>
       {showSpotify && (
         <SpotifyArtistSearch
           initialQuery={name}
-          onSelect={handleSpotifySelect}
+          onSelect={(data: { name?: string }) => { if (data?.name) { setName(data.name); setShowSpotify(false); } }}
           onClose={() => setShowSpotify(false)}
         />
       )}
@@ -118,20 +124,32 @@ interface LinkModalProps {
 }
 
 function LinkModal({ artistId, existingContactIds, onClose, onSave }: LinkModalProps) {
-  const [contacts] = useState<Contact[]>(() => contactStore.getAll());
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactId, setContactId] = useState('');
   const [relType, setRelType] = useState<string>(RELATIONSHIP_TYPES[0]);
   const [isPrimary, setIsPrimary] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    contactStore.getAll().then(setContacts);
+  }, []);
 
   const available = contacts.filter((c) => !existingContactIds.includes(c.id));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactId) { setError('Select a contact'); return; }
-    linkStore.create({ artistId, contactId, relationshipType: relType, isPrimary });
-    onSave();
-    onClose();
+    setSaving(true);
+    try {
+      await linkStore.create({ artistId, contactId, relationshipType: relType, isPrimary });
+      onSave();
+      onClose();
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to add recipient');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -191,9 +209,10 @@ function ArtistDetail({ artist, onEdit, onDelete, onBack }: ArtistDetailProps) {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [confirmRemoveLink, setConfirmRemoveLink] = useState<{ linkId: string; contactName: string } | null>(null);
 
-  const refresh = () => {
-    setLinks(linkStore.getByArtist(artist.id));
-    setContacts(contactStore.getAll());
+  const refresh = async () => {
+    const [l, c] = await Promise.all([linkStore.getByArtist(artist.id), contactStore.getAll()]);
+    setLinks(l);
+    setContacts(c);
   };
 
   useEffect(() => { refresh(); }, [artist.id]);
@@ -245,7 +264,7 @@ function ArtistDetail({ artist, onEdit, onDelete, onBack }: ArtistDetailProps) {
         ) : (
           <div className="space-y-2">
             {links.map((link) => {
-              const contact = getContact(link.contactId);
+              const contact = contacts.find((c) => c.id === link.contactId);
               if (!contact) return null;
               return (
                 <div key={link.id} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg" style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
@@ -261,7 +280,7 @@ function ArtistDetail({ artist, onEdit, onDelete, onBack }: ArtistDetailProps) {
                   </div>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => { linkStore.update(link.id, { isPrimary: !link.isPrimary }); refresh(); }}
+                      onClick={async () => { await linkStore.update(link.id, { isPrimary: !link.isPrimary }); refresh(); }}
                       className="pm-btn p-1.5"
                       title={link.isPrimary ? 'Remove primary' : 'Set primary'}
                     >
@@ -300,7 +319,7 @@ function ArtistDetail({ artist, onEdit, onDelete, onBack }: ArtistDetailProps) {
           title="Remove Recipient"
           message={`Remove <strong>${confirmRemoveLink.contactName}</strong> from this artist's recipients? This won't delete the contact.`}
           confirmLabel="Remove"
-          onConfirm={() => { linkStore.delete(confirmRemoveLink.linkId); refresh(); setConfirmRemoveLink(null); }}
+          onConfirm={async () => { await linkStore.delete(confirmRemoveLink.linkId); refresh(); setConfirmRemoveLink(null); }}
           onCancel={() => setConfirmRemoveLink(null)}
         />
       )}
@@ -458,16 +477,15 @@ export default function ArtistsPage() {
 
   const prevSearchRef = useRef(search);
 
-  const refresh = () => setArtists(artistStore.getAll());
+  const refresh = async () => {
+    const data = await artistStore.getAll();
+    setArtists(data);
+  };
 
   useEffect(() => {
-    initStore();
-    refresh();
-    const timer = setTimeout(() => setIsLoading(false), 700);
-    return () => clearTimeout(timer);
+    refresh().finally(() => setIsLoading(false));
   }, []);
 
-  // Trigger skeleton on search change
   useEffect(() => {
     if (prevSearchRef.current !== search && !isLoading) {
       setIsSearchLoading(true);
@@ -488,19 +506,17 @@ export default function ArtistsPage() {
 
   const handleEdit = (artist: Artist) => { setEditTarget(artist); setShowModal(true); };
   const handleNew = () => { setEditTarget(null); setShowModal(true); };
-  const handleDelete = (a: Artist) => {
-    setDeleteTarget(a);
-  };
-  const confirmDelete = () => {
+  const handleDelete = (a: Artist) => { setDeleteTarget(a); };
+
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
-    artistStore.delete(deleteTarget.id);
+    await artistStore.delete(deleteTarget.id);
     if (selected?.id === deleteTarget.id) setSelected(null);
-    refresh();
+    await refresh();
     showToast(`Artist "${deleteTarget.name}" deleted`, 'info');
     setDeleteTarget(null);
   };
 
-  // Multi-select handlers
   const toggleSelect = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedIds((prev) => {
@@ -522,12 +538,11 @@ export default function ArtistsPage() {
 
   const handleBulkDelete = async () => {
     setIsBulkDeleting(true);
-    await new Promise((r) => setTimeout(r, 600));
-    selectedIds.forEach((id) => {
-      artistStore.delete(id);
+    for (const id of Array.from(selectedIds)) {
+      await artistStore.delete(id);
       if (selected?.id === id) setSelected(null);
-    });
-    refresh();
+    }
+    await refresh();
     showToast(`${selectedIds.size} artist${selectedIds.size !== 1 ? 's' : ''} deleted`, 'info');
     setSelectedIds(new Set());
     setShowBulkDeleteConfirm(false);
@@ -552,16 +567,8 @@ export default function ArtistsPage() {
     setSelectedIds(new Set());
   };
 
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-    setCurrentPage(1);
-    setSelectedIds(new Set());
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    setSelectedIds(new Set());
-  };
+  const handlePageSizeChange = (size: number) => { setPageSize(size); setCurrentPage(1); setSelectedIds(new Set()); };
+  const handlePageChange = (page: number) => { setCurrentPage(page); setSelectedIds(new Set()); };
 
   const showSkeleton = isLoading || isSearchLoading;
   const selectionMode = selectedIds.size > 0;
@@ -822,8 +829,8 @@ export default function ArtistsPage() {
         <ArtistModal
           artist={editTarget}
           onClose={() => setShowModal(false)}
-          onSave={() => {
-            refresh();
+          onSave={async () => {
+            await refresh();
             showToast(editTarget ? `Artist "${editTarget.name}" updated` : 'Artist added successfully', 'success');
           }}
         />

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
 import { artistStore, contactStore, pitchStore, pitchRecipientStore } from '@/lib/store';
+import type { Artist, Contact, Pitch } from '@/lib/types';
 
 export type SuggestionType = 'inactive-contact' | 'unreleased-tracks' | 'similar-placement';
 
@@ -29,25 +30,26 @@ export interface Suggestion {
   };
 }
 
-function generateSuggestions(filterArtistId?: string): Suggestion[] {
+async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[]> {
   const suggestions: Suggestion[] = [];
 
-  const artists = artistStore.getAll();
-  const contacts = contactStore.getAll();
-  const pitches = pitchStore.getAll();
-  const recipients = pitchRecipientStore.getAll();
+  const [artists, contacts, pitches, recipients] = await Promise.all([
+    artistStore.getAll(),
+    contactStore.getAll(),
+    pitchStore.getAll(),
+    pitchRecipientStore.getAll(),
+  ]);
 
   const now = Date.now();
   const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
 
-  // Suggestion 1: Inactive contacts (haven't been pitched in 3+ months)
+  // Suggestion 1: Inactive contacts
   contacts.forEach((contact) => {
     const contactPitchIds = recipients
       .filter((r) => r.contactId === contact.id)
       .map((r) => r.pitchId);
 
     if (contactPitchIds.length === 0) {
-      // Never pitched
       suggestions.push({
         id: `inactive-${contact.id}`,
         type: 'inactive-contact',
@@ -86,7 +88,7 @@ function generateSuggestions(filterArtistId?: string): Suggestion[] {
     }
   });
 
-  // Suggestion 2: Artists with no recent pitches (unreleased tracks angle)
+  // Suggestion 2: Artists with no recent pitches
   const targetArtists = filterArtistId
     ? artists.filter((a) => a.id === filterArtistId)
     : artists;
@@ -126,7 +128,7 @@ function generateSuggestions(filterArtistId?: string): Suggestion[] {
   });
 
   // Suggestion 3: Similar artist placements
-  const placedPitches = pitches.filter((p) => p.status === 'placed');
+  const placedPitches = pitches.filter((p) => p.status === 'approved');
   placedPitches.forEach((placed) => {
     const placedArtist = artists.find((a) => a.id === placed.artistId);
     if (!placedArtist) return;
@@ -134,11 +136,10 @@ function generateSuggestions(filterArtistId?: string): Suggestion[] {
     const placedRecipients = recipients
       .filter((r) => r.pitchId === placed.id)
       .map((r) => contacts.find((c) => c.id === r.contactId))
-      .filter(Boolean);
+      .filter(Boolean) as Contact[];
 
     if (placedRecipients.length === 0) return;
 
-    // Find artists with same genre who haven't been pitched to these contacts
     const similarArtists = artists.filter(
       (a) =>
         a.id !== placedArtist.id &&
@@ -166,7 +167,6 @@ function generateSuggestions(filterArtistId?: string): Suggestion[] {
     });
   });
 
-  // Deduplicate by id
   const seen = new Set<string>();
   return suggestions.filter((s) => {
     if (seen.has(s.id)) return false;
@@ -176,13 +176,9 @@ function generateSuggestions(filterArtistId?: string): Suggestion[] {
 }
 
 interface SmartSuggestionsProps {
-  /** If provided, filters suggestions relevant to this artist */
   artistId?: string;
-  /** Max number of suggestions to show at once */
   maxVisible?: number;
-  /** Context label shown in the kicker */
   context?: string;
-  /** Called when user clicks a 'Pitch now' action; receives optional artist/contact context */
   onPitchNow?: (context: { artistId?: string; contactId?: string }) => void;
 }
 
@@ -191,10 +187,8 @@ export default function SmartSuggestions({ artistId, maxVisible = 3, context = '
   const [refreshKey, setRefreshKey] = useState(0);
   const [allSuggestions, setAllSuggestions] = useState<Suggestion[]>([]);
 
-  // Generate suggestions only on the client to avoid SSR/hydration mismatch
-  // (generateSuggestions uses Date.now() which differs between server and client)
   useEffect(() => {
-    setAllSuggestions(generateSuggestions(artistId));
+    generateSuggestions(artistId).then(setAllSuggestions);
   }, [artistId, refreshKey]);
 
   const visible = allSuggestions.filter((s) => !dismissed.has(s.id)).slice(0, maxVisible);

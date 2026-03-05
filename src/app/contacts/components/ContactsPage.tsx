@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
-import { contactStore, initStore } from '@/lib/store';
+import { contactStore } from '@/lib/store';
 import type { Contact } from '@/lib/types';
 import { CONTACT_ROLES } from '@/lib/types';
 import { useToast } from '@/components/ui/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import { enqueueAction } from '@/hooks/useOfflineQueue';
 
 interface ContactModalProps {
   contact: Contact | null;
@@ -26,6 +25,8 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
     notes: contact?.notes ?? '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const update = (k: keyof typeof form, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -53,34 +54,24 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
-    if (!navigator.onLine) {
-      enqueueAction({
-        type: 'contact_save',
-        label: `${contact ? 'Update' : 'Create'} contact "${form.fullName.trim()}"`,
-        payload: { contactId: contact?.id, ...form },
-      });
-      // Still save locally (localStorage store works offline)
+    setSaving(true);
+    setSaveError('');
+    try {
       if (contact) {
-        contactStore.update(contact.id, form);
+        await contactStore.update(contact.id, form);
       } else {
-        contactStore.create(form);
+        await contactStore.create(form);
       }
       onSave();
       onClose();
-      return;
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save contact');
+    } finally {
+      setSaving(false);
     }
-
-    if (contact) {
-      contactStore.update(contact.id, form);
-    } else {
-      contactStore.create(form);
-    }
-    onSave();
-    onClose();
   };
 
   return (
@@ -97,6 +88,9 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
             <Icon name="XMarkIcon" size={18} variant="outline" />
           </button>
         </div>
+        {saveError && (
+          <div className="mb-4 px-3 py-2 rounded-lg text-sm text-red-700 bg-red-50 border border-red-200">{saveError}</div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
@@ -177,6 +171,7 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
               onClick={onClose}
               className="pm-btn focus:ring-2 focus:ring-blue-500 focus:outline-none"
               tabIndex={7}
+              disabled={saving}
             >
               Cancel
             </button>
@@ -184,8 +179,9 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
               type="submit"
               className="pm-btn-primary focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
               tabIndex={8}
+              disabled={saving}
             >
-              Save
+              {saving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </form>
@@ -237,13 +233,13 @@ export default function ContactsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { showToast } = useToast();
 
-  const refresh = () => setContacts(contactStore.getAll());
+  const refresh = async () => {
+    const data = await contactStore.getAll();
+    setContacts(data);
+  };
 
   useEffect(() => {
-    initStore();
-    refresh();
-    const timer = setTimeout(() => setIsLoading(false), 700);
-    return () => clearTimeout(timer);
+    refresh().finally(() => setIsLoading(false));
   }, []);
 
   const filtered = contacts.filter((c) => {
@@ -255,13 +251,12 @@ export default function ContactsPage() {
 
   const handleEdit = (c: Contact) => { setEditTarget(c); setShowModal(true); };
   const handleNew = () => { setEditTarget(null); setShowModal(true); };
-  const handleDelete = (c: Contact) => {
-    setDeleteTarget(c);
-  };
-  const confirmDelete = () => {
+  const handleDelete = (c: Contact) => { setDeleteTarget(c); };
+
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
-    contactStore.delete(deleteTarget.id);
-    refresh();
+    await contactStore.delete(deleteTarget.id);
+    await refresh();
     showToast(`Contact "${deleteTarget.fullName}" deleted`, 'info');
     setDeleteTarget(null);
   };
@@ -297,13 +292,8 @@ export default function ContactsPage() {
           {isLoading ? (
             <ContactTableSkeleton />
           ) : filtered.length === 0 ? (
-            <div
-              className="pm-panel flex flex-col items-center justify-center py-20 text-center"
-            >
-              <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-                style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
-              >
+            <div className="pm-panel flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
                 <Icon name="UsersIcon" size={36} variant="outline" style={{ color: 'var(--color-muted-foreground)' }} />
               </div>
               {search || roleFilter ? (
@@ -365,8 +355,8 @@ export default function ContactsPage() {
         <ContactModal
           contact={editTarget}
           onClose={() => setShowModal(false)}
-          onSave={() => {
-            refresh();
+          onSave={async () => {
+            await refresh();
             showToast(editTarget ? `Contact "${editTarget.fullName}" updated` : 'Contact added successfully', 'success');
           }}
         />

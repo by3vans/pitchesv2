@@ -7,13 +7,19 @@ import { createClient } from '@/lib/supabase/client';
 
 const PITCH_STATUSES = [
   { value: 'draft', label: 'Draft' },
-  { value: 'sent', label: 'Sent' },
-  { value: 'hold', label: 'Hold' },
-  { value: 'placed', label: 'Placed' },
+  { value: 'new', label: 'New' },
+  { value: 'in_review', label: 'In Review' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
 ];
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   draft: { bg: 'var(--color-muted)', text: 'var(--color-muted-foreground)' },
+  new: { bg: '#dbeafe', text: '#1d4ed8' },
+  in_review: { bg: '#fef3c7', text: '#92400e' },
+  approved: { bg: '#d1fae5', text: '#065f46' },
+  rejected: { bg: '#fee2e2', text: '#991b1b' },
+  // legacy fallbacks
   sent: { bg: '#dbeafe', text: '#1d4ed8' },
   hold: { bg: '#fef3c7', text: '#92400e' },
   placed: { bg: '#d1fae5', text: '#065f46' },

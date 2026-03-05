@@ -49,11 +49,14 @@ function getInitials(name: string): string {
 
 const statusConfig: Record<string, { label: string; bg: string; color: string; icon: string }> = {
   draft: { label: 'Draft', bg: '#f3f4f6', color: '#374151', icon: 'DocumentIcon' },
-  submitted: { label: 'Submitted', bg: '#eff6ff', color: '#1d4ed8', icon: 'PaperAirplaneIcon' },
+  new: { label: 'New', bg: '#eff6ff', color: '#1d4ed8', icon: 'PaperAirplaneIcon' },
+  in_review: { label: 'In Review', bg: '#fef3c7', color: '#92400e', icon: 'EnvelopeIcon' },
   approved: { label: 'Approved', bg: '#d1fae5', color: '#065f46', icon: 'CheckCircleIcon' },
-  sent: { label: 'Sent', bg: '#fef3c7', color: '#92400e', icon: 'EnvelopeIcon' },
+  rejected: { label: 'Rejected', bg: '#fee2e2', color: '#991b1b', icon: 'XCircleIcon' },
+  submitted: { label: 'Submitted', bg: '#eff6ff', color: '#1d4ed8', icon: 'PaperAirplaneIcon' },
   added: { label: 'Added', bg: '#f3e8ff', color: '#6b21a8', icon: 'PlusCircleIcon' },
   placed: { label: 'Placed', bg: '#dcfce7', color: '#14532d', icon: 'StarIcon' },
+  sent: { label: 'Sent', bg: '#fef3c7', color: '#92400e', icon: 'EnvelopeIcon' },
   hold: { label: 'Hold', bg: '#fef3c7', color: '#92400e', icon: 'PauseCircleIcon' },
 };
 
@@ -134,11 +137,13 @@ export default function DashboardPage() {
         const artist = artistList.find((a) => a.id === p.artist_id);
         const artistName = artist?.name ?? 'Unknown Artist';
         const statusMap: Record<string, ActivityItem['status']> = {
-          placed: 'placed',
           approved: 'approved',
-          sent: 'sent',
-          submitted: 'submitted',
+          new: 'submitted',
+          in_review: 'sent',
           draft: 'draft',
+          placed: 'placed',
+          rejected: 'submitted',
+          sent: 'sent',
           hold: 'sent',
         };
         return {
@@ -159,7 +164,7 @@ export default function DashboardPage() {
         if (!p.artist_id) return;
         if (!artistPitchMap[p.artist_id]) artistPitchMap[p.artist_id] = { total: 0, placed: 0 };
         artistPitchMap[p.artist_id].total++;
-        if (p.status === 'placed') artistPitchMap[p.artist_id].placed++;
+        if (p.status === 'approved') artistPitchMap[p.artist_id].placed++;
       });
 
       const top: TopArtist[] = artistList

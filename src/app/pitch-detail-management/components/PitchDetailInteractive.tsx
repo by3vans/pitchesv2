@@ -11,7 +11,7 @@ import PitchMetadata from './PitchMetadata';
 import NotesSection from './NotesSection';
 import ExternalLinks from './ExternalLinks';
 import StatusWorkflow from './StatusWorkflow';
-import { initStore, pitchRecipientStore, contactStore, artistStore, pitchStore } from '@/lib/store';
+import { pitchRecipientStore, contactStore, artistStore, pitchStore } from '@/lib/store';
 import type { Contact, Artist } from '@/lib/types';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import ShortcutsHelpModal from '@/components/ui/ShortcutsHelpModal';
@@ -141,6 +141,10 @@ const statusOptions: {value: PitchStatus;label: string;}[] = [
 function mapStoreStatusToDisplay(status: string): PitchStatus {
   const map: Record<string, PitchStatus> = {
     draft: 'novo',
+    new: 'novo',
+    in_review: 'em_analise',
+    approved: 'aprovado',
+    rejected: 'rejeitado',
     sent: 'em_analise',
     hold: 'pendente',
     placed: 'aprovado'
@@ -264,76 +268,68 @@ export default function PitchDetailInteractive() {
 
   useEffect(() => {
     setLoadState('loading');
-    try {
-      initStore();
 
-      const resolvedId = pitchId || 'p1';
-      const pitch = pitchStore.getById(resolvedId);
+    const loadPitch = async () => {
+      try {
+        const resolvedId = pitchId || null;
 
-      if (pitch) {
-        const artist = artistStore.getById(pitch.artistId);
-        setPitchArtist(artist);
+        if (resolvedId) {
+          const pitch = await pitchStore.getById(resolvedId);
 
-        const createdDate = new Date(pitch.createdAt).toLocaleDateString('pt-BR');
-        const displayStatus = mapStoreStatusToDisplay(pitch.status);
+          if (pitch) {
+            const artist = await artistStore.getById(pitch.artistId);
+            setPitchArtist(artist);
 
-        setPitchData({
-          id: pitch.id,
-          title: pitch.title,
-          artist: artist?.name || 'Artista desconhecido',
-          genre: artist?.genre || '—',
-          label: '—',
-          status: displayStatus,
-          submissionDate: createdDate,
-          tags: [],
-          contact: { phone: '—', email: '—', address: '—' },
-          imageUrl: 'https://img.rocket.new/generatedImages/rocket_gen_img_18514a9a5-1772212833651.png',
-          imageAlt: `Artist profile image for ${artist?.name || 'unknown artist'}`,
-          description: pitch.notes || 'Sem descrição disponível.'
-        });
-        setCurrentStatus(displayStatus);
+            const createdDate = new Date(pitch.createdAt).toLocaleDateString('pt-BR');
+            const displayStatus = mapStoreStatusToDisplay(pitch.status);
 
-        const pitchRecipients = pitchRecipientStore.getByPitch(resolvedId);
-        const entries: RecipientEntry[] = pitchRecipients.
-        map((pr) => {
-          const contact = contactStore.getById(pr.contactId);
-          if (!contact) return null;
-          return {
-            contact,
-            artist,
-            relationshipType: pr.contactId,
-            isPrimary: false
-          } as RecipientEntry;
-        }).
-        filter(Boolean) as RecipientEntry[];
-        setRecipients(entries);
-        setLoadState('found');
-      } else if (pitchId) {
-        // Explicit ID provided but pitch not found
-        setLoadState('not-found');
-      } else {
-        // No ID — use fallback (default view)
-        const pitchRecipients = pitchRecipientStore.getByPitch('p1');
-        const entries: RecipientEntry[] = pitchRecipients.
-        map((pr) => {
-          const contact = contactStore.getById(pr.contactId);
-          if (!contact) return null;
-          const fallbackArtist = artistStore.getById('a1');
-          return {
-            contact,
-            artist: fallbackArtist,
-            relationshipType: pr.contactId,
-            isPrimary: false
-          } as RecipientEntry;
-        }).
-        filter(Boolean) as RecipientEntry[];
-        setRecipients(entries);
-        setLoadState('found');
+            setPitchData({
+              id: pitch.id,
+              title: pitch.title,
+              artist: artist?.name || 'Artista desconhecido',
+              genre: artist?.genre || '—',
+              label: '—',
+              status: displayStatus,
+              submissionDate: createdDate,
+              tags: [],
+              contact: { phone: '—', email: '—', address: '—' },
+              imageUrl: 'https://img.rocket.new/generatedImages/rocket_gen_img_18514a9a5-1772212833651.png',
+              imageAlt: `Artist profile image for ${artist?.name || 'unknown artist'}`,
+              description: pitch.notes || 'Sem descrição disponível.'
+            });
+            setCurrentStatus(displayStatus);
+
+            const pitchRecipients = await pitchRecipientStore.getByPitch(resolvedId);
+            const entries: RecipientEntry[] = (
+              await Promise.all(
+                pitchRecipients.map(async (pr) => {
+                  const contact = await contactStore.getById(pr.contactId);
+                  if (!contact) return null;
+                  return {
+                    contact,
+                    artist,
+                    relationshipType: pr.contactId,
+                    isPrimary: false,
+                  } as RecipientEntry;
+                })
+              )
+            ).filter(Boolean) as RecipientEntry[];
+            setRecipients(entries);
+            setLoadState('found');
+          } else {
+            setLoadState('not-found');
+          }
+        } else {
+          // No ID — show fallback
+          setLoadState('found');
+        }
+      } catch {
+        setLoadState('error');
+        showToast('Failed to load pitch data. Please retry.', 'error');
       }
-    } catch {
-      setLoadState('error');
-      showToast('Failed to load pitch data. Please retry.', 'error');
-    }
+    };
+
+    loadPitch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pitchId, retryKey]);
 

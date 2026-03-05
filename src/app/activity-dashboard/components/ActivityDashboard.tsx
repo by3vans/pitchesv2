@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
 import { getQueue, QueuedAction } from '@/hooks/useOfflineQueue';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,90 +55,6 @@ function minutesAgo(n: number): string {
 function hoursAgo(n: number): string {
   return formatTs(Date.now() - n * 60 * 60 * 1000);
 }
-
-const PITCH_STEPS: ProgressStep[] = [
-  { id: 'uploading', label: 'Uploading assets', status: 'done', timestamp: minutesAgo(12) },
-  { id: 'validating', label: 'Validating fields', status: 'done', timestamp: minutesAgo(11) },
-  { id: 'saving', label: 'Saving pitch record', status: 'done', timestamp: minutesAgo(10) },
-  { id: 'syncing', label: 'Syncing to server', status: 'done', timestamp: minutesAgo(10) },
-];
-
-const ARTIST_STEPS_ACTIVE: ProgressStep[] = [
-  { id: 'uploading', label: 'Uploading assets', status: 'done', timestamp: minutesAgo(3) },
-  { id: 'validating', label: 'Validating fields', status: 'done', timestamp: minutesAgo(2) },
-  { id: 'saving', label: 'Saving artist record', status: 'active' },
-  { id: 'syncing', label: 'Syncing to server', status: 'waiting' },
-];
-
-const MOCK_COMPLETED: ActivityEntry[] = [
-  {
-    id: 'c1',
-    type: 'pitch_creation',
-    label: 'Pitch: "Summer Vibes" — Aria Nova',
-    status: 'completed',
-    timestamp: hoursAgo(2),
-    completedAt: hoursAgo(2),
-    steps: PITCH_STEPS,
-    details: 'Pitch submitted to 3 recipients. Track URL validated.',
-  },
-  {
-    id: 'c2',
-    type: 'artist_detail',
-    label: 'Artist Detail: Marcus Bell updated',
-    status: 'completed',
-    timestamp: hoursAgo(5),
-    completedAt: hoursAgo(5),
-    details: 'Genre, location, and notes updated.',
-  },
-  {
-    id: 'c3',
-    type: 'contact_save',
-    label: 'Contact: Jordan Lee created',
-    status: 'completed',
-    timestamp: hoursAgo(8),
-    completedAt: hoursAgo(8),
-    details: 'New contact added with role A&R Manager.',
-  },
-  {
-    id: 'c4',
-    type: 'pitch_creation',
-    label: 'Pitch: "Midnight Run" — The Echoes',
-    status: 'failed',
-    timestamp: hoursAgo(10),
-    details: 'Validation failed: Track URL unreachable.',
-    retries: 2,
-  },
-  {
-    id: 'c5',
-    type: 'bulk_action',
-    label: 'Bulk status update — 7 pitches → Sent',
-    status: 'completed',
-    timestamp: hoursAgo(24),
-    completedAt: hoursAgo(24),
-    details: '7 pitches updated to status: Sent.',
-  },
-];
-
-const MOCK_OFFLINE: ActivityEntry[] = [
-  {
-    id: 'o1',
-    type: 'artist_detail',
-    label: 'Artist Detail: Neon Pulse — offline edit',
-    status: 'queued',
-    timestamp: minutesAgo(45),
-    offline: true,
-    details: 'Saved locally while offline. Will sync when connection restores.',
-  },
-  {
-    id: 'o2',
-    type: 'pitch_creation',
-    label: 'Pitch: "Deep Blue" — draft saved offline',
-    status: 'queued',
-    timestamp: minutesAgo(90),
-    offline: true,
-    details: 'Draft captured offline. Awaiting sync.',
-  },
-];
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
@@ -403,7 +320,7 @@ function SectionHeader({ icon, title, count, children }: { icon: string; title: 
 
 export default function ActivityDashboard() {
   const [isOnline, setIsOnline] = useState(true);
-  const [lastSync, setLastSync] = useState<string>(minutesAgo(3));
+  const [lastSync, setLastSync] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [queuedActions, setQueuedActions] = useState<QueuedAction[]>([]);
   const [completedFilter, setCompletedFilter] = useState<'all' | 'completed' | 'failed'>('all');
@@ -411,17 +328,92 @@ export default function ActivityDashboard() {
   const [offlineCollapsed, setOfflineCollapsed] = useState(false);
   const [queuedCollapsed, setQueuedCollapsed] = useState(false);
   const [completedCollapsed, setCompletedCollapsed] = useState(false);
+  const [completedEntries, setCompletedEntries] = useState<ActivityEntry[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(true);
 
-  // Active processing entry (simulated)
-  const [activeEntry] = useState<ActivityEntry>({
-    id: 'active1',
-    type: 'artist_detail',
-    label: 'Artist Detail: Neon Pulse — saving changes',
-    status: 'processing',
-    timestamp: minutesAgo(1),
-    steps: ARTIST_STEPS_ACTIVE,
-    details: 'Updating genre, location, and linked recipients.',
-  });
+  // ── Fetch real activity from Supabase ──────────────────────────────────────
+  const fetchActivity = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setCompletedEntries([]);
+      setLoadingActivity(false);
+      return;
+    }
+
+    // Fetch recent pitches (last 30)
+    const { data: pitches } = await supabase
+      .from('pitches')
+      .select('id, title, status, created_at, updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(30);
+
+    // Fetch recent artists (last 20)
+    const { data: artists } = await supabase
+      .from('artists')
+      .select('id, name, created_at, updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(20);
+
+    const entries: ActivityEntry[] = [];
+
+    // Map pitches to activity entries
+    if (pitches) {
+      for (const pitch of pitches) {
+        const isNew = pitch.created_at === pitch.updated_at ||
+          Math.abs(new Date(pitch.created_at).getTime() - new Date(pitch.updated_at).getTime()) < 5000;
+        const isFailed = pitch.status === 'rejected';
+        const isCompleted = pitch.status === 'approved' || pitch.status === 'in_review' || pitch.status === 'new';
+        entries.push({
+          id: `pitch-${pitch.id}`,
+          type: 'pitch_creation',
+          label: isNew
+            ? `Pitch created: "${pitch.title}"`
+            : `Pitch updated: "${pitch.title}" — ${pitch.status}`,
+          status: isFailed ? 'failed' : isCompleted ? 'completed' : 'completed',
+          timestamp: formatTs(pitch.updated_at),
+          completedAt: formatTs(pitch.updated_at),
+          details: `Status: ${pitch.status}. Last updated: ${formatTs(pitch.updated_at)}.`,
+        });
+      }
+    }
+
+    // Map artists to activity entries
+    if (artists) {
+      for (const artist of artists) {
+        const isNew = artist.created_at === artist.updated_at ||
+          Math.abs(new Date(artist.created_at).getTime() - new Date(artist.updated_at).getTime()) < 5000;
+        entries.push({
+          id: `artist-${artist.id}`,
+          type: 'artist_detail',
+          label: isNew
+            ? `Artist created: ${artist.name}`
+            : `Artist updated: ${artist.name}`,
+          status: 'completed',
+          timestamp: formatTs(artist.updated_at),
+          completedAt: formatTs(artist.updated_at),
+          details: `Last updated: ${formatTs(artist.updated_at)}.`,
+        });
+      }
+    }
+
+    // Sort by most recent first
+    entries.sort((a, b) => {
+      const ta = new Date(a.timestamp.split('/').reverse().join('-').replace(' ', 'T')).getTime();
+      const tb = new Date(b.timestamp.split('/').reverse().join('-').replace(' ', 'T')).getTime();
+      return tb - ta;
+    });
+
+    setCompletedEntries(entries);
+    setLastSync(nowTs());
+    setLoadingActivity(false);
+  }, []);
+
+  useEffect(() => {
+    fetchActivity();
+  }, [fetchActivity]);
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -445,19 +437,17 @@ export default function ActivityDashboard() {
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
     setQueuedActions(getQueue());
-    setTimeout(() => {
-      setLastSync(nowTs());
+    fetchActivity().then(() => {
       setIsRefreshing(false);
-    }, 1200);
+    });
+  }, [fetchActivity]);
+
+  const handleRetry = useCallback((_id: string) => {
+    // Retry logic not yet implemented
   }, []);
 
-  const handleRetry = useCallback((id: string) => {
-    // In a real app this would re-trigger the operation
-    console.log('Retry action:', id);
-  }, []);
-
-  // Build queued entries from offline queue
-  const queueEntries: ActivityEntry[] = queuedActions.map((a) => ({
+  // Build queued entries from real offline queue only
+  const offlineEntries: ActivityEntry[] = queuedActions.map((a) => ({
     id: a.id,
     type: a.type === 'pitch_save' ? 'pitch_creation' : a.type === 'artist_save' ? 'artist_detail' : 'contact_save',
     label: a.label,
@@ -468,11 +458,11 @@ export default function ActivityDashboard() {
     details: `Queued offline. Retries: ${a.retries}. Will auto-retry when online.`,
   }));
 
-  // Merge mock offline with real queue
-  const offlineEntries = [...queueEntries, ...MOCK_OFFLINE];
+  // Derive processing count from real state (no hardcoded active entry)
+  const processingCount = 0;
 
   // Filter completed
-  const filteredCompleted = MOCK_COMPLETED.filter((e) => {
+  const filteredCompleted = completedEntries.filter((e) => {
     if (completedFilter === 'completed' && e.status !== 'completed') return false;
     if (completedFilter === 'failed' && e.status !== 'failed') return false;
     if (completedSearch) {
@@ -481,6 +471,9 @@ export default function ActivityDashboard() {
     }
     return true;
   });
+
+  const completedCount = completedEntries.filter((e) => e.status === 'completed').length;
+  const failedCount = completedEntries.filter((e) => e.status === 'failed').length;
 
   const syncHealthColor = isOnline ? 'var(--color-success)' : 'var(--color-destructive)';
   const syncHealthBg = isOnline ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
@@ -546,7 +539,7 @@ export default function ActivityDashboard() {
                   {isOnline ? 'Connected' : 'Offline'}
                 </p>
                 <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
-                  Last sync: <span className="font-mono">{lastSync}</span>
+                  Last sync: <span className="font-mono">{lastSync || '—'}</span>
                 </p>
               </div>
             </div>
@@ -556,28 +549,22 @@ export default function ActivityDashboard() {
                 <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Queued</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold font-mono" style={{ color: 'var(--color-foreground)' }}>1</p>
+                <p className="text-lg font-bold font-mono" style={{ color: 'var(--color-foreground)' }}>{processingCount}</p>
                 <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Processing</p>
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold font-mono" style={{ color: 'var(--color-success)' }}>
-                  {MOCK_COMPLETED.filter((e) => e.status === 'completed').length}
+                  {completedCount}
                 </p>
                 <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Completed</p>
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold font-mono" style={{ color: 'var(--color-destructive)' }}>
-                  {MOCK_COMPLETED.filter((e) => e.status === 'failed').length}
+                  {failedCount}
                 </p>
                 <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Failed</p>
               </div>
             </div>
-          </div>
-
-          {/* ── Active / Processing ── */}
-          <div className="pm-panel mb-6">
-            <SectionHeader icon="BoltIcon" title="In Progress" count={1} />
-            <ActivityRow entry={activeEntry} />
           </div>
 
           {/* ── Queued Actions ── */}
@@ -613,37 +600,11 @@ export default function ActivityDashboard() {
             )}
           </div>
 
-          {/* ── Offline Events ── */}
-          <div className="pm-panel mb-6">
-            <SectionHeader
-              icon="WifiIcon"
-              title="Offline Event History"
-              count={MOCK_OFFLINE.length}
-            >
-              <button
-                type="button"
-                onClick={() => setOfflineCollapsed((v) => !v)}
-                className="pm-btn-ghost text-xs px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                aria-expanded={!offlineCollapsed}
-              >
-                {offlineCollapsed ? 'Expand' : 'Collapse'}
-              </button>
-            </SectionHeader>
-
-            {!offlineCollapsed && (
-              <div className="space-y-2">
-                {MOCK_OFFLINE.map((entry) => (
-                  <ActivityRow key={entry.id} entry={entry} />
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* ── Completed Submissions ── */}
           <div className="pm-panel">
             <SectionHeader
               icon="ArchiveBoxIcon"
-              title="Completed Submissions"
+              title="Recent Activity"
               count={filteredCompleted.length}
             >
               <button
@@ -671,7 +632,7 @@ export default function ActivityDashboard() {
                     <input
                       type="text"
                       className="pm-input pl-8 text-sm"
-                      placeholder="Search submissions…"
+                      placeholder="Search activity…"
                       value={completedSearch}
                       onChange={(e) => setCompletedSearch(e.target.value)}
                     />
@@ -694,10 +655,15 @@ export default function ActivityDashboard() {
                   </div>
                 </div>
 
-                {filteredCompleted.length === 0 ? (
+                {loadingActivity ? (
+                  <div className="text-center py-8">
+                    <Icon name="ArrowPathIcon" size={24} variant="outline" className="mx-auto mb-2" style={{ color: 'var(--color-muted-foreground)', animation: 'spin 1s linear infinite' }} />
+                    <p className="text-sm" style={{ color: 'var(--color-muted-foreground)' }}>Loading activity…</p>
+                  </div>
+                ) : filteredCompleted.length === 0 ? (
                   <div className="text-center py-8">
                     <Icon name="InboxIcon" size={28} variant="outline" className="mx-auto mb-2" style={{ color: 'var(--color-muted-foreground)' }} />
-                    <p className="text-sm" style={{ color: 'var(--color-muted-foreground)' }}>No submissions match your filter.</p>
+                    <p className="text-sm" style={{ color: 'var(--color-muted-foreground)' }}>No activity found.</p>
                   </div>
                 ) : (
                   <div className="space-y-2">

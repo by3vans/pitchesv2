@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
-import { artistStore, contactStore, linkStore, initStore } from '@/lib/store';
+import { artistStore, contactStore, linkStore } from '@/lib/store';
 import type { Artist, Contact, ArtistRecipientLink } from '@/lib/types';
 import { RELATIONSHIP_TYPES } from '@/lib/types';
 import { useToast } from '@/components/ui/Toast';
@@ -14,47 +14,57 @@ import { useSubmissionProgress } from '@/hooks/useSubmissionProgress';
 import SubmissionProgressOverlay from '@/components/ui/SubmissionProgressOverlay';
 import SpotifyArtistSearch from '@/components/ui/SpotifyArtistSearch';
 
-
+// Fix #1: Declare SpotifyFetchedData interface locally
+interface SpotifyFetchedData {
+  name: string;
+  genre: string;
+}
 
 // ─── Add Recipient Modal ──────────────────────────────────────────────────────
 
 interface AddRecipientModalProps {
   artistId: string;
   existingContactIds: string[];
+  // Fix #2: receive contacts as prop instead of calling contactStore.getAll() in useState
+  contacts: Contact[];
   onClose: () => void;
   onSave: () => void;
 }
 
-function AddRecipientModal({ artistId, existingContactIds, onClose, onSave }: AddRecipientModalProps) {
-  const [allContacts] = useState<Contact[]>(() => contactStore.getAll());
+function AddRecipientModal({ artistId, existingContactIds, contacts: allContacts, onClose, onSave }: AddRecipientModalProps) {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [contactId, setContactId] = useState('');
   const [relType, setRelType] = useState<string>(RELATIONSHIP_TYPES[0]);
   const [isPrimary, setIsPrimary] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
+  // Fix #5: extract submit logic into a separate function that doesn't depend on FormEvent
+  const handleSubmitClick = async () => {
+    if (!contactId) { setError('Please select a contact'); return; }
+    setSaving(true);
+    try {
+      await linkStore.create({ artistId, contactId, relationshipType: relType, isPrimary });
+      onSave();
+      onClose();
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to add recipient');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const q = search.toLowerCase();
   const available = allContacts.filter((c) => {
     if (existingContactIds.includes(c.id)) return false;
     if (filterRole && c.role !== filterRole) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        c.fullName.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q)
-      );
-    }
-    return true;
+    return (
+      c.fullName.toLowerCase().includes(q) ||
+      c.company.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q)
+    );
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactId) { setError('Please select a contact'); return; }
-    linkStore.create({ artistId, contactId, relationshipType: relType, isPrimary });
-    onSave();
-    onClose();
-  };
 
   const uniqueRoles = Array.from(new Set(allContacts.map((c) => c.role))).filter(Boolean);
 
@@ -185,12 +195,13 @@ function AddRecipientModal({ artistId, existingContactIds, onClose, onSave }: Ad
 
         <div className="flex gap-2 justify-end shrink-0">
           <button type="button" onClick={onClose} className="pm-btn focus:ring-2 focus:ring-blue-500 focus:outline-none">Cancel</button>
+          {/* Fix #5: use handleSubmitClick instead of handleSubmit as any */}
           <button
             type="button"
-            onClick={handleSubmit as any}
+            onClick={handleSubmitClick}
             className="pm-btn-primary focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-            disabled={!contactId}
-            style={{ opacity: contactId ? 1 : 0.5 }}
+            disabled={!contactId || saving}
+            style={{ opacity: contactId && !saving ? 1 : 0.5 }}
           >
             <Icon name="PlusIcon" size={15} variant="outline" />
             Add Recipient
@@ -224,6 +235,8 @@ export default function ArtistDetailManagement() {
   const [selectedArtistId, setSelectedArtistId] = useState<string>('');
   const [artist, setArtist] = useState<Artist | null>(null);
   const [recipients, setRecipients] = useState<LinkedRecipient[]>([]);
+  // Fix #2: store all contacts at parent level to pass as prop to AddRecipientModal
+  const [allContacts, setAllContacts] = useState<Contact[]>([]);
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<'profile' | 'notes' | 'recipients'>('profile');
 
@@ -257,13 +270,13 @@ export default function ArtistDetailManagement() {
   const [tableSearch, setTableSearch] = useState('');
   const [tableRoleFilter, setTableRoleFilter] = useState('');
 
-  const loadArtist = useCallback((id: string) => {
-    const a = artistStore.getById(id);
+  const loadArtist = useCallback(async (id: string) => {
+    const a = await artistStore.getById(id);
     if (!a) return;
     setArtist(a);
     setNotesValue(a.notes ?? '');
-    const links = linkStore.getByArtist(id);
-    const contacts = contactStore.getAll();
+    const [links, contacts] = await Promise.all([linkStore.getByArtist(id), contactStore.getAll()]);
+    setAllContacts(contacts);
     const linked: LinkedRecipient[] = links
       .map((l) => {
         const c = contacts.find((x) => x.id === l.contactId);
@@ -273,21 +286,24 @@ export default function ArtistDetailManagement() {
     setRecipients(linked);
   }, []);
 
+  // Fix #7: add loadArtist to useEffect dependency array
   useEffect(() => {
-    initStore();
-    const all = artistStore.getAll();
-    setArtists(all);
-    const paramId = searchParams?.get('artistId');
-    const mode = searchParams?.get('mode');
-    if (mode === 'new') {
-      setIsCreateMode(true);
-      setSelectedArtistId('');
-      return;
-    }
-    const initial = paramId ?? all[0]?.id ?? '';
-    setSelectedArtistId(initial);
-    if (initial) loadArtist(initial);
-  }, []);
+    const init = async () => {
+      const all = await artistStore.getAll();
+      setArtists(all);
+      const paramId = searchParams?.get('artistId');
+      const mode = searchParams?.get('mode');
+      if (mode === 'new') {
+        setIsCreateMode(true);
+        setSelectedArtistId('');
+        return;
+      }
+      const initial = paramId ?? all[0]?.id ?? '';
+      setSelectedArtistId(initial);
+      if (initial) await loadArtist(initial);
+    };
+    init();
+  }, [loadArtist]);
 
   const handleArtistChange = (id: string) => {
     setSelectedArtistId(id);
@@ -300,29 +316,35 @@ export default function ArtistDetailManagement() {
   };
 
   // Create mode handlers
-  const handleCreateSave = () => {
+  const handleCreateSave = async () => {
     const newErrors: Record<string, string> = {};
     if (!createForm.name.trim()) newErrors.name = 'Artist name is required';
     if (!createForm.genre.trim()) newErrors.genre = 'Genre is required';
     if (Object.keys(newErrors).length > 0) { setCreateErrors(newErrors); return; }
 
     setCreateSaving(true);
-    const newArtist = artistStore.create({
-      name: createForm.name.trim(),
-      genre: createForm.genre.trim(),
-      location: createForm.location.trim(),
-      notes: createForm.notes,
-    });
-    const all = artistStore.getAll();
-    setArtists(all);
-    setCreateSaving(false);
-    setIsCreateMode(false);
-    setCreateForm({ name: '', genre: '', location: '', notes: '' });
-    setCreateErrors({});
-    setSelectedArtistId(newArtist.id);
-    loadArtist(newArtist.id);
-    showToast(`Artist "${newArtist.name}" created successfully`, 'success');
-    router.replace(`/artist-detail-management?artistId=${newArtist.id}`);
+    try {
+      const newArtist = await artistStore.create({
+        name: createForm.name.trim(),
+        genre: createForm.genre.trim(),
+        location: createForm.location.trim(),
+        notes: createForm.notes,
+      });
+      if (!newArtist) throw new Error('Failed to create artist');
+      const all = await artistStore.getAll();
+      setArtists(all);
+      setIsCreateMode(false);
+      setCreateForm({ name: '', genre: '', location: '', notes: '' });
+      setCreateErrors({});
+      setSelectedArtistId(newArtist.id);
+      await loadArtist(newArtist.id);
+      showToast(`Artist "${newArtist.name}" created successfully`, 'success');
+      router.replace(`/artist-detail-management?artistId=${newArtist.id}`);
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Failed to create artist', 'error');
+    } finally {
+      setCreateSaving(false);
+    }
   };
 
   const handleCreateCancel = () => {
@@ -364,7 +386,7 @@ export default function ArtistDetailManagement() {
     setEditErrors(newErrors);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     const newErrors: Record<string, string> = {};
     if (!editForm.name.trim()) newErrors.name = 'Artist name is required';
     if (!editForm.genre.trim()) newErrors.genre = 'Genre is required';
@@ -381,18 +403,19 @@ export default function ArtistDetailManagement() {
     setEditSaving(true);
     const artistId = artist.id;
     const artistName = editForm.name.trim();
-    runSteps(() => {
-      artistStore.update(artistId, {
+    runSteps(async () => {
+      await artistStore.update(artistId, {
         name: artistName,
         genre: editForm.genre.trim(),
         location: editForm.location.trim(),
         notes: editForm.notes,
       });
-      setArtists(artistStore.getAll());
+      const all = await artistStore.getAll();
+      setArtists(all);
       setEditSaving(false);
       setIsEditing(false);
       setEditErrors({});
-      loadArtist(artistId);
+      await loadArtist(artistId);
       showToast(`Artist "${artistName}" saved successfully`, 'success');
     });
   };
@@ -402,10 +425,10 @@ export default function ArtistDetailManagement() {
     setNotesValue(val);
     setNotesSaved(false);
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => {
+    autoSaveTimer.current = setTimeout(async () => {
       if (!artist) return;
       setNotesSaving(true);
-      artistStore.update(artist.id, { notes: val });
+      await artistStore.update(artist.id, { notes: val });
       setTimeout(() => {
         setNotesSaving(false);
         setNotesSaved(true);
@@ -414,11 +437,11 @@ export default function ArtistDetailManagement() {
     }, 800);
   };
 
-  const handleNotesSave = () => {
+  const handleNotesSave = async () => {
     if (!artist) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     setNotesSaving(true);
-    artistStore.update(artist.id, { notes: notesValue });
+    await artistStore.update(artist.id, { notes: notesValue });
     setTimeout(() => {
       setNotesSaving(false);
       setNotesSaved(true);
@@ -428,14 +451,14 @@ export default function ArtistDetailManagement() {
     }, 300);
   };
 
-  const handleTogglePrimary = (link: ArtistRecipientLink) => {
-    linkStore.update(link.id, { isPrimary: !link.isPrimary });
+  const handleTogglePrimary = async (link: ArtistRecipientLink) => {
+    await linkStore.update(link.id, { isPrimary: !link.isPrimary });
     if (artist) loadArtist(artist.id);
   };
 
-  const handleRemoveLink = (linkId: string) => {
+  const handleRemoveLink = async (linkId: string) => {
     const removed = confirmRemove?.contactName;
-    linkStore.delete(linkId);
+    await linkStore.delete(linkId);
     setConfirmRemove(null);
     if (artist) loadArtist(artist.id);
     if (removed) showToast(`Removed "${removed}" from recipients`, 'info');
@@ -584,6 +607,18 @@ export default function ArtistDetailManagement() {
                         </>
                       )}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowSpotify(true)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0"
+                      style={{ background: '#1DB954', color: 'white', border: 'none' }}
+                      title="Fetch artist metadata from Spotify"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                      </svg>
+                      Spotify
+                    </button>
                   </>
                 )}
                 <button
@@ -608,32 +643,6 @@ export default function ArtistDetailManagement() {
                   <Icon name="ArrowDownTrayIcon" size={15} variant="outline" />
                   Export
                 </button>
-                {artist && isEditing && (
-                <div className="flex items-center gap-2 mb-1">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-base font-bold shrink-0"
-                    style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
-                  >
-                    {(editForm.name || artist.name).charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="pm-kicker mb-0">Editing</p>
-                    <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Artist Profile</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowSpotify(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0"
-                    style={{ background: '#1DB954', color: 'white', border: 'none' }}
-                    title="Fetch artist metadata from Spotify"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-                    </svg>
-                    Spotify
-                  </button>
-                </div>
-                )}
               </div>
             </div>
           </div>
@@ -747,26 +756,7 @@ export default function ArtistDetailManagement() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Edit saving overlay */}
-              {editSaving && (
-                <div
-                  className="fixed inset-0 z-[300] flex items-center justify-center"
-                  style={{ background: 'rgba(0,0,0,0.35)' }}
-                  aria-busy="true"
-                  aria-label="Saving artist, please wait"
-                >
-                  <div
-                    className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl shadow-2xl"
-                    style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}
-                  >
-                    <svg className="animate-spin" width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <circle cx="12" cy="12" r="10" stroke="var(--color-border)" strokeWidth="3" />
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--color-primary)" strokeWidth="3" strokeLinecap="round" />
-                    </svg>
-                    <p className="text-sm font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>Saving artist…</p>
-                  </div>
-                </div>
-              )}
+              {/* Fix #3: removed manual saving overlay (z-[300] black semitransparent spinner inline) — SubmissionProgressOverlay at bottom handles this */}
 
               {/* Mobile Tab Bar */}
               <div className="lg:hidden col-span-1">
@@ -1242,6 +1232,15 @@ export default function ArtistDetailManagement() {
                                   </a>
                                 </td>
                                 {/* Relationship */}
+                                <td className="py-3 pr-4">
+                                  <span
+                                    className="text-xs px-2 py-0.5 rounded-full font-medium"
+                                    style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
+                                  >
+                                    {link.relationshipType}
+                                  </span>
+                                </td>
+                                {/* Actions */}
                                 <td className="py-3">
                                   <div className="flex items-center gap-1">
                                     <button
@@ -1352,11 +1351,12 @@ export default function ArtistDetailManagement() {
         </div>
       </main>
 
-      {/* Add Recipient Modal */}
+      {/* Add Recipient Modal — Fix #2: pass allContacts as prop */}
       {showAddModal && artist && (
         <AddRecipientModal
           artistId={artist.id}
           existingContactIds={existingContactIds}
+          contacts={allContacts}
           onClose={() => setShowAddModal(false)}
           onSave={() => {
             loadArtist(artist.id);
@@ -1375,6 +1375,7 @@ export default function ArtistDetailManagement() {
           onCancel={() => setConfirmRemove(null)}
         />
       )}
+      {/* Fix #3: only SubmissionProgressOverlay remains — manual inline overlay removed */}
       <SubmissionProgressOverlay progress={submissionProgress} title="Saving Artist…" />
 
       {/* Spotify Artist Search Modal */}

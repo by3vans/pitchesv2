@@ -143,7 +143,6 @@ export default function OnboardingProfileSetup() {
         .from('profiles')
         .upsert({
           id: user.id,
-          email: user.email,
           full_name: form.fullName.trim(),
           phone: form.phone || null,
           company: form.company.trim() || null,

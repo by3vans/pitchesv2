@@ -26,7 +26,7 @@ export interface ArtistRecipientLink {
   isPrimary: boolean;
 }
 
-export type PitchStatus = 'draft' | 'sent' | 'hold' | 'placed';
+export type PitchStatus = 'draft' | 'new' | 'in_review' | 'approved' | 'rejected';
 
 export interface Pitch {
   id: string;
@@ -48,7 +48,8 @@ export const CONTACT_ROLES = ['A&R', 'Manager', 'Publisher', 'Label', 'Booking A
 export const RELATIONSHIP_TYPES = ['A&R', 'Manager', 'Publisher', 'Label', 'Booking Agent', 'PR', 'Sync Agent', 'Other'] as const;
 export const PITCH_STATUSES: { value: PitchStatus; label: string }[] = [
   { value: 'draft', label: 'Draft' },
-  { value: 'sent', label: 'Sent' },
-  { value: 'hold', label: 'Hold' },
-  { value: 'placed', label: 'Placed' },
+  { value: 'new', label: 'New' },
+  { value: 'in_review', label: 'In Review' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
 ];
