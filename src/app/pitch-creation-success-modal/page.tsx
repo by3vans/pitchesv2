@@ -1,11 +1,10 @@
-import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import PitchCreationSuccessModal from './components/PitchCreationSuccessModal';
 
-export const metadata: Metadata = {
-  title: 'Pitch Created — Pitchhood',
-  description: 'Your pitch was created successfully.',
-};
-
 export default function PitchCreationSuccessModalPage() {
-  return <PitchCreationSuccessModal />;
+  return (
+    <Suspense>
+      <PitchCreationSuccessModal />
+    </Suspense>
+  );
 }
