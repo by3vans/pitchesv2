@@ -28,14 +28,6 @@ interface WorkflowStep {
   active: boolean;
 }
 
-interface ExternalLink {
-  id: number;
-  label: string;
-  url: string;
-  type: 'portfolio' | 'demo' | 'social' | 'press';
-  platform: string;
-}
-
 interface RecipientEntry {
   contact: Contact;
   artist: Artist | undefined;
@@ -82,15 +74,6 @@ const defaultWorkflowSteps: WorkflowStep[] = [
 { status: 'em_analise', label: 'Em Análise', timestamp: '18/02/2026', completed: false, active: true },
 { status: 'pendente', label: 'Pendente', completed: false, active: false },
 { status: 'aprovado', label: 'Aprovado', completed: false, active: false }];
-
-
-const mockLinks: ExternalLink[] = [
-{ id: 1, label: 'Spotify - Novas Fronteiras', url: 'https://spotify.com', type: 'demo', platform: 'Spotify' },
-{ id: 2, label: 'Site Oficial', url: 'https://marinacavalcanti.com.br', type: 'portfolio', platform: 'Website' },
-{ id: 3, label: 'Instagram @marinacavalcanti', url: 'https://instagram.com', type: 'social', platform: 'Instagram' },
-{ id: 4, label: 'YouTube - Clipe Oficial', url: 'https://youtube.com', type: 'demo', platform: 'YouTube' },
-{ id: 5, label: 'Folha de S.Paulo - Entrevista', url: 'https://folha.uol.com.br', type: 'press', platform: 'Folha de S.Paulo' },
-{ id: 6, label: 'SoundCloud - Demos', url: 'https://soundcloud.com', type: 'demo', platform: 'SoundCloud' }];
 
 const statusOptions: {value: PitchStatus;label: string;}[] = [
 { value: 'novo', label: 'Novo' },
@@ -298,17 +281,31 @@ export default function PitchDetailInteractive() {
 
   const handleRetry = () => setRetryKey((k) => k + 1);
 
-  const handleStatusChange = (status: PitchStatus) => {
-    const resolvedId = pitchId || 'p1';
+  const handleStatusChange = async (status: PitchStatus) => {
+    const resolvedId = pitchId;
+    if (!resolvedId) return;
+
     if (!navigator.onLine) {
-      enqueueAction({ type: 'pitch_save', label: `Update pitch status to ${status}`, payload: { pitchId: resolvedId, status } });
+      enqueueAction({ type: 'pitch_save', label: `Update pitch status to ${status}`, payload: { resolvedId, status } });
       showToast('Offline — status change queued for retry', 'info');
       setCurrentStatus(status);
       setShowStatusDropdown(false);
       return;
     }
+
+    const reverseMap: Record<PitchStatus, string> = {
+      novo: 'new',
+      em_analise: 'in_review',
+      aprovado: 'approved',
+      rejeitado: 'rejected',
+      pendente: 'hold',
+      arquivado: 'rejected',
+    };
+
+    await pitchStore.update(resolvedId, { status: reverseMap[status] as 'draft' | 'new' | 'in_review' | 'approved' | 'rejected' });
     setCurrentStatus(status);
     setShowStatusDropdown(false);
+    showToast('Status atualizado', 'success');
   };
 
   const breadcrumbItems = [
@@ -586,7 +583,7 @@ export default function PitchDetailInteractive() {
 
           {/* External Links - Full Width on desktop, tab on mobile */}
           <div className={`mt-6 ${mobileTab !== 'links' ? 'hidden lg:block' : ''}`}>
-            <ExternalLinks links={mockLinks} />
+            <ExternalLinks links={[]} />
           </div>
         </div>
       </main>
