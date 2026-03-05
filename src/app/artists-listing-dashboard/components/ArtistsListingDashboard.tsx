@@ -46,7 +46,7 @@ const mockArtists: Artist[] = [
   genre: 'Sertanejo',
   subGenres: ['acoustic', 'folk', 'regional'],
   status: 'active',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_1947763d5-1772439220300.png',
+  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_10b99603e-1772673193319.png",
   avatarAlt: 'Brazilian man with acoustic guitar in rustic countryside setting wearing traditional hat',
   pitchCount: 7,
   approvedPitches: 5,
@@ -76,7 +76,7 @@ const mockArtists: Artist[] = [
   genre: 'MPB',
   subGenres: ['conceptual', 'poetic', 'orchestral'],
   status: 'inactive',
-  avatar: 'https://images.unsplash.com/photo-1730177203484-db14757d3a2a',
+  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1acd899c5-1772561408162.png",
   avatarAlt: 'Brazilian woman with natural curly hair in artistic pose against colorful mural background',
   pitchCount: 4,
   approvedPitches: 2,
@@ -106,7 +106,7 @@ const mockArtists: Artist[] = [
   genre: 'Gospel',
   subGenres: ['choir', 'worship', 'praise'],
   status: 'active',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_1e23ea9f8-1772439224115.png',
+  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1752cecdf-1772469586420.png",
   avatarAlt: 'Gospel choir group in white robes performing on stage with bright lighting',
   pitchCount: 6,
   approvedPitches: 4,
@@ -121,7 +121,7 @@ const mockArtists: Artist[] = [
   genre: 'Hip-Hop',
   subGenres: ['conscious rap', 'street', 'social'],
   status: 'active',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_15be4e7df-1772439222653.png',
+  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_165d36c56-1772469585169.png",
   avatarAlt: 'Young Black Brazilian rapper in streetwear standing in urban São Paulo neighborhood',
   pitchCount: 9,
   approvedPitches: 3,
@@ -196,7 +196,7 @@ const mockArtists: Artist[] = [
   genre: 'Sertanejo',
   subGenres: ['sertanejo universitário', 'country', 'pop'],
   status: 'archived',
-  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1214f232d-1772449003128.png",
+  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1ef175316-1772495691222.png",
   avatarAlt: 'Country music duo posing outdoors in rural setting with cowboy hats',
   pitchCount: 3,
   approvedPitches: 0,
@@ -256,7 +256,7 @@ function EditArtistModal({ artist, onSave, onClose }: EditArtistModalProps) {
     e.preventDefault();
     const updated: Artist = {
       ...form,
-      subGenres: subGenresRaw.split(',').map((s) => s.trim()).filter(Boolean),
+      subGenres: subGenresRaw.split(',').map((s) => s.trim()).filter(Boolean)
     };
     onSave(updated);
   };
@@ -268,7 +268,7 @@ function EditArtistModal({ artist, onSave, onClose }: EditArtistModalProps) {
 
   // Close on Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {if (e.key === 'Escape') onClose();};
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
@@ -325,9 +325,9 @@ function EditArtistModal({ artist, onSave, onClose }: EditArtistModalProps) {
                   value={form.genre}
                   onChange={(e) => handleChange('genre', e.target.value)}
                   className={inputCls + ' appearance-none pr-8 cursor-pointer'}>
-                  {['Pop', 'Rock', 'Sertanejo', 'Funk', 'MPB', 'Electronic', 'Hip-Hop', 'Gospel'].map((g) => (
-                    <option key={g} value={g}>{g}</option>
-                  ))}
+                  {['Pop', 'Rock', 'Sertanejo', 'Funk', 'MPB', 'Electronic', 'Hip-Hop', 'Gospel'].map((g) =>
+                  <option key={g} value={g}>{g}</option>
+                  )}
                 </select>
                 <Icon name="ChevronDownIcon" size={13} variant="outline" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
@@ -426,8 +426,8 @@ function EditArtistModal({ artist, onSave, onClose }: EditArtistModalProps) {
           </div>
         </form>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 // ─── Card View ───────────────────────────────────────────────────────────────
@@ -505,7 +505,7 @@ function ArtistCardView({
         <span className="text-xs text-gray-400 font-mono">{artist.lastActivity}</span>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Link
-href={`/artist-detail-management?artistId=${artist.id}`}
+            href={`/artist-detail-management?artistId=${artist.id}`}
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
             aria-label={`View profile for ${artist.name}`}
             onClick={(e) => e.stopPropagation()}>
@@ -513,7 +513,7 @@ href={`/artist-detail-management?artistId=${artist.id}`}
             <Icon name="UserIcon" size={13} variant="outline" />
           </Link>
           <Link
-href="/pitch-creation-workflow"
+            href="/pitch-creation-workflow"
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
             aria-label={`Create pitch for ${artist.name}`}
             onClick={(e) => e.stopPropagation()}>
@@ -521,7 +521,7 @@ href="/pitch-creation-workflow"
             <Icon name="PaperAirplaneIcon" size={13} variant="outline" />
           </Link>
           <button
-            onClick={(e) => { e.stopPropagation(); onEdit(artist); }}
+            onClick={(e) => {e.stopPropagation();onEdit(artist);}}
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
             aria-label={`Edit ${artist.name}`}>
             
@@ -595,15 +595,15 @@ function ArtistListView({
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         <Link
-href={`/artist-detail-management?artistId=${artist.id}`}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
-            aria-label={`View profile for ${artist.name}`}
-            onClick={(e) => e.stopPropagation()}>
+          href={`/artist-detail-management?artistId=${artist.id}`}
+          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
+          aria-label={`View profile for ${artist.name}`}
+          onClick={(e) => e.stopPropagation()}>
           
           <Icon name="UserIcon" size={14} variant="outline" />
         </Link>
         <button
-          onClick={(e) => { e.stopPropagation(); onEdit(artist); }}
+          onClick={(e) => {e.stopPropagation();onEdit(artist);}}
           className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
           aria-label={`Edit ${artist.name}`}>
           
@@ -1173,12 +1173,12 @@ export default function ArtistsListingDashboard() {
       </main>
 
       {/* Edit Artist Modal */}
-      {editingArtist && (
-        <EditArtistModal
-          artist={editingArtist}
-          onSave={handleSaveArtist}
-          onClose={() => setEditingArtist(null)} />
-      )}
+      {editingArtist &&
+      <EditArtistModal
+        artist={editingArtist}
+        onSave={handleSaveArtist}
+        onClose={() => setEditingArtist(null)} />
+      }
     </div>);
 
 }

@@ -51,7 +51,7 @@ const mockPitches: Pitch[] = [
   id: '2',
   title: 'Raízes do Sertão - EP Completo',
   artist: 'Trio Nordestino',
-  artistImage: "https://img.rocket.new/generatedImages/rocket_gen_img_1947763d5-1772439220300.png",
+  artistImage: "https://img.rocket.new/generatedImages/rocket_gen_img_10b99603e-1772673193319.png",
   artistImageAlt: 'Brazilian man with acoustic guitar in rustic countryside setting wearing traditional hat',
   status: 'aprovado',
   category: 'Sertanejo',
@@ -77,7 +77,7 @@ const mockPitches: Pitch[] = [
   id: '4',
   title: 'Alma Livre - Álbum Conceitual',
   artist: 'Beatriz Santos',
-  artistImage: "https://images.unsplash.com/photo-1730177203484-db14757d3a2a",
+  artistImage: "https://img.rocket.new/generatedImages/rocket_gen_img_1acd899c5-1772561408162.png",
   artistImageAlt: 'Brazilian woman with natural curly hair in artistic pose against colorful mural background',
   status: 'pendente',
   category: 'MPB',
@@ -103,7 +103,7 @@ const mockPitches: Pitch[] = [
   id: '6',
   title: 'Fé que Move - Coletânea Gospel',
   artist: 'Coral Esperança',
-  artistImage: "https://img.rocket.new/generatedImages/rocket_gen_img_1e23ea9f8-1772439224115.png",
+  artistImage: "https://img.rocket.new/generatedImages/rocket_gen_img_1752cecdf-1772469586420.png",
   artistImageAlt: 'Gospel choir group in white robes performing on stage with bright lighting',
   status: 'em_analise',
   category: 'Gospel',
@@ -116,7 +116,7 @@ const mockPitches: Pitch[] = [
   id: '7',
   title: 'Rua Sem Saída - Mixtape',
   artist: 'MC Verdade',
-  artistImage: "https://img.rocket.new/generatedImages/rocket_gen_img_15be4e7df-1772439222653.png",
+  artistImage: "https://img.rocket.new/generatedImages/rocket_gen_img_165d36c56-1772469585169.png",
   artistImageAlt: 'Young Black Brazilian rapper in streetwear standing in urban São Paulo neighborhood',
   status: 'novo',
   category: 'Hip-Hop',
@@ -161,18 +161,18 @@ interface FilterState {
   sortOrder: 'asc' | 'desc';
 }
 
-const STATUS_OPTIONS: { value: StatusType; label: string }[] = [
-  { value: 'novo', label: 'Novo' },
-  { value: 'em_analise', label: 'Em Análise' },
-  { value: 'aprovado', label: 'Aprovado' },
-  { value: 'rejeitado', label: 'Rejeitado' },
-  { value: 'pendente', label: 'Pendente' },
-  { value: 'arquivado', label: 'Arquivado' },
-];
+const STATUS_OPTIONS: {value: StatusType;label: string;}[] = [
+{ value: 'novo', label: 'Novo' },
+{ value: 'em_analise', label: 'Em Análise' },
+{ value: 'aprovado', label: 'Aprovado' },
+{ value: 'rejeitado', label: 'Rejeitado' },
+{ value: 'pendente', label: 'Pendente' },
+{ value: 'arquivado', label: 'Arquivado' }];
+
 
 const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
 
-function PitchCardSkeleton({ viewMode }: { viewMode: 'card' | 'list' }) {
+function PitchCardSkeleton({ viewMode }: {viewMode: 'card' | 'list';}) {
   if (viewMode === 'list') {
     return (
       <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-gray-200 bg-white animate-pulse">
@@ -186,8 +186,8 @@ function PitchCardSkeleton({ viewMode }: { viewMode: 'card' | 'list' }) {
           <div className="h-3 w-20 bg-gray-100 rounded" />
         </div>
         <div className="h-5 w-5 bg-gray-200 rounded shrink-0" />
-      </div>
-    );
+      </div>);
+
   }
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden animate-pulse">
@@ -204,21 +204,21 @@ function PitchCardSkeleton({ viewMode }: { viewMode: 'card' | 'list' }) {
           <div className="h-5 w-16 bg-gray-200 rounded-full" />
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function StatsBarSkeleton() {
   return (
     <div className="flex gap-3 flex-wrap animate-pulse">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-8 w-24 bg-gray-200 rounded-lg" />
-      ))}
-    </div>
-  );
+      {Array.from({ length: 6 }).map((_, i) =>
+      <div key={i} className="h-8 w-24 bg-gray-200 rounded-lg" />
+      )}
+    </div>);
+
 }
 
-function Spinner({ size = 13 }: { size?: number }) {
+function Spinner({ size = 13 }: {size?: number;}) {
   return (
     <svg
       className="animate-spin"
@@ -226,12 +226,12 @@ function Spinner({ size = 13 }: { size?: number }) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+      aria-hidden="true">
+      
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  );
+    </svg>);
+
 }
 
 interface SummaryCardProps {
@@ -246,26 +246,26 @@ function SummaryCard({ icon, label, value, sub, accent }: SummaryCardProps) {
   return (
     <div
       className="flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-white"
-      style={{ borderColor: accent ? 'var(--color-foreground)' : '#e5e7eb' }}
-    >
+      style={{ borderColor: accent ? 'var(--color-foreground)' : '#e5e7eb' }}>
+      
       <div
         className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-        style={{ background: accent ? 'var(--color-foreground)' : '#f3f4f6' }}
-      >
+        style={{ background: accent ? 'var(--color-foreground)' : '#f3f4f6' }}>
+        
         <Icon
           name={icon as Parameters<typeof Icon>[0]['name']}
           size={18}
           variant="outline"
-          className={accent ? 'text-white' : 'text-gray-500'}
-        />
+          className={accent ? 'text-white' : 'text-gray-500'} />
+        
       </div>
       <div className="min-w-0">
         <p className="text-xs text-gray-400 font-medium uppercase tracking-wider" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{label}</p>
         <p className="text-xl font-bold text-gray-900 leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</p>
         {sub && <p className="text-xs text-gray-400 mt-0.5" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{sub}</p>}
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 // Helper to convert a stored pitch to the display Pitch format
@@ -274,7 +274,7 @@ function storedToDisplay(p: StoredPitch, artistName: string): Pitch {
     draft: 'novo',
     sent: 'em_analise',
     hold: 'pendente',
-    placed: 'aprovado',
+    placed: 'aprovado'
   };
   const d = new Date(p.createdAt);
   const day = String(d.getDate()).padStart(2, '0');
@@ -291,7 +291,7 @@ function storedToDisplay(p: StoredPitch, artistName: string): Pitch {
     tags: [],
     submittedAt: `${day}/${month}/${year}`,
     label: '',
-    description: p.notes || '',
+    description: p.notes || ''
   };
 }
 
@@ -340,11 +340,11 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
       {/* Items info + per-page selector — always full width on mobile */}
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-gray-400" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-          {isLoading ? (
-            <span className="inline-block h-3 w-28 bg-gray-200 rounded animate-pulse" />
-          ) : (
-            totalItems === 0 ? 'No results' : `${startItem}–${endItem} of ${totalItems}`
-          )}
+          {isLoading ?
+          <span className="inline-block h-3 w-28 bg-gray-200 rounded animate-pulse" /> :
+
+          totalItems === 0 ? 'No results' : `${startItem}–${endItem} of ${totalItems}`
+          }
         </span>
         <div className="flex items-center gap-1.5">
           <label className="text-xs text-gray-400" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Per page:</label>
@@ -354,64 +354,64 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
             disabled={isLoading}
             aria-label="Items per page"
             className="text-xs rounded-lg px-2 py-1.5 border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}
-          >
-            {PAGE_SIZE_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+            
+            {PAGE_SIZE_OPTIONS.map((s) =>
+            <option key={s} value={s}>{s}</option>
+            )}
           </select>
         </div>
       </div>
 
       {/* Page controls — centered single row on mobile */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1 flex-wrap" role="navigation" aria-label="Pagination">
+      {totalPages > 1 &&
+      <div className="flex items-center justify-center gap-1 flex-wrap" role="navigation" aria-label="Pagination">
           <button
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1 || isLoading}
-            aria-label="Previous page"
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
-            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}
-          >
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          aria-label="Previous page"
+          className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
+          style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+          
             <Icon name="ChevronLeftIcon" size={13} variant="outline" aria-hidden="true" />
             <span className="hidden sm:inline">Prev</span>
           </button>
 
           {getPageNumbers().map((page, idx) =>
-            page === '...' ? (
-              <span key={`ellipsis-${idx}`} className="px-2 py-2 text-xs text-gray-400" aria-hidden="true">…</span>
-            ) : (
-              <button
-                key={page}
-                onClick={() => onPageChange(page as number)}
-                disabled={isLoading}
-                aria-label={`Page ${page}`}
-                aria-current={currentPage === page ? 'page' : undefined}
-                className={`min-w-[36px] min-h-[36px] px-2.5 py-2 rounded-lg text-xs border transition-all disabled:cursor-not-allowed ${
-                  currentPage === page
-                    ? 'bg-blue-600 border-blue-600 text-white font-semibold' :'border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
-                }`}
-                style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}
-              >
+        page === '...' ?
+        <span key={`ellipsis-${idx}`} className="px-2 py-2 text-xs text-gray-400" aria-hidden="true">…</span> :
+
+        <button
+          key={page}
+          onClick={() => onPageChange(page as number)}
+          disabled={isLoading}
+          aria-label={`Page ${page}`}
+          aria-current={currentPage === page ? 'page' : undefined}
+          className={`min-w-[36px] min-h-[36px] px-2.5 py-2 rounded-lg text-xs border transition-all disabled:cursor-not-allowed ${
+          currentPage === page ?
+          'bg-blue-600 border-blue-600 text-white font-semibold' : 'border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'}`
+          }
+          style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+          
                 {page}
               </button>
-            )
-          )}
+
+        )}
 
           <button
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages || isLoading}
-            aria-label="Next page"
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
-            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}
-          >
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages || isLoading}
+          aria-label="Next page"
+          className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
+          style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+          
             <span className="hidden sm:inline">Next</span>
             <Icon name="ChevronRightIcon" size={13} variant="outline" aria-hidden="true" />
           </button>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }
 
 export default function PitchesInteractive() {
@@ -469,11 +469,11 @@ export default function PitchesInteractive() {
   useEffect(() => {
     const prev = prevFiltersRef.current;
     const changed =
-      prev.search !== filters.search ||
-      prev.status !== filters.status ||
-      prev.category !== filters.category ||
-      prev.sortBy !== filters.sortBy ||
-      prev.sortOrder !== filters.sortOrder;
+    prev.search !== filters.search ||
+    prev.status !== filters.status ||
+    prev.category !== filters.category ||
+    prev.sortBy !== filters.sortBy ||
+    prev.sortOrder !== filters.sortOrder;
 
     if (changed && !isLoading) {
       setIsFilterLoading(true);
@@ -543,19 +543,19 @@ export default function PitchesInteractive() {
     const total = pitches.length;
     const approved = pitches.filter((p) => p.status === 'aprovado').length;
     const reviewed = pitches.filter((p) => ['aprovado', 'rejeitado', 'em_analise'].includes(p.status)).length;
-    const approvalRate = reviewed > 0 ? Math.round((approved / reviewed) * 100) : 0;
+    const approvalRate = reviewed > 0 ? Math.round(approved / reviewed * 100) : 0;
     // Average review time: mock calculation based on submission dates (days since submitted)
     const now = new Date();
     const reviewedPitches = pitches.filter((p) => ['aprovado', 'rejeitado'].includes(p.status));
-    const avgDays = reviewedPitches.length > 0
-      ? Math.round(
-          reviewedPitches.reduce((sum, p) => {
-            const [day, month, year] = p.submittedAt.split('/');
-            const submitted = new Date(+year, +month - 1, +day);
-            return sum + Math.max(0, Math.floor((now.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24)));
-          }, 0) / reviewedPitches.length
-        )
-      : 0;
+    const avgDays = reviewedPitches.length > 0 ?
+    Math.round(
+      reviewedPitches.reduce((sum, p) => {
+        const [day, month, year] = p.submittedAt.split('/');
+        const submitted = new Date(+year, +month - 1, +day);
+        return sum + Math.max(0, Math.floor((now.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24)));
+      }, 0) / reviewedPitches.length
+    ) :
+    0;
     // Recent submissions: pitches submitted in last 7 days
     const recentCount = pitches.filter((p) => {
       const [day, month, year] = p.submittedAt.split('/');
@@ -571,7 +571,7 @@ export default function PitchesInteractive() {
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);else next.add(id);
       return next;
     });
   };
@@ -606,7 +606,7 @@ export default function PitchesInteractive() {
     await new Promise((r) => setTimeout(r, 600));
     try {
       setPitches((prev) =>
-        prev.map((p) => selectedIds.has(p.id) ? { ...p, status: bulkStatusValue } : p)
+      prev.map((p) => selectedIds.has(p.id) ? { ...p, status: bulkStatusValue } : p)
       );
       setSelectedIds(new Set());
     } catch {
@@ -620,7 +620,7 @@ export default function PitchesInteractive() {
     const selected = pitches.filter((p) => selectedIds.has(p.id));
     const header = 'ID,Title,Artist,Status,Category,Label,Submitted';
     const rows = selected.map((p) =>
-      `${p.id},"${p.title}","${p.artist}",${p.status},${p.category},"${p.label}",${p.submittedAt}`
+    `${p.id},"${p.title}","${p.artist}",${p.status},${p.category},"${p.label}",${p.submittedAt}`
     ).join('\n');
     const csv = `${header}\n${rows}`;
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -656,7 +656,7 @@ export default function PitchesInteractive() {
         trackUrl: '',
         status: 'draft',
         notes: pitch.description || '',
-        createdAt: pitch.submittedAt,
+        createdAt: pitch.submittedAt
       });
     }
     setIsEditModalOpen(true);
@@ -680,7 +680,7 @@ export default function PitchesInteractive() {
       }
     },
     onFilter: () => setFiltersOpen((prev) => !prev),
-    onHelp: () => setShowHelpModal(true),
+    onHelp: () => setShowHelpModal(true)
   });
 
   return (
@@ -693,35 +693,35 @@ export default function PitchesInteractive() {
           <Breadcrumb items={[{ label: 'Início', path: '/pitches-listing-dashboard' }, { label: 'Pitches' }]} className="mb-6" />
 
           {/* Summary Cards */}
-          {!isLoading && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" role="region" aria-label="Pitches summary statistics">
+          {!isLoading &&
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" role="region" aria-label="Pitches summary statistics">
               <SummaryCard
-                icon="DocumentTextIcon"
-                label="Total Pitches"
-                value={summaryMetrics.total}
-                sub="all time"
-                accent
-              />
+              icon="DocumentTextIcon"
+              label="Total Pitches"
+              value={summaryMetrics.total}
+              sub="all time"
+              accent />
+            
               <SummaryCard
-                icon="CheckCircleIcon"
-                label="Approval Rate"
-                value={`${summaryMetrics.approvalRate}%`}
-                sub="of reviewed pitches"
-              />
+              icon="CheckCircleIcon"
+              label="Approval Rate"
+              value={`${summaryMetrics.approvalRate}%`}
+              sub="of reviewed pitches" />
+            
               <SummaryCard
-                icon="ClockIcon"
-                label="Avg Review Time"
-                value={`${summaryMetrics.avgDays}d`}
-                sub="days to decision"
-              />
+              icon="ClockIcon"
+              label="Avg Review Time"
+              value={`${summaryMetrics.avgDays}d`}
+              sub="days to decision" />
+            
               <SummaryCard
-                icon="BoltIcon"
-                label="Recent (7d)"
-                value={summaryMetrics.recentCount}
-                sub="new submissions"
-              />
+              icon="BoltIcon"
+              label="Recent (7d)"
+              value={summaryMetrics.recentCount}
+              sub="new submissions" />
+            
             </div>
-          )}
+          }
 
           {/* Main Panel */}
           <div className="bg-white border border-gray-200 rounded-2xl p-[18px] shadow-sm">
@@ -757,8 +757,8 @@ export default function PitchesInteractive() {
                   onClick={() => setShowHelpModal(true)}
                   className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 text-xs rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition-all"
                   aria-label="Show keyboard shortcuts (⌘+?)"
-                  title="Keyboard shortcuts (⌘+?)"
-                >
+                  title="Keyboard shortcuts (⌘+?)">
+                  
                   <Icon name="QuestionMarkCircleIcon" size={15} variant="outline" />
                   <span className="hidden lg:inline">Shortcuts</span>
                 </button>
@@ -783,61 +783,61 @@ export default function PitchesInteractive() {
                 totalCount={pitches.length}
                 filteredCount={filteredPitches.length}
                 mobileFiltersOpen={filtersOpen}
-                onMobileFiltersToggle={() => setFiltersOpen((prev) => !prev)}
-              />
+                onMobileFiltersToggle={() => setFiltersOpen((prev) => !prev)} />
+              
             </div>
 
             {/* Select-all row */}
-            {!showSkeleton && paginatedPitches.length > 0 && (
-              <div className="flex items-center gap-3 mb-3 px-1">
+            {!showSkeleton && paginatedPitches.length > 0 &&
+            <div className="flex items-center gap-3 mb-3 px-1">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <div
-                    role="checkbox"
-                    aria-checked={allPageSelected ? true : someSelected ? 'mixed' : false}
-                    aria-label={allPageSelected ? 'Deselect all pitches on this page' : 'Select all pitches on this page'}
-                    tabIndex={0}
-                    onClick={toggleSelectAll}
-                    onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleSelectAll(); } }}
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
-                      allPageSelected
-                        ? 'bg-gray-900 border-gray-900'
-                        : someSelected
-                        ? 'bg-gray-400 border-gray-400' : 'border-gray-300 hover:border-gray-500'
-                    }`}
-                  >
-                    {(allPageSelected || someSelected) && (
-                      <Icon name="MinusIcon" size={10} variant="outline" className="text-gray-500" />
-                    )}
-                    {allPageSelected && (
-                      <Icon name="CheckIcon" size={10} variant="outline" className="text-gray-500" />
-                    )}
+                  role="checkbox"
+                  aria-checked={allPageSelected ? true : someSelected ? 'mixed' : false}
+                  aria-label={allPageSelected ? 'Deselect all pitches on this page' : 'Select all pitches on this page'}
+                  tabIndex={0}
+                  onClick={toggleSelectAll}
+                  onKeyDown={(e) => {if (e.key === ' ' || e.key === 'Enter') {e.preventDefault();toggleSelectAll();}}}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
+                  allPageSelected ?
+                  'bg-gray-900 border-gray-900' :
+                  someSelected ?
+                  'bg-gray-400 border-gray-400' : 'border-gray-300 hover:border-gray-500'}`
+                  }>
+                  
+                    {(allPageSelected || someSelected) &&
+                  <Icon name="MinusIcon" size={10} variant="outline" className="text-gray-500" />
+                  }
+                    {allPageSelected &&
+                  <Icon name="CheckIcon" size={10} variant="outline" className="text-gray-500" />
+                  }
                   </div>
                   <span className="text-xs text-gray-500" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
                     {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
                   </span>
                 </label>
               </div>
-            )}
+            }
 
             {/* Bulk Action Toolbar — touch-friendly on mobile */}
-            {selectionMode && (
-              <div
-                className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 px-3 py-3 rounded-xl border"
-                style={{ background: '#1d4ed8', borderColor: '#2563EB' }}
-                role="toolbar"
-                aria-label={`Bulk actions for ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''}`}
-              >
+            {selectionMode &&
+            <div
+              className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 px-3 py-3 rounded-xl border"
+              style={{ background: '#1d4ed8', borderColor: '#2563EB' }}
+              role="toolbar"
+              aria-label={`Bulk actions for ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''}`}>
+              
                 {/* Row 1: count + clear */}
                 <div className="flex items-center justify-between sm:justify-start gap-2">
                   <span className="text-xs font-semibold text-white" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
                     {selectedIds.size} pitch{selectedIds.size !== 1 ? 'es' : ''} selected
                   </span>
                   <button
-                    onClick={clearSelection}
-                    disabled={isBulkProcessing}
-                    aria-label="Clear selection"
-                    className="sm:hidden flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
+                  onClick={clearSelection}
+                  disabled={isBulkProcessing}
+                  aria-label="Clear selection"
+                  className="sm:hidden flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  
                     <Icon name="XMarkIcon" size={13} variant="outline" aria-hidden="true" />
                     Clear
                   </button>
@@ -848,123 +848,123 @@ export default function PitchesInteractive() {
                   {/* Status update */}
                   <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
                     <select
-                      value={bulkStatusValue}
-                      onChange={(e) => setBulkStatusValue(e.target.value as StatusType)}
-                      disabled={isBulkProcessing}
-                      aria-label="Select new status for bulk update"
-                      className="flex-1 sm:flex-none text-xs rounded-lg px-2 py-2 border border-blue-400 bg-blue-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                      style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}
-                    >
-                      {STATUS_OPTIONS.map((s) => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
-                      ))}
+                    value={bulkStatusValue}
+                    onChange={(e) => setBulkStatusValue(e.target.value as StatusType)}
+                    disabled={isBulkProcessing}
+                    aria-label="Select new status for bulk update"
+                    className="flex-1 sm:flex-none text-xs rounded-lg px-2 py-2 border border-blue-400 bg-blue-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                    style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                    
+                      {STATUS_OPTIONS.map((s) =>
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                    )}
                     </select>
                     <button
-                      onClick={handleBulkStatusUpdate}
-                      disabled={isBulkProcessing}
-                      aria-label={isBulkUpdating ? 'Updating status for selected pitches…' : `Update status of ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''} to ${bulkStatusValue}`}
-                      aria-busy={isBulkUpdating}
-                      className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                    >
+                    onClick={handleBulkStatusUpdate}
+                    disabled={isBulkProcessing}
+                    aria-label={isBulkUpdating ? 'Updating status for selected pitches…' : `Update status of ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''} to ${bulkStatusValue}`}
+                    aria-busy={isBulkUpdating}
+                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                    
                       {isBulkUpdating ? <Spinner size={13} /> : <Icon name="ArrowPathIcon" size={13} variant="outline" aria-hidden="true" />}
                       <span>{isBulkUpdating ? 'Updating…' : 'Update'}</span>
                     </button>
                   </div>
                   {/* Export */}
                   <button
-                    onClick={handleBulkExport}
-                    disabled={isBulkProcessing}
-                    aria-label={`Export ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''} as CSV`}
-                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                  >
+                  onClick={handleBulkExport}
+                  disabled={isBulkProcessing}
+                  aria-label={`Export ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''} as CSV`}
+                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                  
                     <Icon name="ArrowDownTrayIcon" size={13} variant="outline" aria-hidden="true" />
                     <span>Export</span>
                   </button>
                   {/* Delete */}
                   <button
-                    onClick={handleBulkDelete}
-                    disabled={isBulkProcessing}
-                    aria-label={isBulkDeleting ? 'Deleting selected pitches…' : `Delete ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''}`}
-                    aria-busy={isBulkDeleting}
-                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                  >
+                  onClick={handleBulkDelete}
+                  disabled={isBulkProcessing}
+                  aria-label={isBulkDeleting ? 'Deleting selected pitches…' : `Delete ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''}`}
+                  aria-busy={isBulkDeleting}
+                  className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                  
                     {isBulkDeleting ? <Spinner size={13} /> : <Icon name="TrashIcon" size={13} variant="outline" aria-hidden="true" />}
                     <span>{isBulkDeleting ? 'Deleting…' : 'Delete'}</span>
                   </button>
                   {/* Clear — desktop only */}
                   <button
-                    onClick={clearSelection}
-                    disabled={isBulkProcessing}
-                    aria-label="Clear selection"
-                    className="hidden sm:flex items-center gap-1 text-xs px-2 py-2 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                  >
+                  onClick={clearSelection}
+                  disabled={isBulkProcessing}
+                  aria-label="Clear selection"
+                  className="hidden sm:flex items-center gap-1 text-xs px-2 py-2 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                  
                     <Icon name="XMarkIcon" size={13} variant="outline" aria-hidden="true" />
                   </button>
                 </div>
               </div>
-            )}
+            }
 
             {/* Pitches Grid / List */}
             <div aria-live="polite" aria-busy={showSkeleton} role="region" aria-label="Pitches list">
-              {showSkeleton ? (
-                viewMode === 'card' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {Array.from({ length: pageSize }).map((_, i) => (
-                      <PitchCardSkeleton key={i} viewMode="card" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {Array.from({ length: pageSize }).map((_, i) => (
-                      <PitchCardSkeleton key={i} viewMode="list" />
-                    ))}
-                  </div>
-                )
-              ) : filteredPitches.length === 0 ? (
-                <EmptyState hasFilters={hasActiveFilters} />
-              ) : viewMode === 'card' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {paginatedPitches.map((pitch) => (
-                    <PitchCard
-                      key={pitch.id}
-                      pitch={pitch}
-                      viewMode="card"
-                      isSelected={selectedIds.has(pitch.id)}
-                      onToggleSelect={toggleSelect}
-                      selectionMode={selectionMode}
-                      onEdit={handleEditPitch}
-                    />
-                  ))}
+              {showSkeleton ?
+              viewMode === 'card' ?
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {Array.from({ length: pageSize }).map((_, i) =>
+                <PitchCardSkeleton key={i} viewMode="card" />
+                )}
+                  </div> :
+
+              <div className="space-y-2">
+                    {Array.from({ length: pageSize }).map((_, i) =>
+                <PitchCardSkeleton key={i} viewMode="list" />
+                )}
+                  </div> :
+
+              filteredPitches.length === 0 ?
+              <EmptyState hasFilters={hasActiveFilters} /> :
+              viewMode === 'card' ?
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {paginatedPitches.map((pitch) =>
+                <PitchCard
+                  key={pitch.id}
+                  pitch={pitch}
+                  viewMode="card"
+                  isSelected={selectedIds.has(pitch.id)}
+                  onToggleSelect={toggleSelect}
+                  selectionMode={selectionMode}
+                  onEdit={handleEditPitch} />
+
+                )}
+                </div> :
+
+              <div className="space-y-2">
+                  {paginatedPitches.map((pitch) =>
+                <PitchCard
+                  key={pitch.id}
+                  pitch={pitch}
+                  viewMode="list"
+                  isSelected={selectedIds.has(pitch.id)}
+                  onToggleSelect={toggleSelect}
+                  selectionMode={selectionMode}
+                  onEdit={handleEditPitch} />
+
+                )}
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {paginatedPitches.map((pitch) => (
-                    <PitchCard
-                      key={pitch.id}
-                      pitch={pitch}
-                      viewMode="list"
-                      isSelected={selectedIds.has(pitch.id)}
-                      onToggleSelect={toggleSelect}
-                      selectionMode={selectionMode}
-                      onEdit={handleEditPitch}
-                    />
-                  ))}
-                </div>
-              )}
+              }
             </div>
 
             {/* Pagination */}
-            {!showSkeleton && filteredPitches.length > 0 && (
-              <Pagination
-                currentPage={safePage}
-                totalPages={totalPages}
-                pageSize={pageSize}
-                totalItems={filteredPitches.length}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                isLoading={showSkeleton}
-              />
-            )}
+            {!showSkeleton && filteredPitches.length > 0 &&
+            <Pagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={filteredPitches.length}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              isLoading={showSkeleton} />
+
+            }
           </div>
         </div>
       </main>
@@ -982,9 +982,9 @@ export default function PitchesInteractive() {
       </footer>
 
       {/* Keyboard Shortcuts Help Modal */}
-      {showHelpModal && (
-        <ShortcutsHelpModal onClose={() => setShowHelpModal(false)} />
-      )}
+      {showHelpModal &&
+      <ShortcutsHelpModal onClose={() => setShowHelpModal(false)} />
+      }
 
       {/* Edit Pitch Modal */}
       <NewPitchModal
@@ -994,8 +994,8 @@ export default function PitchesInteractive() {
           setEditingPitch(null);
           setPitches(loadPitchesFromStore());
         }}
-        editPitch={editingPitch ?? undefined}
-      />
-    </div>
-  );
+        editPitch={editingPitch ?? undefined} />
+      
+    </div>);
+
 }
