@@ -36,15 +36,6 @@ interface ExternalLink {
   platform: string;
 }
 
-interface Note {
-  id: number;
-  author: string;
-  role: string;
-  content: string;
-  timestamp: string;
-  version: number;
-}
-
 interface RecipientEntry {
   contact: Contact;
   artist: Artist | undefined;
@@ -100,34 +91,6 @@ const mockLinks: ExternalLink[] = [
 { id: 4, label: 'YouTube - Clipe Oficial', url: 'https://youtube.com', type: 'demo', platform: 'YouTube' },
 { id: 5, label: 'Folha de S.Paulo - Entrevista', url: 'https://folha.uol.com.br', type: 'press', platform: 'Folha de S.Paulo' },
 { id: 6, label: 'SoundCloud - Demos', url: 'https://soundcloud.com', type: 'demo', platform: 'SoundCloud' }];
-
-
-const mockNotes: Note[] = [
-{
-  id: 1,
-  author: 'Carlos Mendes',
-  role: 'A&R Sênior',
-  content: 'Voz excepcional com grande controle dinâmico. As composições mostram maturidade acima da média para uma artista estreante. Recomendo fortemente avançar para a próxima etapa de avaliação.',
-  timestamp: '18/02/2026 às 14:32',
-  version: 1
-},
-{
-  id: 2,
-  author: 'Ana Beatriz Lima',
-  role: 'Diretora Musical',
-  content: 'Ouvi o álbum completo. A produção é limpa e bem executada. O track 3 \'Raízes\' tem potencial para rádio. Precisamos discutir estratégia de lançamento com o time de marketing.',
-  timestamp: '20/02/2026 às 09:15',
-  version: 2
-},
-{
-  id: 3,
-  author: 'Rafael Torres',
-  role: 'Supervisor de Licenciamento',
-  content: 'Verificado: todos os direitos autorais estão registrados no ECAD. Contrato de exclusividade com a Trópico Records vence em dezembro/2026. Janela favorável para negociação.',
-  timestamp: '22/02/2026 às 16:48',
-  version: 3
-}];
-
 
 const statusOptions: {value: PitchStatus;label: string;}[] = [
 { value: 'novo', label: 'Novo' },
