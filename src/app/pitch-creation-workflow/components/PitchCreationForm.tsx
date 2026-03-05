@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import FormSectionHeader from './FormSectionHeader';
 import ExternalLinksSection from './ExternalLinksSection';
@@ -10,8 +11,6 @@ import { useToast } from '@/components/ui/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useSubmissionProgress } from '@/hooks/useSubmissionProgress';
 import Sidebar from '@/components/common/Sidebar';
-
-
 import {
   artistStore,
   contactStore,
@@ -64,16 +63,15 @@ function uid(): string {
 }
 
 export default function PitchCreationForm() {
+  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [form, setForm] = useState<FormData>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [autoSave, setAutoSave] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [submitted, setSubmitted] = useState(false);
-  const [savedPitchTitle, setSavedPitchTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
-  const { progress: submissionProgress, runSteps } = useSubmissionProgress('pitch');
+  const { runSteps } = useSubmissionProgress('pitch');
 
   // Artist autocomplete
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -115,7 +113,6 @@ export default function PitchCreationForm() {
     return () => clearTimeout(timer);
   }, [form, isHydrated, triggerAutoSave]);
 
-  // Artist autocomplete helpers
   const filteredArtists = artists.filter((a) =>
     a.name.toLowerCase().includes(artistQuery.toLowerCase())
   );
@@ -131,6 +128,7 @@ export default function PitchCreationForm() {
       linkStore.getByArtist(artist.id),
       contactStore.getAll(),
     ]);
+
     const linked = links
       .map((l) => {
         const contact = allContacts.find((c) => c.id === l.contactId);
@@ -157,7 +155,6 @@ export default function PitchCreationForm() {
     );
   };
 
-  // External recipient helpers
   const addExternalRecipient = () => {
     const errs: Record<string, string> = {};
     if (!externalForm.fullName.trim()) errs.fullName = 'Name required';
@@ -165,10 +162,7 @@ export default function PitchCreationForm() {
       errs.email = 'Valid email required';
     setExternalErrors(errs);
     if (Object.keys(errs).length > 0) return;
-    setExternalRecipients((prev) => [
-      ...prev,
-      { id: uid(), ...externalForm },
-    ]);
+    setExternalRecipients((prev) => [...prev, { id: uid(), ...externalForm }]);
     setExternalForm({ fullName: '', email: '', role: '', company: '' });
     setShowAddExternal(false);
     setExternalErrors({});
@@ -180,7 +174,6 @@ export default function PitchCreationForm() {
     setConfirmRemoveExternal(null);
   };
 
-  // To: summary emails
   const selectedLinkedEmails = linkedContacts
     .filter((lc) => selectedContactIds.includes(lc.contact.id))
     .map((lc) => lc.contact.email);
@@ -251,8 +244,8 @@ export default function PitchCreationForm() {
       }
 
       const allRecipientIds = [...selectedContactIds];
-
       const createdExternalIds: string[] = [];
+
       for (const ext of externalRecipients) {
         const newContact = await contactStore.create({
           fullName: ext.fullName,
@@ -268,9 +261,9 @@ export default function PitchCreationForm() {
       await pitchRecipientStore.setForPitch(pitch.id, [...allRecipientIds, ...createdExternalIds]);
 
       showToast(`Pitch "${form.pitchTitle}" submitted successfully!`, 'success');
-      setSavedPitchTitle(form.pitchTitle);
-      setSubmitted(true);
-      setIsSubmitting(false);
+
+      // Redirect to success modal with real pitch ID
+      router.push(`/pitch-creation-success-modal?pitchId=${pitch.id}`);
     });
   };
 
@@ -280,51 +273,6 @@ export default function PitchCreationForm() {
     }`;
 
   if (!isHydrated) return null;
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen" style={{ background: 'var(--color-background)' }}>
-        <Sidebar />
-        <main className="pt-16 md:pt-0 md:pl-56">
-          <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-                <Icon name="CheckCircleIcon" size={32} variant="outline" className="text-emerald-600" />
-              </div>
-              <h2 className="pm-h1 text-xl mb-2">Pitch criado com sucesso!</h2>
-              <p className="text-sm mb-6 max-w-sm" style={{ color: 'var(--color-muted-foreground)' }}>
-                O pitch <strong>{savedPitchTitle}</strong> foi salvo e os destinatários foram registrados.
-              </p>
-              <div className="flex gap-3">
-                <Link href="/pitches" className="pm-btn-primary">
-                  <Icon name="Squares2X2Icon" size={16} variant="outline" />
-                  Ver Pitches
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setForm(initialForm);
-                    setSubmitted(false);
-                    setErrors({});
-                    setSelectedArtist(null);
-                    setArtistQuery('');
-                    setLinkedContacts([]);
-                    setSelectedContactIds([]);
-                    setExternalRecipients([]);
-                  }}
-                  className="pm-btn border"
-                  style={{ borderColor: 'var(--color-border)' }}
-                >
-                  <Icon name="PlusIcon" size={16} variant="outline" />
-                  Novo Pitch
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-background)' }}>
@@ -341,9 +289,7 @@ export default function PitchCreationForm() {
                   setExternalErrors({});
                   setExternalForm({ fullName: '', email: '', role: '', company: '' });
                 }
-                if (artistDropdownOpen) {
-                  setArtistDropdownOpen(false);
-                }
+                if (artistDropdownOpen) setArtistDropdownOpen(false);
               }
             }}
           >
@@ -367,6 +313,7 @@ export default function PitchCreationForm() {
                 </div>
               </div>
             )}
+
             {/* Topbar actions row */}
             <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
               <div className="flex items-center gap-2">
@@ -397,7 +344,6 @@ export default function PitchCreationForm() {
                   title="Artista"
                   subtitle="Selecione o artista para carregar automaticamente os destinatários vinculados"
                 />
-
                 <div className="relative">
                   <label className="pm-label">
                     Artista <span className="text-red-500">*</span>
@@ -442,7 +388,6 @@ export default function PitchCreationForm() {
                       autoComplete="off"
                       tabIndex={1}
                       aria-label="Search artist"
-                      aria-autoComplete="list"
                       aria-expanded={artistDropdownOpen}
                     />
                     {selectedArtist && (
@@ -509,7 +454,6 @@ export default function PitchCreationForm() {
                     </div>
                   )}
                 </div>
-
                 {errors.artistId && (
                   <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                     <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
@@ -527,7 +471,6 @@ export default function PitchCreationForm() {
                     subtitle="Contatos vinculados ao artista. Desmarque para excluir da lista de envio."
                   />
 
-                  {/* To: summary */}
                   {allSelectedEmails.length > 0 && (
                     <div
                       className="mb-4 px-3 py-2.5 rounded-lg text-sm"
@@ -544,15 +487,10 @@ export default function PitchCreationForm() {
                     </div>
                   )}
 
-                  {/* Linked contacts checklist */}
                   {linkedContacts.length === 0 ? (
                     <div
                       className="py-4 text-center text-sm rounded-lg"
-                      style={{
-                        background: 'var(--color-muted)',
-                        border: '1px solid var(--color-border)',
-                        color: 'var(--color-muted-foreground)',
-                      }}
+                      style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)', color: 'var(--color-muted-foreground)' }}
                     >
                       Nenhum contato vinculado a este artista.{' '}
                       <Link href="/artists" className="underline" style={{ color: 'var(--color-accent)' }}>
@@ -581,50 +519,25 @@ export default function PitchCreationForm() {
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span
-                                  className="text-sm font-semibold"
-                                  style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}
-                                >
+                                <span className="text-sm font-semibold" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
                                   {contact.fullName}
                                 </span>
                                 {link.isPrimary && (
-                                  <span
-                                    className="text-xs px-1.5 py-0.5 rounded"
-                                    style={{
-                                      background: 'var(--color-accent)',
-                                      color: 'var(--color-accent-foreground)',
-                                      fontFamily: 'IBM Plex Sans, sans-serif',
-                                      fontSize: '0.65rem',
-                                      letterSpacing: '0.06em',
-                                      textTransform: 'uppercase',
-                                    }}
-                                  >
+                                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--color-accent)', color: 'var(--color-accent-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                                     Primary
                                   </span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                <span
-                                  className="text-xs"
-                                  style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}
-                                >
-                                  {link.relationshipType}
-                                </span>
+                                <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>{link.relationshipType}</span>
                                 {contact.company && (
                                   <>
                                     <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>·</span>
-                                    <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
-                                      {contact.company}
-                                    </span>
+                                    <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>{contact.company}</span>
                                   </>
                                 )}
                                 <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>·</span>
-                                <span
-                                  className="text-xs"
-                                  style={{ color: 'var(--color-accent)', fontFamily: 'JetBrains Mono, monospace' }}
-                                >
-                                  {contact.email}
-                                </span>
+                                <span className="text-xs" style={{ color: 'var(--color-accent)', fontFamily: 'JetBrains Mono, monospace' }}>{contact.email}</span>
                               </div>
                             </div>
                           </label>
@@ -633,44 +546,17 @@ export default function PitchCreationForm() {
                     </div>
                   )}
 
-                  {/* External recipients */}
                   {externalRecipients.length > 0 && (
                     <div className="mt-3 space-y-2">
-                      <p
-                        className="pm-kicker"
-                        style={{ marginBottom: '6px' }}
-                      >
-                        Destinatários externos
-                      </p>
+                      <p className="pm-kicker" style={{ marginBottom: '6px' }}>Destinatários externos</p>
                       {externalRecipients.map((ext) => (
-                        <div
-                          key={ext.id}
-                          className="flex items-start gap-3 px-3 py-2.5 rounded-lg"
-                          style={{
-                            background: 'var(--color-muted)',
-                            border: '1px solid var(--color-border)',
-                          }}
-                        >
+                        <div key={ext.id} className="flex items-start gap-3 px-3 py-2.5 rounded-lg" style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span
-                                className="text-sm font-semibold"
-                                style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}
-                              >
-                                {ext.fullName}
-                              </span>
-                              {ext.role && (
-                                <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
-                                  {ext.role}{ext.company ? ` @ ${ext.company}` : ''}
-                                </span>
-                              )}
+                              <span className="text-sm font-semibold" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>{ext.fullName}</span>
+                              {ext.role && <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>{ext.role}{ext.company ? ` @ ${ext.company}` : ''}</span>}
                             </div>
-                            <span
-                              className="text-xs"
-                              style={{ color: 'var(--color-accent)', fontFamily: 'JetBrains Mono, monospace' }}
-                            >
-                              {ext.email}
-                            </span>
+                            <span className="text-xs" style={{ color: 'var(--color-accent)', fontFamily: 'JetBrains Mono, monospace' }}>{ext.email}</span>
                           </div>
                           <button
                             type="button"
@@ -686,15 +572,12 @@ export default function PitchCreationForm() {
                     </div>
                   )}
 
-                  {/* Add external recipient */}
                   {!showAddExternal ? (
                     <button
                       type="button"
                       onClick={() => setShowAddExternal(true)}
                       className="mt-3 flex items-center gap-1.5 text-xs font-medium transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none rounded"
                       style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-foreground)'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted-foreground)'; }}
                     >
                       <Icon name="PlusIcon" size={13} variant="outline" />
                       Adicionar destinatário externo
@@ -702,20 +585,10 @@ export default function PitchCreationForm() {
                   ) : (
                     <div
                       className="mt-3 p-3 rounded-lg space-y-3"
-                      style={{
-                        background: 'var(--color-muted)',
-                        border: '1px solid var(--color-border)',
-                      }}
+                      style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
                       onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          setShowAddExternal(false);
-                          setExternalErrors({});
-                          setExternalForm({ fullName: '', email: '', role: '', company: '' });
-                        }
-                        if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'BUTTON') {
-                          e.preventDefault();
-                          addExternalRecipient();
-                        }
+                        if (e.key === 'Escape') { setShowAddExternal(false); setExternalErrors({}); setExternalForm({ fullName: '', email: '', role: '', company: '' }); }
+                        if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'BUTTON') { e.preventDefault(); addExternalRecipient(); }
                       }}
                     >
                       <p className="pm-kicker">Novo destinatário externo</p>
@@ -726,17 +599,10 @@ export default function PitchCreationForm() {
                             className={`pm-input text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none${externalErrors.fullName ? ' border-red-400' : ''}`}
                             value={externalForm.fullName}
                             onChange={(e) => setExternalForm((p) => ({ ...p, fullName: e.target.value }))}
-                            onBlur={(e) => {
-                              if (!e.target.value.trim()) setExternalErrors((p) => ({ ...p, fullName: 'Name required' }));
-                              else setExternalErrors((p) => { const x = { ...p }; delete x.fullName; return x; });
-                            }}
                             placeholder="Nome completo"
                             autoFocus
-                            aria-required="true"
                           />
-                          {externalErrors.fullName && (
-                            <p className="text-xs text-red-500 mt-1">{externalErrors.fullName}</p>
-                          )}
+                          {externalErrors.fullName && <p className="text-xs text-red-500 mt-1">{externalErrors.fullName}</p>}
                         </div>
                         <div>
                           <label className="pm-label">E-mail <span className="text-red-500">*</span></label>
@@ -745,49 +611,22 @@ export default function PitchCreationForm() {
                             type="email"
                             value={externalForm.email}
                             onChange={(e) => setExternalForm((p) => ({ ...p, email: e.target.value }))}
-                            onBlur={(e) => {
-                              if (!e.target.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)) setExternalErrors((p) => ({ ...p, email: 'Valid email required' }));
-                              else setExternalErrors((p) => { const x = { ...p }; delete x.email; return x; });
-                            }}
                             placeholder="email@exemplo.com"
-                            aria-required="true"
                           />
-                          {externalErrors.email && (
-                            <p className="text-xs text-red-500 mt-1">{externalErrors.email}</p>
-                          )}
+                          {externalErrors.email && <p className="text-xs text-red-500 mt-1">{externalErrors.email}</p>}
                         </div>
                         <div>
                           <label className="pm-label">Cargo / Função</label>
-                          <input
-                            className="pm-input text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            value={externalForm.role}
-                            onChange={(e) => setExternalForm((p) => ({ ...p, role: e.target.value }))}
-                            placeholder="Ex: A&R, Manager"
-                          />
+                          <input className="pm-input text-sm" value={externalForm.role} onChange={(e) => setExternalForm((p) => ({ ...p, role: e.target.value }))} placeholder="Ex: A&R, Manager" />
                         </div>
                         <div>
                           <label className="pm-label">Empresa</label>
-                          <input
-                            className="pm-input text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            value={externalForm.company}
-                            onChange={(e) => setExternalForm((p) => ({ ...p, company: e.target.value }))}
-                            placeholder="Ex: Sony Music"
-                          />
+                          <input className="pm-input text-sm" value={externalForm.company} onChange={(e) => setExternalForm((p) => ({ ...p, company: e.target.value }))} placeholder="Ex: Sony Music" />
                         </div>
                       </div>
                       <div className="flex gap-2 justify-end">
-                        <button
-                          type="button"
-                          onClick={() => { setShowAddExternal(false); setExternalErrors({}); setExternalForm({ fullName: '', email: '', role: '', company: '' }); }}
-                          className="pm-btn text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={addExternalRecipient}
-                          className="pm-btn-primary text-xs px-4 min-h-[36px] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                        >
+                        <button type="button" onClick={() => { setShowAddExternal(false); setExternalErrors({}); setExternalForm({ fullName: '', email: '', role: '', company: '' }); }} className="pm-btn text-xs">Cancelar</button>
+                        <button type="button" onClick={addExternalRecipient} className="pm-btn-primary text-xs px-4 min-h-[36px]">
                           <Icon name="PlusIcon" size={13} variant="outline" />
                           Adicionar
                         </button>
@@ -806,9 +645,7 @@ export default function PitchCreationForm() {
                 />
                 <div className="space-y-4">
                   <div>
-                    <label className="pm-label">
-                      Título do Pitch <span className="text-red-500">*</span>
-                    </label>
+                    <label className="pm-label">Título do Pitch <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       className={inputClass('pitchTitle')}
@@ -817,17 +654,14 @@ export default function PitchCreationForm() {
                       onBlur={(e) => handleBlur('pitchTitle', e.target.value)}
                       placeholder="Ex: Summer Single 2026 — Mariana Luz"
                       tabIndex={2}
-                      aria-required="true"
-                      aria-describedby={errors.pitchTitle ? 'pitchTitle-error' : undefined}
                     />
                     {errors.pitchTitle && (
-                      <p id="pitchTitle-error" className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                         <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                         {errors.pitchTitle}
                       </p>
                     )}
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="pm-label">Track URL</label>
@@ -839,10 +673,9 @@ export default function PitchCreationForm() {
                         onBlur={(e) => handleBlur('trackUrl', e.target.value)}
                         placeholder="https://soundcloud.com/..."
                         tabIndex={3}
-                        aria-describedby={errors.trackUrl ? 'trackUrl-error' : undefined}
                       />
                       {errors.trackUrl && (
-                        <p id="trackUrl-error" className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                           <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                           {errors.trackUrl}
                         </p>
@@ -899,7 +732,7 @@ export default function PitchCreationForm() {
               <div className="flex items-center justify-between pt-2 pb-8 flex-wrap gap-3">
                 <Link
                   href="/pitches"
-                  className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="pm-btn-ghost border rounded-lg text-sm"
                   style={{ borderColor: 'var(--color-border)' }}
                   tabIndex={6}
                 >
@@ -910,24 +743,21 @@ export default function PitchCreationForm() {
                   <button
                     type="button"
                     onClick={handleSaveDraft}
-                    className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="pm-btn-ghost border rounded-lg text-sm"
                     style={{ borderColor: 'var(--color-border)' }}
                     tabIndex={7}
                   >
                     <Icon name="DocumentTextIcon" size={16} variant="outline" />
                     Salvar Rascunho
                   </button>
-                  <button
-                    type="submit"
-                    className="pm-btn-primary focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                    tabIndex={8}
-                  >
+                  <button type="submit" className="pm-btn-primary" tabIndex={8}>
                     <Icon name="PaperAirplaneIcon" size={16} variant="outline" />
                     Enviar Pitch
                   </button>
                 </div>
               </div>
             </div>
+
             {confirmRemoveExternal && (
               <ConfirmModal
                 title="Remove Recipient"
