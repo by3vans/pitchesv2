@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
+import UsageBar from '@/components/billing/UsageBar';
 
 const coreItems = [
   { label: 'Dashboard', path: '/dashboard', icon: 'Squares2X2Icon' },
@@ -214,6 +215,7 @@ const Sidebar = () => {
             isActive={isActive}
           />
         </nav>
+        <UsageBar />
       </aside>
 
       {/* Mobile Top Bar */}

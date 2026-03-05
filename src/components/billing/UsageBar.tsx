@@ -1,7 +1,6 @@
 'use client';
 
 import { useSubscription } from '@/hooks/useSubscription';
-import { PLANS } from '@/lib/stripe/plans';
 
 export default function UsageBar() {
   const { plan, usage, limits, loading } = useSubscription();
@@ -9,8 +8,8 @@ export default function UsageBar() {
   if (loading || plan !== 'free') return null;
 
   const items = [
-    { label: 'Pitches', used: usage.pitches, limit: limits.pitches },
-    { label: 'Contatos', used: usage.contacts, limit: limits.contacts },
+    { label: 'Pitches', used: usage.pitches, limit: limits.pitches as number },
+    { label: 'Contatos', used: usage.contacts, limit: limits.contacts as number },
   ];
 
   return (
@@ -20,13 +19,9 @@ export default function UsageBar() {
     >
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-semibold" style={{ color: 'var(--color-muted-foreground)' }}>
-          Uso do plano Free
+          Plano Free
         </p>
-        
-          href="/settings/billing"
-          className="text-xs font-semibold"
-          style={{ color: 'var(--color-primary)' }}
-        >
+        <a href="/settings/billing" className="text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
           Upgrade →
         </a>
       </div>
@@ -41,10 +36,7 @@ export default function UsageBar() {
                 <span>{used} / {limit}</span>
               </div>
               <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${pct}%`, background: color }}
-                />
+                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
               </div>
             </div>
           );
