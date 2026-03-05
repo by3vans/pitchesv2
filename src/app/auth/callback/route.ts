@@ -7,18 +7,21 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const errorParam = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const rawNext = searchParams.get('next') ?? '/dashboard';
+  const next = rawNext.startsWith('/') ? rawNext : '/dashboard';
 
   // Use the request's own origin so this works on any deployment (Rocket, Vercel, etc.)
   const appUrl = origin;
 
-  console.log('[auth/callback] ✅ Route hit!');
-  console.log('[auth/callback] Incoming URL:', request.url);
-  console.log('[auth/callback] Origin:', appUrl);
-  console.log('[auth/callback] code param:', code ? `${code.substring(0, 20)}...` : 'null');
-  console.log('[auth/callback] error param:', errorParam ?? 'null');
-  console.log('[auth/callback] error_description:', errorDescription ?? 'null');
-  console.log('[auth/callback] next param:', next);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[auth/callback] ✅ Route hit!');
+    console.log('[auth/callback] Incoming URL:', request.url);
+    console.log('[auth/callback] Origin:', appUrl);
+    console.log('[auth/callback] code param:', code ? `${code.substring(0, 20)}...` : 'null');
+    console.log('[auth/callback] error param:', errorParam ?? 'null');
+    console.log('[auth/callback] error_description:', errorDescription ?? 'null');
+    console.log('[auth/callback] next param:', next);
+  }
 
   if (errorParam) {
     console.error('[auth/callback] OAuth error received:', errorParam, errorDescription);
@@ -27,22 +30,31 @@ export async function GET(request: NextRequest) {
   }
 
   if (code) {
-    console.log('[auth/callback] Code found — exchanging for session...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[auth/callback] Code found — exchanging for session...');
+    }
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      console.log('[auth/callback] Session exchange SUCCESS — user:', data?.session?.user?.id ?? 'unknown');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[auth/callback] Session exchange SUCCESS — user:', data?.session?.user?.id ?? 'unknown');
+        const redirectTo = `${appUrl}${next}`;
+        console.log('[auth/callback] Redirecting to:', redirectTo);
+      }
       const redirectTo = `${appUrl}${next}`;
-      console.log('[auth/callback] Redirecting to:', redirectTo);
       return NextResponse.redirect(redirectTo);
     } else {
       console.error('[auth/callback] Session exchange FAILED:', error.message);
     }
   } else {
-    console.warn('[auth/callback] No code param found in URL');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[auth/callback] No code param found in URL');
+    }
   }
 
   const fallbackUrl = `${appUrl}/login?error=oauth_error`;
-  console.log('[auth/callback] Falling back to:', fallbackUrl);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[auth/callback] Falling back to:', fallbackUrl);
+  }
   return NextResponse.redirect(fallbackUrl);
 }
