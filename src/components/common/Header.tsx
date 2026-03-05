@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 const navItems = [
-  { label: 'Artists', path: '/artists-listing-dashboard', icon: 'MusicalNoteIcon' },
+  { label: 'Artists', path: '/artists', icon: 'MusicalNoteIcon' },
   { label: 'Artist Detail', path: '/artist-detail-management', icon: 'UserCircleIcon' },
   { label: 'Contacts', path: '/contacts', icon: 'UsersIcon' },
   { label: 'Pitches', path: '/pitches', icon: 'PaperAirplaneIcon' },

@@ -8,7 +8,7 @@ import Icon from '@/components/ui/AppIcon';
 const coreItems = [
   { label: 'Dashboard', path: '/dashboard', icon: 'Squares2X2Icon' },
   { label: 'Pitches', path: '/pitches-listing-dashboard', icon: 'PaperAirplaneIcon' },
-  { label: 'Artists', path: '/artists-listing-dashboard', icon: 'MusicalNoteIcon' },
+  { label: 'Artists', path: '/artists', icon: 'MusicalNoteIcon' },
   { label: 'Contacts', path: '/contacts', icon: 'UsersIcon' },
 ];
 

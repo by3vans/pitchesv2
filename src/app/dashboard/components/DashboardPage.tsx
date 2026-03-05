@@ -62,7 +62,7 @@ const statusConfig: Record<string, { label: string; bg: string; color: string; i
 
 const quickActions = [
   { label: 'New Pitch', icon: 'PaperAirplaneIcon', href: '/pitch-creation-workflow', color: '#3b82f6' },
-  { label: 'Add Artist', icon: 'MusicalNoteIcon', href: '/artists-listing-dashboard', color: '#8b5cf6' },
+  { label: 'Add Artist', icon: 'MusicalNoteIcon', href: '/artists', color: '#8b5cf6' },
   { label: 'View Pitches', icon: 'ClipboardDocumentListIcon', href: '/pitches-listing-dashboard', color: '#10b981' },
   { label: 'Notifications', icon: 'BellIcon', href: '/notifications-center', color: '#f59e0b' },
 ];
@@ -388,7 +388,7 @@ export default function DashboardPage() {
                   <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Your pipeline is empty</p>
                   <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)' }}>Add artists and pitches to see your stats and activity here.</p>
                   <div className="flex items-center gap-2">
-                    <Link href="/artists-listing-dashboard" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
+                    <Link href="/artists" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
                       <Icon name="MusicalNoteIcon" size={12} variant="outline" />
                       Add Artist
                     </Link>
@@ -494,7 +494,7 @@ export default function DashboardPage() {
                   <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>Top Artists</h2>
                 </div>
                 <Link
-                  href="/artists-listing-dashboard"
+                  href="/artists"
                   className="pm-btn text-xs py-1 px-2.5 flex items-center gap-1"
                   style={{ color: 'var(--color-muted-foreground)' }}
                 >
@@ -523,7 +523,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>No artists yet</p>
                   <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)' }}>Add artists and create pitches to see your top performers here.</p>
-                  <Link href="/artists-listing-dashboard" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
+                  <Link href="/artists" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
                     <Icon name="PlusIcon" size={12} variant="outline" />
                     Add Artist
                   </Link>
@@ -533,7 +533,7 @@ export default function DashboardPage() {
                   {topArtists.map((artist, idx) => (
                     <Link
                       key={artist.id}
-                      href="/artists-listing-dashboard"
+                      href="/artists"
                       className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted transition-colors duration-150"
                     >
                       <span

@@ -126,7 +126,7 @@ const mockNotifications: Notification[] = [
     timestamp: '26/02/2026 09:40',
     isRead: true,
     actionLabel: 'View Artist',
-    actionHref: '/artists-listing-dashboard',
+    actionHref: '/artists',
     meta: { artist: 'Coral Esperanca' },
   },
   {

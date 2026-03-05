@@ -1,11 +1,5 @@
-import type { Metadata } from 'next';
-import ArtistsListingDashboard from './components/ArtistsListingDashboard';
-
-export const metadata: Metadata = {
-  title: 'Artists - PitchManager',
-  description: 'Manage and browse all artists with advanced filtering, bulk actions, and portfolio overview.',
-};
+import { redirect } from 'next/navigation';
 
 export default function ArtistsListingDashboardPage() {
-  return <ArtistsListingDashboard />;
+  redirect('/artists');
 }
