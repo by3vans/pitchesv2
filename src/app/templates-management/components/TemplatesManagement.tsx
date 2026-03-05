@@ -5,6 +5,8 @@ import Icon from '@/components/ui/AppIcon';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useToast } from '@/components/ui/Toast';
 import { createClient } from '@/lib/supabase/client';
+import { useFeatureGate } from '@/hooks/useFeatureGate';
+import UpgradeModal from '@/components/billing/UpgradeModal';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -223,6 +225,8 @@ export default function TemplatesManagement() {
   const [sortBy, setSortBy] = useState<SortBy>('newest');
   const [editTarget, setEditTarget] = useState<PitchTemplate | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const { canCreateTemplate } = useFeatureGate();  
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [bulkDeleteTarget, setBulkDeleteTarget] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
@@ -370,11 +374,10 @@ export default function TemplatesManagement() {
             <p className="pm-kicker mb-0.5">Pitch Workflow</p>
             <h1 className="pm-h1">Templates</h1>
           </div>
-          <button type="button" onClick={() => setIsCreating(true)} className="pm-btn-primary">
-            <Icon name="PlusIcon" size={16} variant="outline" />
-            Create Template
-          </button>
-        </div>
+             <button type="button" onClick={() => { if (!canCreateTemplate) { setShowUpgrade(true); return; } setIsCreating(true); }} className="pm-btn-primary">
+              <Icon name="PlusIcon" size={15} variant="outline" />Create your first template
+             </button>
+          </div>
 
         {/* Search + Filter */}
         <div className="flex items-center gap-3 mb-5 flex-wrap">
@@ -437,8 +440,8 @@ export default function TemplatesManagement() {
             </div>
             <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>No templates yet</p>
             <p className="text-xs mb-5" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>Save pitch details as reusable templates for faster creation</p>
-            <button type="button" onClick={() => setIsCreating(true)} className="pm-btn-primary">
-              <Icon name="PlusIcon" size={15} variant="outline" />Create your first template
+            <button type="button" onClick={() => { if (!canCreateTemplate) { setShowUpgrade(true); return; } setIsCreating(true); }} className="pm-btn-primary">
+  <Icon name="PlusIcon" size={15} variant="outline" />Create your first template
             </button>
           </div>
         )}
@@ -519,6 +522,13 @@ export default function TemplatesManagement() {
           </div>
         )}
       </div>
+
+      {showUpgrade && (
+  <UpgradeModal
+    trigger="template_limit"
+    onClose={() => setShowUpgrade(false)}
+  />
+)}
 
       {isCreating && <EditModal template={null} isNew onSave={handleCreate} onClose={() => setIsCreating(false)} />}
       {editTarget && <EditModal template={editTarget} isNew={false} onSave={handleEdit} onClose={() => setEditTarget(null)} />}
