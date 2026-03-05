@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/components/ui/Toast';
 
 type ArtistStatus = 'active' | 'inactive' | 'archived';
 
@@ -66,18 +67,21 @@ interface EditArtistModalProps {
 function EditArtistModal({ artist, onSave, onClose }: EditArtistModalProps) {
   const [form, setForm] = useState<Artist>({ ...artist });
   const [subGenresRaw, setSubGenresRaw] = useState(artist.subGenres.join(', '));
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (field: keyof Artist, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const updated: Artist = {
       ...form,
       subGenres: subGenresRaw.split(',').map((s) => s.trim()).filter(Boolean)
     };
-    onSave(updated);
+    setSaving(true);
+    await onSave(updated);
+    setSaving(false);
   };
 
   // Close on backdrop click
@@ -238,9 +242,22 @@ function EditArtistModal({ artist, onSave, onClose }: EditArtistModalProps) {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-all">
-              <Icon name="CheckIcon" size={14} variant="outline" />
-              Save Changes
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-all disabled:opacity-60">
+              {saving ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Icon name="CheckIcon" size={14} variant="outline" />
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -747,10 +764,11 @@ export default function ArtistsListingDashboard() {
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
   const [showAddArtist, setShowAddArtist] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
+  const { showToast } = useToast();
 
-  const fetchArtists = async () => {
+  const fetchArtists = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -806,12 +824,11 @@ export default function ArtistsListingDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase, router]);
 
   useEffect(() => {
     fetchArtists();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchArtists]);
 
   // ── Realtime subscription ───────────────────────────────────────────────────
   useEffect(() => {
@@ -840,8 +857,7 @@ export default function ArtistsListingDashboard() {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase, fetchArtists]);
 
   const handleSaveArtist = async (updated: Artist) => {
     try {
@@ -860,8 +876,9 @@ export default function ArtistsListingDashboard() {
         .eq('id', updated.id);
       if (updateError) throw updateError;
       setArtists((prev) => prev.map((a) => a.id === updated.id ? updated : a));
+      showToast('Artist saved successfully', 'success');
     } catch (err: any) {
-      console.error('Failed to save artist:', err.message);
+      showToast(err.message || 'Failed to save artist', 'error');
     }
     setEditingArtist(null);
   };
@@ -883,14 +900,14 @@ export default function ArtistsListingDashboard() {
           bio: form.bio || null,
         });
       if (insertError) {
-        console.error('Supabase insert error:', insertError);
+        showToast(insertError.message || 'Failed to add artist', 'error');
         return insertError.message;
       }
       setShowAddArtist(false);
-      fetchArtists();
+      await fetchArtists();
       return null;
     } catch (err: any) {
-      console.error('Failed to add artist:', err.message);
+      showToast(err.message || 'Unexpected error. Please try again.', 'error');
       return err.message ?? 'Unexpected error. Please try again.';
     }
   };
@@ -969,8 +986,9 @@ export default function ArtistsListingDashboard() {
       setArtists((prev) =>
         prev.map((a) => selectedIds.has(a.id) ? { ...a, status: bulkStatus } : a)
       );
+      showToast(`Status updated to "${bulkStatus}" for ${ids.length} artist(s)`, 'success');
     } catch (err: any) {
-      console.error('Bulk status update failed:', err.message);
+      showToast(err.message || 'Bulk status update failed', 'error');
     }
     setSelectedIds(new Set());
   };
@@ -986,8 +1004,9 @@ export default function ArtistsListingDashboard() {
       setArtists((prev) =>
         prev.map((a) => selectedIds.has(a.id) ? { ...a, status: 'archived' as ArtistStatus } : a)
       );
+      showToast(`${ids.length} artist(s) archived`, 'success');
     } catch (err: any) {
-      console.error('Bulk archive failed:', err.message);
+      showToast(err.message || 'Bulk archive failed', 'error');
     }
     setSelectedIds(new Set());
   };
@@ -1029,7 +1048,7 @@ export default function ArtistsListingDashboard() {
                   className={`p-2 rounded-md transition-all ${
                   viewMode === 'card' ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`
                   }>
-                  <Icon name="Squares2X2Icon" size={15} variant="outline" />
+                  <Icon name="Squares2X2Icon" size={18} variant="outline" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
@@ -1037,7 +1056,7 @@ export default function ArtistsListingDashboard() {
                   className={`p-2 rounded-md transition-all ${
                   viewMode === 'list' ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`
                   }>
-                  <Icon name="ListBulletIcon" size={15} variant="outline" />
+                  <Icon name="ListBulletIcon" size={18} variant="outline" />
                 </button>
               </div>
               <button
