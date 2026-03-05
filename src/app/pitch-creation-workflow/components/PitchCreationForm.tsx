@@ -19,6 +19,8 @@ import {
 } from '@/lib/store';
 import type { Artist, Contact, ArtistRecipientLink } from '@/lib/types';
 import { PITCH_STATUSES } from '@/lib/types';
+import { useFeatureGate } from '@/hooks/useFeatureGate';
+import UpgradeModal from '@/components/billing/UpgradeModal';
 
 interface LinkEntry {
   id: string;
@@ -70,6 +72,8 @@ export default function PitchCreationForm() {
   const [autoSave, setAutoSave] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const { canCreatePitch } = useFeatureGate();
 
   // Artist autocomplete
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -224,6 +228,11 @@ export default function PitchCreationForm() {
     e.preventDefault();
     if (!validate()) return;
     if (isSubmitting) return;
+    if (!canCreatePitch) {
+      setShowUpgrade(true);
+      setIsSubmitting(false);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -762,6 +771,13 @@ export default function PitchCreationForm() {
                 </div>
               </div>
             </div>
+            
+            {showUpgrade && (
+  <UpgradeModal
+    trigger="pitch_limit"
+    onClose={() => setShowUpgrade(false)}
+  />
+)}
 
             {confirmRemoveExternal && (
               <ConfirmModal
