@@ -16,6 +16,9 @@ import { useToast } from '@/components/ui/Toast';
 
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
+import { useFeatureGate } from '@/hooks/useFeatureGate';
+import UpgradeModal from '@/components/billing/UpgradeModal';
+
 interface ContactModalProps {
   contact: Contact | null;
   onClose: () => void;
@@ -264,6 +267,8 @@ export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [editTarget, setEditTarget] = useState<Contact | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const { canCreateContact } = useFeatureGate();
   const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -309,7 +314,11 @@ export default function ContactsPage() {
   });
 
   const handleEdit = (c: Contact) => { setEditTarget(c); setShowModal(true); };
-  const handleNew = () => { setEditTarget(null); setShowModal(true); };
+  const handleNew = () => {
+    if (!canCreateContact) { setShowUpgrade(true); return; }
+    setEditTarget(null);
+    setShowModal(true);
+  };
   const handleDelete = (c: Contact) => { setDeleteTarget(c); };
 
   const confirmDelete = async () => {
@@ -420,6 +429,13 @@ export default function ContactsPage() {
           )}
         </div>
       </main>
+
+      {showUpgrade && (
+        <UpgradeModal
+          trigger="contact_limit"
+          onClose={() => setShowUpgrade(false)}
+        />
+      )}
 
       {showModal && (
         <ContactModal
