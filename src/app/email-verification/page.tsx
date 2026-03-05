@@ -96,12 +96,14 @@ export default function EmailVerificationPage() {
     setLoading(true);
     setError('');
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: code,
         type: 'signup',
       });
       if (verifyError) throw verifyError;
+      // Session is now active — verifyOtp returns a session directly
+      console.log('[EmailVerification] OTP verified. Session user:', data?.session?.user?.id ?? 'none');
       setSuccess(true);
       setTimeout(() => router.push('/dashboard'), 2000);
     } catch (err: any) {
@@ -121,6 +123,9 @@ export default function EmailVerificationPage() {
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email,
+        options: {
+          emailRedirectTo: 'https://pitchhood.vercel.app/auth/callback',
+        },
       });
       if (resendError) throw resendError;
       setResendCooldown(RESEND_COOLDOWN);

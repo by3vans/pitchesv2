@@ -37,9 +37,24 @@ export default function PasswordResetConfirmationPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [sessionReady, setSessionReady] = useState(false);
 
   const strength = getStrength(password);
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
+  useEffect(() => {
+    // Verify an active recovery session exists before allowing password update
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        console.log('[PasswordReset] Active session found for user:', session.user.id);
+        setSessionReady(true);
+      } else {
+        console.warn('[PasswordReset] No active session — user may need to click the reset link again');
+        setError('Your password reset link has expired or is invalid. Please request a new one.');
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (success) {
@@ -73,8 +88,11 @@ export default function PasswordResetConfirmationPage() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const { data, error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
+      console.log('[PasswordReset] Password updated successfully for user:', data?.user?.id ?? 'unknown');
+      // Sign out after password reset so user logs in fresh with new password
+      await supabase.auth.signOut();
       setSuccess(true);
     } catch (err: any) {
       setError(err?.message || 'Something went wrong. Please try again.');
@@ -211,7 +229,7 @@ export default function PasswordResetConfirmationPage() {
 
               <button
                 type="submit"
-                disabled={loading || mismatch}
+                disabled={loading || mismatch || !sessionReady}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold py-3 rounded flex items-center justify-center gap-2 transition-colors"
               >
                 {loading ? (

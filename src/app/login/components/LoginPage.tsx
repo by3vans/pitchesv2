@@ -8,6 +8,60 @@ import { createClient } from '@/lib/supabase/client';
 
 type Tab = 'login' | 'signup';
 
+type ErrorType = 'oauth' | 'network' | 'credentials' | 'general';
+
+interface AuthError {
+  message: string;
+  type: ErrorType;
+}
+
+function getOAuthErrorMessage(err: any): AuthError {
+  const msg = err?.message?.toLowerCase() || '';
+  const code = err?.code || err?.error_code || '';
+
+  if (msg.includes('popup_closed') || msg.includes('popup closed') || msg.includes('user closed')) {
+    return { message: 'Sign-in popup was closed. Please try again.', type: 'oauth' };
+  }
+  if (msg.includes('access_denied') || msg.includes('access denied') || code === 'access_denied') {
+    return { message: 'Google access was denied. Please allow permissions and try again.', type: 'oauth' };
+  }
+  if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch') || msg.includes('networkerror')) {
+    return { message: 'Network error. Please check your internet connection and try again.', type: 'network' };
+  }
+  if (msg.includes('timeout') || msg.includes('timed out')) {
+    return { message: 'Request timed out. Please check your connection and try again.', type: 'network' };
+  }
+  return { message: 'Google sign-in failed. Please try again.', type: 'oauth' };
+}
+
+function getCredentialErrorMessage(err: any): AuthError {
+  const msg = err?.message?.toLowerCase() || '';
+  const code = err?.code || err?.error_code || '';
+
+  if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch') || msg.includes('networkerror')) {
+    return { message: 'Network error. Please check your internet connection and try again.', type: 'network' };
+  }
+  if (msg.includes('timeout') || msg.includes('timed out')) {
+    return { message: 'Request timed out. Please check your connection and try again.', type: 'network' };
+  }
+  if (msg.includes('invalid login credentials') || msg.includes('invalid credentials') || code === 'invalid_credentials') {
+    return { message: 'Incorrect email or password. Please check your credentials and try again.', type: 'credentials' };
+  }
+  if (msg.includes('email not confirmed') || msg.includes('email not verified') || code === 'email_not_confirmed') {
+    return { message: 'Your email is not verified. Please check your inbox for a verification link.', type: 'credentials' };
+  }
+  if (msg.includes('user not found') || msg.includes('no user found') || code === 'user_not_found') {
+    return { message: 'No account found with this email. Please sign up first.', type: 'credentials' };
+  }
+  if (msg.includes('too many requests') || msg.includes('rate limit') || code === 'over_request_rate_limit') {
+    return { message: 'Too many attempts. Please wait a moment and try again.', type: 'general' };
+  }
+  if (msg.includes('email already') || msg.includes('already registered') || code === 'user_already_exists') {
+    return { message: 'An account with this email already exists. Try signing in instead.', type: 'credentials' };
+  }
+  return { message: err?.message || 'Something went wrong. Please try again.', type: 'general' };
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, signUp } = useAuth();
@@ -18,13 +72,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [authError, setAuthError] = useState<AuthError | null>(null);
 
   const handleGoogleAuth = async () => {
-    setError('');
+    setAuthError(null);
     setGoogleLoading(true);
     try {
-      const redirectTo = `https://pitchhood.com/auth/callback`;
+      const redirectTo = `https://pitchhood.vercel.app/auth/callback`;
       console.log('[LoginPage] handleGoogleAuth called');
       console.log('[LoginPage] redirectTo URL:', redirectTo);
 
@@ -48,17 +102,16 @@ export default function LoginPage() {
       }
 
       console.log('[LoginPage] OAuth initiated — browser should redirect to Google now');
-      // data.url will be set — browser will redirect automatically
     } catch (err: any) {
       console.error('[LoginPage] handleGoogleAuth catch block:', err);
-      setError(err?.message || 'Google sign-in failed. Please try again.');
+      setAuthError(getOAuthErrorMessage(err));
       setGoogleLoading(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setAuthError(null);
     setLoading(true);
     try {
       if (tab === 'login') {
@@ -69,7 +122,7 @@ export default function LoginPage() {
         router.push('/onboarding-profile-setup');
       }
     } catch (err: any) {
-      setError(err?.message || 'Something went wrong. Please try again.');
+      setAuthError(getCredentialErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -81,6 +134,29 @@ export default function LoginPage() {
     { initials: 'DK', name: 'DJ KURO', genre: 'Hip-Hop · Trap', score: '7.9', color: '#2563EB' },
     { initials: 'SR', name: 'SOFIA RAMOS', genre: 'Indie · Folk', score: '8.1', color: '#059669' },
   ];
+
+  const errorIconMap: Record<ErrorType, JSX.Element> = {
+    oauth: (
+      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      </svg>
+    ),
+    network: (
+      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M12 12h.01M8.464 15.536a5 5 0 010-7.072M5.636 18.364a9 9 0 010-12.728" />
+      </svg>
+    ),
+    credentials: (
+      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+    ),
+    general: (
+      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -110,7 +186,7 @@ export default function LoginPage() {
         <div className="flex border border-gray-200 rounded mb-6 overflow-hidden">
           <button
             type="button"
-            onClick={() => { setTab('login'); setError(''); }}
+            onClick={() => { setTab('login'); setAuthError(null); }}
             className={`flex-1 py-2 text-xs font-semibold tracking-widest uppercase transition-colors ${
               tab === 'login' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 hover:text-gray-700'
             }`}
@@ -119,7 +195,7 @@ export default function LoginPage() {
           </button>
           <button
             type="button"
-            onClick={() => { setTab('signup'); setError(''); }}
+            onClick={() => { setTab('signup'); setAuthError(null); }}
             className={`flex-1 py-2 text-xs font-semibold tracking-widest uppercase transition-colors ${
               tab === 'signup' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 hover:text-gray-700'
             }`}
@@ -199,10 +275,14 @@ export default function LoginPage() {
             </div>
           )}
 
-          {error && (
-            <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded px-3 py-2">
-              {error}
-            </p>
+          {authError && (
+            <div className={`flex items-start gap-2.5 rounded px-3 py-2.5 border text-xs ${
+              authError.type === 'network' ?'bg-amber-50 border-amber-200 text-amber-800'
+                : authError.type === 'oauth' ?'bg-orange-50 border-orange-200 text-orange-800' :'bg-red-50 border-red-100 text-red-700'
+            }`}>
+              {errorIconMap[authError.type]}
+              <span>{authError.message}</span>
+            </div>
           )}
 
           <button
@@ -234,7 +314,7 @@ export default function LoginPage() {
               Don&apos;t have an account?{' '}
               <button
                 type="button"
-                onClick={() => { setTab('signup'); setError(''); }}
+                onClick={() => { setTab('signup'); setAuthError(null); }}
                 className="text-gray-700 font-semibold hover:underline"
               >
                 Sign up
@@ -245,7 +325,7 @@ export default function LoginPage() {
               Already have an account?{' '}
               <button
                 type="button"
-                onClick={() => { setTab('login'); setError(''); }}
+                onClick={() => { setTab('login'); setAuthError(null); }}
                 className="text-gray-700 font-semibold hover:underline"
               >
                 Sign in
@@ -257,7 +337,6 @@ export default function LoginPage() {
 
       {/* Right Panel — Platform Preview */}
       <div className="hidden md:flex flex-1 bg-[#0f0f0f] items-center justify-center relative overflow-hidden">
-        {/* Subtle grid background */}
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -266,8 +345,6 @@ export default function LoginPage() {
             backgroundSize: '40px 40px',
           }}
         />
-
-        {/* Floating app mockup */}
         <div
           className="relative z-10"
           style={{
@@ -275,15 +352,11 @@ export default function LoginPage() {
             filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.8))',
           }}
         >
-          {/* Browser chrome */}
           <div className="w-[480px] rounded-xl overflow-hidden border border-white/10 bg-[#1a1a1a]">
-            {/* Title bar */}
             <div className="flex items-center gap-2 px-4 py-3 bg-[#252525] border-b border-white/10">
-              {/* Traffic lights */}
               <span className="w-3 h-3 rounded-full bg-[#FF5F57] block" />
               <span className="w-3 h-3 rounded-full bg-[#FEBC2E] block" />
               <span className="w-3 h-3 rounded-full bg-[#28C840] block" />
-              {/* URL bar */}
               <div className="flex-1 mx-3 bg-[#1a1a1a] border border-white/10 rounded px-3 py-1 flex items-center gap-2">
                 <svg className="w-3 h-3 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -291,35 +364,27 @@ export default function LoginPage() {
                 <span className="text-[11px] text-gray-400 font-mono">app.pitchhood.com</span>
               </div>
             </div>
-
-            {/* App content */}
             <div className="bg-[#111111] px-5 py-4">
-              {/* Mini header */}
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
                 <span className="text-[10px] text-gray-500">A&amp;R Pipeline</span>
               </div>
-
-              {/* Artist cards */}
               <div className="space-y-2">
                 {artistCards.map((artist) => (
                   <div
                     key={artist.name}
-                    className="flex items-center gap-3 bg-[#1a1a1a] rounded-lg px-4 py-3 border border-white/5 hover:border-white/10 transition-colors"
+                    className="flex items-center gap-3 bg-[#1a1a1a] rounded-lg px-4 py-3 border border-white/5"
                   >
-                    {/* Avatar */}
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[11px] font-bold"
                       style={{ backgroundColor: artist.color }}
                     >
                       {artist.initials}
                     </div>
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-semibold text-white tracking-wide">{artist.name}</p>
                       <p className="text-[10px] text-gray-500">{artist.genre}</p>
                     </div>
-                    {/* Score */}
                     <div className="text-right">
                       <p className="text-[13px] font-bold text-white">{artist.score}</p>
                       <p className="text-[9px] text-gray-600 uppercase tracking-wider">Score</p>
@@ -330,12 +395,11 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-
-        {/* Ambient glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse 60% 50% at 60% 50%, rgba(37,99,235,0.06) 0%, transparent 70%)',
+            background:
+              'radial-gradient(ellipse 60% 50% at 60% 50%, rgba(37,99,235,0.06) 0%, transparent 70%)',
           }}
         />
       </div>

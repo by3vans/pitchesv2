@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           full_name: (metadata as any)?.fullName || '',
           avatar_url: (metadata as any)?.avatarUrl || ''
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        emailRedirectTo: `https://pitchesv23594.builtwithrocket.new/auth/callback`
       }
     });
     if (error) throw error;

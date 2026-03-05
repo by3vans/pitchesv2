@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     try {
       const supabase = createClient();
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/password-reset-confirmation`,
+        redirectTo: `https://pitchhood.vercel.app/password-reset-confirmation`,
       });
       if (resetError) throw resetError;
       setSent(true);
