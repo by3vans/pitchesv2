@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
@@ -68,7 +68,8 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
   const [stats, setStats] = useState<DashboardStats>({
     totalPitches: 0,
     totalArtists: 0,
@@ -84,15 +85,16 @@ export default function DashboardPage() {
   const [newPitchModalOpen, setNewPitchModalOpen] = useState(false);
   const [pitchModalContext, setPitchModalContext] = useState<{ artistId?: string; contactId?: string }>({});
 
-  const fetchDashboardData = async () => {
-    console.log('[Dashboard] 🔄 Fetching dashboard data from Supabase...');
+  const fetchDashboardData = useCallback(async () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Dashboard] 🔄 Fetching dashboard data from Supabase...');
+    }
     setLoadingData(true);
     try {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
       // Fetch pitches
-      console.log('[Dashboard] Querying pitches table...');
       const { data: pitches, error: pitchesError } = await supabase
         .from('pitches')
         .select('id, title, status, created_at, artist_id')
@@ -100,12 +102,11 @@ export default function DashboardPage() {
 
       if (pitchesError) {
         console.error('[Dashboard] ❌ Pitches query error:', pitchesError.message);
-      } else {
-        console.log('[Dashboard] ✅ Pitches fetched:', pitches?.length ?? 0, 'rows', pitches);
+      } else if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] ✅ Pitches fetched:', pitches?.length ?? 0, 'rows');
       }
 
       // Fetch artists
-      console.log('[Dashboard] Querying artists table...');
       const { data: artists, error: artistsError } = await supabase
         .from('artists')
         .select('id, name, genre, created_at')
@@ -113,8 +114,8 @@ export default function DashboardPage() {
 
       if (artistsError) {
         console.error('[Dashboard] ❌ Artists query error:', artistsError.message);
-      } else {
-        console.log('[Dashboard] ✅ Artists fetched:', artists?.length ?? 0, 'rows', artists);
+      } else if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] ✅ Artists fetched:', artists?.length ?? 0, 'rows');
       }
 
       const pitchList = pitches ?? [];
@@ -128,7 +129,9 @@ export default function DashboardPage() {
       const pitchesThisMonth = pitchList.filter((p) => p.created_at >= startOfMonth).length;
       const artistsThisMonth = artistList.filter((a) => a.created_at >= startOfMonth).length;
 
-      console.log('[Dashboard] Stats computed:', { totalPitches, totalArtists, approvalRate, pitchesThisMonth, artistsThisMonth });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] Stats computed:', { totalPitches, totalArtists, approvalRate, pitchesThisMonth, artistsThisMonth });
+      }
 
       setStats({ totalPitches, totalArtists, approvalRate, pitchesThisMonth, artistsThisMonth });
 
@@ -155,7 +158,10 @@ export default function DashboardPage() {
           href: '/pitch-detail-management',
         };
       });
-      console.log('[Dashboard] Activity feed built:', activity.length, 'items');
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] Activity feed built:', activity.length, 'items');
+      }
       setActivityFeed(activity);
 
       // Build top artists by pitch count
@@ -184,28 +190,32 @@ export default function DashboardPage() {
         .sort((a, b) => b.approvalRate - a.approvalRate)
         .slice(0, 5);
 
-      console.log('[Dashboard] Top artists computed:', top.length, 'artists', top);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] Top artists computed:', top.length, 'artists');
+      }
       setTopArtists(top);
-    } catch (err: any) {
-      console.error('[Dashboard] ❌ Unexpected error fetching dashboard data:', err?.message ?? err);
+    } catch (err: unknown) {
+      console.error('[Dashboard] ❌ Unexpected error fetching dashboard data:', err instanceof Error ? err.message : err);
     } finally {
       setLoadingData(false);
     }
-  };
+  }, [supabase]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   // Listen for real-time refresh events dispatched by the Header's subscription
   useEffect(() => {
     const handleRealtimeRefresh = () => {
-      console.log('[Dashboard] Realtime refresh event received — refetching data...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] Realtime refresh event received — refetching data...');
+      }
       fetchDashboardData();
     };
     window.addEventListener('realtime-refresh', handleRealtimeRefresh);
     return () => window.removeEventListener('realtime-refresh', handleRealtimeRefresh);
-  }, []);
+  }, [fetchDashboardData]);
 
   const toggleActivity = (id: string) => {
     setActivityExpanded((prev) => {
