@@ -30,10 +30,8 @@ interface SupabasePitch {
   title: string;
   status: string;
   notes: string | null;
-  links: string[] | null;
   created_at: string;
   artist_id: string | null;
-  recipients: any;
 }
 
 interface SupabaseArtist {
@@ -218,7 +216,7 @@ export default function PitchesPage() {
       console.log('[PitchesPage] Querying pitches table...');
       const { data: pitchData, error: pitchError } = await supabase
         .from('pitches')
-        .select('id, title, status, notes, links, created_at, artist_id, recipients')
+        .select('id, title, status, notes, created_at, artist_id')
         .order('created_at', { ascending: false });
 
       if (pitchError) {
