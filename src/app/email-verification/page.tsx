@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+
 import { useRouter } from 'next/navigation';
+
 import Image from 'next/image';
+
 import { createClient } from '@/lib/supabase/client';
 
 const RESEND_COOLDOWN = 60;
@@ -16,7 +19,7 @@ const artistCards = [
 
 export default function EmailVerificationPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [loading, setLoading] = useState(false);
@@ -25,7 +28,6 @@ export default function EmailVerificationPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendLoading, setResendLoading] = useState(false);
   const [email, setEmail] = useState('');
-
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
 
   useEffect(() => {
@@ -38,9 +40,10 @@ export default function EmailVerificationPage() {
         if (stored) setEmail(stored);
       }
     });
+
     // Focus first input
     inputRefs.current[0]?.focus();
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -102,12 +105,13 @@ export default function EmailVerificationPage() {
         type: 'signup',
       });
       if (verifyError) throw verifyError;
-      // Session is now active — verifyOtp returns a session directly
-      console.log('[EmailVerification] OTP verified. Session user:', data?.session?.user?.id ?? 'none');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[EmailVerification] OTP verified. Session user:', data?.session?.user?.id ?? 'none');
+      }
       setSuccess(true);
       setTimeout(() => router.push('/dashboard'), 2000);
-    } catch (err: any) {
-      setError(err?.message || 'Invalid code. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid code. Please try again.');
       setOtp(Array(6).fill(''));
       inputRefs.current[0]?.focus();
     } finally {
@@ -124,13 +128,13 @@ export default function EmailVerificationPage() {
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: 'https://pitchhood.vercel.app/auth/callback',
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (resendError) throw resendError;
       setResendCooldown(RESEND_COOLDOWN);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to resend code. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to resend code. Please try again.');
     } finally {
       setResendLoading(false);
     }
@@ -157,7 +161,7 @@ export default function EmailVerificationPage() {
           <div className="flex flex-col items-center text-center py-8">
             <div
               className="w-16 h-16 rounded-full bg-green-50 border-2 border-green-400 flex items-center justify-center mb-6"
-              style={{ animation: 'scaleIn 0.4s ease-out' }}
+              style={{ animation: 'scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
             >
               <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -284,6 +288,7 @@ export default function EmailVerificationPage() {
             backgroundSize: '40px 40px',
           }}
         />
+
         <div
           className="relative z-10"
           style={{
@@ -303,6 +308,7 @@ export default function EmailVerificationPage() {
                 <span className="text-[11px] text-gray-400 font-mono">app.pitchhood.com</span>
               </div>
             </div>
+
             <div className="bg-[#111111] px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
@@ -316,7 +322,7 @@ export default function EmailVerificationPage() {
                   >
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[11px] font-bold"
-                      style={{ backgroundColor: artist.color }}
+                      style={{ background: artist.color }}
                     >
                       {artist.initials}
                     </div>
@@ -334,6 +340,7 @@ export default function EmailVerificationPage() {
             </div>
           </div>
         </div>
+
         {/* Ambient glow */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-blue-600/10 blur-3xl rounded-full" />
       </div>
