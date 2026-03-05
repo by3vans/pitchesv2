@@ -2,9 +2,11 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
+import { createClient } from '@/lib/supabase/client';
 
 type ArtistStatus = 'active' | 'inactive' | 'archived';
 
@@ -23,189 +25,6 @@ interface Artist {
   location: string;
   bio: string;
 }
-
-const mockArtists: Artist[] = [
-{
-  id: '1',
-  name: 'Mariana Luz',
-  genre: 'Pop',
-  subGenres: ['tropical', 'electronic', 'dance'],
-  status: 'active',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_121a29bbc-1763298634057.png',
-  avatarAlt: 'Young Brazilian woman with long dark hair smiling confidently in studio setting',
-  pitchCount: 12,
-  approvedPitches: 8,
-  lastActivity: '28/02/2026',
-  label: 'Sony Music Brasil',
-  location: 'São Paulo, SP',
-  bio: 'Pop artist with tropical and electronic influences. Known for summer anthems and radio-friendly tracks.'
-},
-{
-  id: '2',
-  name: 'Trio Nordestino',
-  genre: 'Sertanejo',
-  subGenres: ['acoustic', 'folk', 'regional'],
-  status: 'active',
-  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_10b99603e-1772673193319.png",
-  avatarAlt: 'Brazilian man with acoustic guitar in rustic countryside setting wearing traditional hat',
-  pitchCount: 7,
-  approvedPitches: 5,
-  lastActivity: '25/02/2026',
-  label: 'Universal Music',
-  location: 'Fortaleza, CE',
-  bio: 'Traditional sertanejo trio with deep roots in northeastern Brazilian culture and folk traditions.'
-},
-{
-  id: '3',
-  name: 'DJ Favela',
-  genre: 'Funk',
-  subGenres: ['baile funk', 'carioca', 'electronic'],
-  status: 'active',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_1ed170415-1772267674768.png',
-  avatarAlt: 'Young Black man with headphones around neck in urban Rio de Janeiro street background',
-  pitchCount: 15,
-  approvedPitches: 9,
-  lastActivity: '01/03/2026',
-  label: 'Independente',
-  location: 'Rio de Janeiro, RJ',
-  bio: 'Funk carioca DJ with 2M followers. Specializes in baile funk productions with professional studio quality.'
-},
-{
-  id: '4',
-  name: 'Beatriz Santos',
-  genre: 'MPB',
-  subGenres: ['conceptual', 'poetic', 'orchestral'],
-  status: 'inactive',
-  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1acd899c5-1772561408162.png",
-  avatarAlt: 'Brazilian woman with natural curly hair in artistic pose against colorful mural background',
-  pitchCount: 4,
-  approvedPitches: 2,
-  lastActivity: '20/02/2026',
-  label: 'Warner Music',
-  location: 'Belo Horizonte, MG',
-  bio: 'MPB artist exploring themes of freedom and Brazilian identity through conceptual albums with orchestral arrangements.'
-},
-{
-  id: '5',
-  name: 'Synthwave BR',
-  genre: 'Electronic',
-  subGenres: ['synthwave', 'ambient', 'instrumental'],
-  status: 'inactive',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_188132e15-1769403212471.png',
-  avatarAlt: 'Young man with electronic music equipment in dark studio with colorful LED lighting',
-  pitchCount: 3,
-  approvedPitches: 0,
-  lastActivity: '15/02/2026',
-  label: 'Independente',
-  location: 'Curitiba, PR',
-  bio: 'Electronic music producer specializing in synthwave and ambient instrumental compositions. Fully self-produced.'
-},
-{
-  id: '6',
-  name: 'Coral Esperança',
-  genre: 'Gospel',
-  subGenres: ['choir', 'worship', 'praise'],
-  status: 'active',
-  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1752cecdf-1772469586420.png",
-  avatarAlt: 'Gospel choir group in white robes performing on stage with bright lighting',
-  pitchCount: 6,
-  approvedPitches: 4,
-  lastActivity: '27/02/2026',
-  label: 'MK Music',
-  location: 'Brasília, DF',
-  bio: '40-voice gospel choir with high-level production. Specializes in worship and praise music for Christian audiences.'
-},
-{
-  id: '7',
-  name: 'MC Verdade',
-  genre: 'Hip-Hop',
-  subGenres: ['conscious rap', 'street', 'social'],
-  status: 'active',
-  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_165d36c56-1772469585169.png",
-  avatarAlt: 'Young Black Brazilian rapper in streetwear standing in urban São Paulo neighborhood',
-  pitchCount: 9,
-  approvedPitches: 3,
-  lastActivity: '02/03/2026',
-  label: 'Independente',
-  location: 'São Paulo, SP',
-  bio: 'Conscious rap artist addressing social realities of São Paulo periphery. Emerging artist with strong potential.'
-},
-{
-  id: '8',
-  name: 'Banda Concreto',
-  genre: 'Rock',
-  subGenres: ['alternative', 'national rock', 'indie'],
-  status: 'archived',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_1b80adaa0-1772439222611.png',
-  avatarAlt: 'Rock band of four members posing in industrial warehouse with guitars and drums',
-  pitchCount: 5,
-  approvedPitches: 1,
-  lastActivity: '10/01/2026',
-  label: 'Som Livre',
-  location: 'Porto Alegre, RS',
-  bio: 'Alternative rock band with 5 years of career and consolidated fan base. 11-track album of national rock.'
-},
-{
-  id: '9',
-  name: 'Grupo Harmonia',
-  genre: 'Pop',
-  subGenres: ['pagode', 'romantic', 'samba'],
-  status: 'active',
-  avatar: 'https://img.rocket.new/generatedImages/rocket_gen_img_1be6e2418-1772439224800.png',
-  avatarAlt: 'Brazilian pagode group of five musicians with traditional instruments in rehearsal space',
-  pitchCount: 8,
-  approvedPitches: 6,
-  lastActivity: '18/02/2026',
-  label: 'Universal Music',
-  location: 'Salvador, BA',
-  bio: 'Romantic pagode group with 500k followers. Known for radio-friendly samba and streaming platform hits.'
-},
-{
-  id: '10',
-  name: 'Luna Azul',
-  genre: 'Pop',
-  subGenres: ['indie pop', 'dream pop', 'alternative'],
-  status: 'active',
-  avatar: "https://images.unsplash.com/photo-1666858852072-d9198dab504b",
-  avatarAlt: 'Young woman singer with blue-tinted lighting performing on stage with microphone',
-  pitchCount: 10,
-  approvedPitches: 7,
-  lastActivity: '26/02/2026',
-  label: 'Sony Music Brasil',
-  location: 'São Paulo, SP',
-  bio: 'Indie pop artist blending dream pop textures with alternative songwriting. Growing presence on streaming platforms.'
-},
-{
-  id: '11',
-  name: 'Ritmo Livre',
-  genre: 'Funk',
-  subGenres: ['funk pop', 'dance', 'urban'],
-  status: 'inactive',
-  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_12fbb7df4-1767057982110.png",
-  avatarAlt: 'Male singer performing energetically on stage with colorful stage lights',
-  pitchCount: 2,
-  approvedPitches: 1,
-  lastActivity: '05/02/2026',
-  label: 'Independente',
-  location: 'Recife, PE',
-  bio: 'Funk pop artist merging urban rhythms with pop sensibilities. Building audience in northeastern Brazil.'
-},
-{
-  id: '12',
-  name: 'Voz do Cerrado',
-  genre: 'Sertanejo',
-  subGenres: ['sertanejo universitário', 'country', 'pop'],
-  status: 'archived',
-  avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1ef175316-1772495691222.png",
-  avatarAlt: 'Country music duo posing outdoors in rural setting with cowboy hats',
-  pitchCount: 3,
-  approvedPitches: 0,
-  lastActivity: '15/12/2025',
-  label: 'Som Livre',
-  location: 'Goiânia, GO',
-  bio: 'Sertanejo universitário duo from Goiás. Archived pending contract renegotiation with label.'
-}];
-
 
 const STATUS_CONFIG: Record<ArtistStatus, {label: string;color: string;bg: string;dot: string;}> = {
   active: { label: 'Active', color: '#059669', bg: '#d1fae5', dot: '#10b981' },
@@ -428,6 +247,208 @@ function EditArtistModal({ artist, onSave, onClose }: EditArtistModalProps) {
       </div>
     </div>);
 
+}
+
+// ─── Add Artist Modal ────────────────────────────────────────────────────────
+
+interface NewArtistForm {
+  name: string;
+  genre: string;
+  subGenres: string;
+  status: ArtistStatus;
+  label: string;
+  location: string;
+  bio: string;
+}
+
+function AddArtistModal({ onSave, onClose }: { onSave: (form: NewArtistForm) => Promise<string | null>; onClose: () => void }) {
+  const [form, setForm] = useState<NewArtistForm>({
+    name: '',
+    genre: 'Pop',
+    subGenres: '',
+    status: 'active',
+    label: '',
+    location: '',
+    bio: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const handleChange = (field: keyof NewArtistForm, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    const err = await onSave(form);
+    setSaving(false);
+    if (err) setSaveError(err);
+  };
+
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const inputCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all';
+  const labelCls = 'block text-xs font-medium text-gray-500 mb-1';
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.45)' }}
+      onClick={handleBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add new artist">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
+              <Icon name="PlusIcon" size={18} variant="outline" className="text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Add Artist</h2>
+              <p className="text-xs text-gray-400">Create a new artist profile</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+            aria-label="Close modal">
+            <Icon name="XMarkIcon" size={18} variant="outline" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className={labelCls}>Artist Name *</label>
+              <input
+                type="text"
+                required
+                value={form.name}
+                onChange={(e) => handleChange('name', e.target.value)}
+                className={inputCls}
+                placeholder="Artist name"
+                autoFocus />
+            </div>
+
+            <div>
+              <label className={labelCls}>Genre</label>
+              <div className="relative">
+                <select
+                  value={form.genre}
+                  onChange={(e) => handleChange('genre', e.target.value)}
+                  className={inputCls + ' appearance-none pr-8 cursor-pointer'}>
+                  {['Pop', 'Rock', 'Sertanejo', 'Funk', 'MPB', 'Electronic', 'Hip-Hop', 'Gospel'].map((g) =>
+                    <option key={g} value={g}>{g}</option>
+                  )}
+                </select>
+                <Icon name="ChevronDownIcon" size={13} variant="outline" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>Status</label>
+              <div className="relative">
+                <select
+                  value={form.status}
+                  onChange={(e) => handleChange('status', e.target.value as ArtistStatus)}
+                  className={inputCls + ' appearance-none pr-8 cursor-pointer'}>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="archived">Archived</option>
+                </select>
+                <Icon name="ChevronDownIcon" size={13} variant="outline" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="col-span-2">
+              <label className={labelCls}>Sub-genres <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+              <input
+                type="text"
+                value={form.subGenres}
+                onChange={(e) => handleChange('subGenres', e.target.value)}
+                className={inputCls}
+                placeholder="e.g. tropical, electronic, dance" />
+            </div>
+
+            <div>
+              <label className={labelCls}>Label</label>
+              <input
+                type="text"
+                value={form.label}
+                onChange={(e) => handleChange('label', e.target.value)}
+                className={inputCls}
+                placeholder="Record label" />
+            </div>
+
+            <div>
+              <label className={labelCls}>Location</label>
+              <input
+                type="text"
+                value={form.location}
+                onChange={(e) => handleChange('location', e.target.value)}
+                className={inputCls}
+                placeholder="City, State" />
+            </div>
+
+            <div className="col-span-2">
+              <label className={labelCls}>Bio</label>
+              <textarea
+                value={form.bio}
+                onChange={(e) => handleChange('bio', e.target.value)}
+                className={inputCls + ' resize-none'}
+                rows={3}
+                placeholder="Short artist bio..." />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+            {saveError && (
+              <p className="text-xs text-red-500 mr-auto">{saveError}</p>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all disabled:opacity-50">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all flex items-center gap-2 disabled:opacity-60">
+              {saving ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Icon name="PlusIcon" size={15} variant="outline" />
+                  Add Artist
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 // ─── Card View ───────────────────────────────────────────────────────────────
@@ -711,6 +732,7 @@ function Pagination({
 export default function ArtistsListingDashboard() {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [genreFilter, setGenreFilter] = useState('');
@@ -721,18 +743,156 @@ export default function ArtistsListingDashboard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<ArtistStatus>('inactive');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [artists, setArtists] = useState<Artist[]>(mockArtists);
+  const [artists, setArtists] = useState<Artist[]>([]);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
+  const [showAddArtist, setShowAddArtist] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const supabase = createClient();
+  const router = useRouter();
+
+  const fetchArtists = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push('/login'); setIsLoading(false); return; }
+
+      const { data: artistRows, error: artistError } = await supabase
+        .from('artists')
+        .select('id, name, genre, sub_genres, status, label, location, bio, avatar_url, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (artistError) throw artistError;
+      if (!artistRows) { setArtists([]); setIsLoading(false); return; }
+
+      const { data: pitchRows } = await supabase
+        .from('pitches')
+        .select('artist_id, status, updated_at')
+        .eq('user_id', user.id);
+
+      const mapped: Artist[] = artistRows.map((row) => {
+        const artistPitches = (pitchRows || []).filter((p) => p.artist_id === row.id);
+        const approvedPitches = artistPitches.filter((p) => ['approved', 'placed'].includes(p.status)).length;
+        const lastPitch = artistPitches.sort((a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        )[0];
+        const lastActivityDate = lastPitch
+          ? new Date(lastPitch.updated_at)
+          : new Date(row.created_at);
+        const lastActivity = lastActivityDate.toLocaleDateString('pt-BR', {
+          day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+        return {
+          id: row.id,
+          name: row.name,
+          genre: row.genre || '',
+          subGenres: row.sub_genres || [],
+          status: (row.status as ArtistStatus) || 'active',
+          avatar: row.avatar_url || '',
+          avatarAlt: `${row.name} artist photo`,
+          pitchCount: artistPitches.length,
+          approvedPitches,
+          lastActivity,
+          label: row.label || '',
+          location: row.location || '',
+          bio: row.bio || '',
+        };
+      });
+
+      setArtists(mapped);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load artists');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
+    fetchArtists();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSaveArtist = (updated: Artist) => {
-    setArtists((prev) => prev.map((a) => a.id === updated.id ? updated : a));
+  // ── Realtime subscription ───────────────────────────────────────────────────
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      channel = supabase
+        .channel('artists-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'artists', filter: `user_id=eq.${user.id}` },
+          () => { fetchArtists(); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'pitches', filter: `user_id=eq.${user.id}` },
+          () => { fetchArtists(); }
+        )
+        .subscribe();
+    };
+
+    setupRealtime();
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSaveArtist = async (updated: Artist) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('artists')
+        .update({
+          name: updated.name,
+          genre: updated.genre,
+          sub_genres: updated.subGenres,
+          status: updated.status,
+          label: updated.label,
+          location: updated.location,
+          bio: updated.bio,
+          avatar_url: updated.avatar,
+        })
+        .eq('id', updated.id);
+      if (updateError) throw updateError;
+      setArtists((prev) => prev.map((a) => a.id === updated.id ? updated : a));
+    } catch (err: any) {
+      console.error('Failed to save artist:', err.message);
+    }
     setEditingArtist(null);
+  };
+
+  const handleAddArtist = async (form: NewArtistForm): Promise<string | null> => {
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return 'You must be logged in to add an artist.';
+      const { error: insertError } = await supabase
+        .from('artists')
+        .insert({
+          user_id: user.id,
+          name: form.name,
+          genre: form.genre,
+          sub_genres: form.subGenres.split(',').map((s) => s.trim()).filter(Boolean),
+          status: form.status,
+          label: form.label || null,
+          location: form.location || null,
+          bio: form.bio || null,
+        });
+      if (insertError) {
+        console.error('Supabase insert error:', insertError);
+        return insertError.message;
+      }
+      setShowAddArtist(false);
+      fetchArtists();
+      return null;
+    } catch (err: any) {
+      console.error('Failed to add artist:', err.message);
+      return err.message ?? 'Unexpected error. Please try again.';
+    }
   };
 
   const filteredArtists = useMemo(() => {
@@ -798,17 +958,37 @@ export default function ArtistsListingDashboard() {
     }
   };
 
-  const handleBulkStatusChange = () => {
-    setArtists((prev) =>
-    prev.map((a) => selectedIds.has(a.id) ? { ...a, status: bulkStatus } : a)
-    );
+  const handleBulkStatusChange = async () => {
+    const ids = Array.from(selectedIds);
+    try {
+      const { error: bulkError } = await supabase
+        .from('artists')
+        .update({ status: bulkStatus })
+        .in('id', ids);
+      if (bulkError) throw bulkError;
+      setArtists((prev) =>
+        prev.map((a) => selectedIds.has(a.id) ? { ...a, status: bulkStatus } : a)
+      );
+    } catch (err: any) {
+      console.error('Bulk status update failed:', err.message);
+    }
     setSelectedIds(new Set());
   };
 
-  const handleBulkArchive = () => {
-    setArtists((prev) =>
-    prev.map((a) => selectedIds.has(a.id) ? { ...a, status: 'archived' as ArtistStatus } : a)
-    );
+  const handleBulkArchive = async () => {
+    const ids = Array.from(selectedIds);
+    try {
+      const { error: archiveError } = await supabase
+        .from('artists')
+        .update({ status: 'archived' })
+        .in('id', ids);
+      if (archiveError) throw archiveError;
+      setArtists((prev) =>
+        prev.map((a) => selectedIds.has(a.id) ? { ...a, status: 'archived' as ArtistStatus } : a)
+      );
+    } catch (err: any) {
+      console.error('Bulk archive failed:', err.message);
+    }
     setSelectedIds(new Set());
   };
 
@@ -821,7 +1001,7 @@ export default function ArtistsListingDashboard() {
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = search || statusFilter || genreFilter && genreFilter !== 'All Genres';
+  const hasActiveFilters = !!(search || statusFilter || (genreFilter && genreFilter !== 'All Genres'));
   const selectionMode = selectedIds.size > 0;
 
   const toggleSort = (field: string) => {
@@ -847,34 +1027,47 @@ export default function ArtistsListingDashboard() {
                   onClick={() => setViewMode('card')}
                   aria-label="Card view"
                   className={`p-2 rounded-md transition-all ${
-                  viewMode === 'card' ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'}`
+                  viewMode === 'card' ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`
                   }>
-                  
                   <Icon name="Squares2X2Icon" size={15} variant="outline" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
                   aria-label="List view"
                   className={`p-2 rounded-md transition-all ${
-                  viewMode === 'list' ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'}`
+                  viewMode === 'list' ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`
                   }>
-                  
                   <Icon name="ListBulletIcon" size={15} variant="outline" />
                 </button>
               </div>
-              <Link href="/artist-detail-management?mode=new" className="pm-btn-primary text-sm px-4 py-2.5">
+              <button
+                onClick={() => setShowAddArtist(true)}
+                className="pm-btn-primary text-sm px-4 py-2.5 flex items-center gap-2">
                 <Icon name="PlusIcon" size={16} variant="outline" />
                 Add Artist
-              </Link>
+              </button>
             </div>
           </div>
 
+          {/* Metric Cards — skeleton while loading */}
           {isLoading ?
-          <div className="flex gap-3 flex-wrap animate-pulse">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 animate-pulse">
               {Array.from({ length: 6 }).map((_, i) =>
-            <div key={i} className="h-[72px] w-32 bg-gray-200 rounded-xl" />
+            <div key={i} className="flex items-center gap-3 px-4 py-3.5 rounded-xl border border-gray-200 bg-white">
+                <div className="w-9 h-9 rounded-lg bg-gray-200 shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-2.5 bg-gray-200 rounded w-3/4" />
+                  <div className="h-5 bg-gray-200 rounded w-1/2" />
+                </div>
+              </div>
             )}
             </div> :
+
+          error ?
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">
+            <Icon name="ExclamationCircleIcon" size={16} variant="outline" />
+            {error}
+          </div> :
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {[
@@ -889,17 +1082,14 @@ export default function ArtistsListingDashboard() {
               key={card.label}
               className="flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-white"
               style={{ borderColor: card.accent ? 'var(--color-foreground)' : '#e5e7eb' }}>
-              
                   <div
                 className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                 style={{ background: card.accent ? 'var(--color-foreground)' : '#f3f4f6' }}>
-                
                     <Icon
                   name={card.icon as Parameters<typeof Icon>[0]['name']}
                   size={18}
                   variant="outline"
                   className={card.accent ? 'text-white' : 'text-gray-500'} />
-                
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 font-medium uppercase tracking-wider" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{card.label}</p>
@@ -921,7 +1111,6 @@ export default function ArtistsListingDashboard() {
                   value={search}
                   onChange={(e) => {setSearch(e.target.value);setCurrentPage(1);}}
                   className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
-                
                 {search &&
                 <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     <Icon name="XMarkIcon" size={14} variant="outline" />
@@ -933,7 +1122,6 @@ export default function ArtistsListingDashboard() {
                   value={statusFilter}
                   onChange={(e) => {setStatusFilter(e.target.value);setCurrentPage(1);}}
                   className="appearance-none pl-3 pr-8 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                  
                   <option value="">All Status</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -946,7 +1134,6 @@ export default function ArtistsListingDashboard() {
                   value={genreFilter}
                   onChange={(e) => {setGenreFilter(e.target.value);setCurrentPage(1);}}
                   className="appearance-none pl-3 pr-8 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                  
                   {GENRE_OPTIONS.map((g) => <option key={g} value={g === 'All Genres' ? '' : g}>{g}</option>)}
                 </select>
                 <Icon name="ChevronDownIcon" size={14} variant="outline" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -959,7 +1146,6 @@ export default function ArtistsListingDashboard() {
                   className={`flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md transition-all ${
                   sortBy === o.value ? 'bg-gray-900 text-white font-medium' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`
                   }>
-                  
                     {o.label}
                     {sortBy === o.value &&
                   <Icon name={sortOrder === 'asc' ? 'ArrowUpIcon' : 'ArrowDownIcon'} size={10} variant="outline" />
@@ -988,7 +1174,6 @@ export default function ArtistsListingDashboard() {
                     value={search}
                     onChange={(e) => {setSearch(e.target.value);setCurrentPage(1);}}
                     className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  
                 </div>
                 <button
                   onClick={() => setMobileFiltersOpen((o) => !o)}
@@ -996,7 +1181,6 @@ export default function ArtistsListingDashboard() {
                   mobileFiltersOpen || hasActiveFilters ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'}`
                   }
                   aria-label={mobileFiltersOpen ? 'Close filters' : 'Open filters'}>
-                  
                   <Icon name="FunnelIcon" size={16} variant="outline" />
                   Filters
                   {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
@@ -1027,9 +1211,8 @@ export default function ArtistsListingDashboard() {
                       key={o.value}
                       onClick={() => toggleSort(o.value)}
                       className={`flex items-center justify-between gap-1 px-3 py-2.5 text-xs rounded-lg border transition-all min-h-[40px] ${
-                      sortBy === o.value ? 'bg-gray-900 text-white border-gray-900 font-medium' : 'text-gray-600 border-gray-200 bg-white hover:bg-gray-50'}`
+                      sortBy === o.value ? 'bg-gray-900 text-white border-gray-900 font-medium' : 'text-gray-600 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'}`
                       }>
-                      
                           {o.label}
                           {sortBy === o.value && <Icon name={sortOrder === 'asc' ? 'ArrowUpIcon' : 'ArrowDownIcon'} size={10} variant="outline" />}
                         </button>
@@ -1059,7 +1242,6 @@ export default function ArtistsListingDashboard() {
                 onClick={toggleSelectAll}
                 onKeyDown={(e) => {if (e.key === ' ' || e.key === 'Enter') {e.preventDefault();toggleSelectAll();}}}
                 className="w-4 h-4 rounded border-2 border-gray-900 bg-gray-900 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-400">
-                
                   <Icon name="CheckIcon" size={10} variant="solid" className="text-white" />
                 </div>
                 <span className="text-sm font-semibold text-gray-900">{selectedIds.size} selected</span>
@@ -1071,7 +1253,6 @@ export default function ArtistsListingDashboard() {
                   value={bulkStatus}
                   onChange={(e) => setBulkStatus(e.target.value as ArtistStatus)}
                   className="text-xs rounded-lg px-2 py-1.5 border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400">
-                  
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="archived">Archived</option>
@@ -1079,7 +1260,6 @@ export default function ArtistsListingDashboard() {
                   <button
                   onClick={handleBulkStatusChange}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-all min-h-[36px]">
-                  
                     <Icon name="ArrowPathIcon" size={12} variant="outline" />
                     Apply
                   </button>
@@ -1087,14 +1267,12 @@ export default function ArtistsListingDashboard() {
                 <button
                 onClick={handleBulkArchive}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100 transition-all min-h-[36px]">
-                
                   <Icon name="ArchiveBoxIcon" size={12} variant="outline" />
                   Archive All
                 </button>
                 <button
                 onClick={() => setSelectedIds(new Set())}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all min-h-[36px]">
-                
                   <Icon name="XMarkIcon" size={12} variant="outline" />
                   Deselect
                 </button>
@@ -1102,35 +1280,77 @@ export default function ArtistsListingDashboard() {
             </div>
           }
 
+          {/* Artist Grid / List — skeleton while loading */}
           {isLoading ?
           <div className={viewMode === 'card' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-2'}>
               {Array.from({ length: pageSize }).map((_, i) =>
-            <div key={i} className={`animate-pulse bg-white border border-gray-100 rounded-xl ${
-            viewMode === 'card' ? 'h-64' : 'h-16'}`
-            } />
+            viewMode === 'card' ? (
+              <div key={i} className="animate-pulse bg-white border border-gray-100 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  </div>
+                  <div className="h-5 w-14 bg-gray-200 rounded-full" />
+                </div>
+                <div className="flex gap-1.5">
+                  <div className="h-5 w-12 bg-gray-200 rounded-full" />
+                  <div className="h-5 w-16 bg-gray-100 rounded-full" />
+                </div>
+                <div className="h-3 bg-gray-100 rounded w-full" />
+                <div className="h-3 bg-gray-100 rounded w-4/5" />
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="h-14 bg-gray-100 rounded-lg" />
+                  <div className="h-14 bg-gray-100 rounded-lg" />
+                  <div className="h-14 bg-gray-100 rounded-lg" />
+                </div>
+              </div>
+            ) : (
+              <div key={i} className="animate-pulse flex items-center gap-3 px-4 py-3.5 bg-white border border-gray-100 rounded-xl">
+                <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 bg-gray-200 rounded w-2/5" />
+                  <div className="h-3 bg-gray-100 rounded w-1/4" />
+                </div>
+                <div className="hidden sm:flex items-center gap-3">
+                  <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                  <div className="h-3 w-20 bg-gray-100 rounded" />
+                </div>
+              </div>
+            )
             )}
             </div> :
+
+          /* Empty state */
           paginatedArtists.length === 0 ?
           <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                <Icon name="MusicalNoteIcon" size={28} variant="outline" className="text-gray-400" />
+              <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center mb-4">
+                <Icon name="MusicalNoteIcon" size={28} variant="outline" className="text-purple-400" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">No artists found</h3>
-              <p className="text-sm text-gray-400 mb-4 max-w-xs">
-                {hasActiveFilters ? 'Try adjusting your filters or search terms.' : 'Add your first artist to get started.'}
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
+                {hasActiveFilters ? 'No artists match your filters' : 'No artists yet'}
+              </h3>
+              <p className="text-sm text-gray-400 mb-5 max-w-xs">
+                {hasActiveFilters
+                  ? 'Try adjusting your filters or search terms to find what you\'re looking for.'
+                  : 'Add your first artist to start tracking pitches and managing your music roster.'}
               </p>
               {hasActiveFilters ?
-            <button onClick={clearFilters} className="pm-btn text-sm">
+            <button onClick={clearFilters} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-gray-600">
                   <Icon name="XCircleIcon" size={14} variant="outline" />
                   Clear Filters
                 </button> :
 
-            <Link href="/artist-detail-management" className="pm-btn-primary text-sm px-4 py-2.5">
-                  <Icon name="PlusIcon" size={16} variant="outline" />
-                  Add Artist
-                </Link>
-            }
+          <button
+            onClick={() => setShowAddArtist(true)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all">
+            <Icon name="PlusIcon" size={16} variant="outline" />
+            + Add Artist
+          </button>
+          }
             </div> :
+
           viewMode === 'card' ?
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {paginatedArtists.map((artist) =>
@@ -1141,7 +1361,6 @@ export default function ArtistsListingDashboard() {
               onToggleSelect={toggleSelect}
               selectionMode={selectionMode}
               onEdit={setEditingArtist} />
-
             )}
             </div> :
 
@@ -1154,7 +1373,6 @@ export default function ArtistsListingDashboard() {
               onToggleSelect={toggleSelect}
               selectionMode={selectionMode}
               onEdit={setEditingArtist} />
-
             )}
             </div>
           }
@@ -1167,17 +1385,20 @@ export default function ArtistsListingDashboard() {
             totalItems={filteredArtists.length}
             onPageChange={(p) => setCurrentPage(p)}
             onPageSizeChange={(s) => {setPageSize(s);setCurrentPage(1);}} />
-
           }
         </div>
       </main>
 
-      {/* Edit Artist Modal */}
       {editingArtist &&
       <EditArtistModal
         artist={editingArtist}
         onSave={handleSaveArtist}
         onClose={() => setEditingArtist(null)} />
+      }
+      {showAddArtist &&
+        <AddArtistModal
+          onSave={handleAddArtist}
+          onClose={() => setShowAddArtist(false)} />
       }
     </div>);
 

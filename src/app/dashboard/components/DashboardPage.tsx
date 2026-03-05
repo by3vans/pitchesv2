@@ -270,49 +270,64 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Quick Stats — skeleton while loading */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {statCards.map((card) => (
-              <div
-                key={card.label}
-                className="pm-panel hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: `${card.color}18` }}
-                  >
-                    <Icon name={card.icon as any} size={18} variant="outline" style={{ color: card.color }} />
+            {loadingData ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="pm-panel animate-pulse">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-gray-200" />
+                    <div className="h-4 w-24 bg-gray-200 rounded" />
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Icon
-                      name="ArrowTrendingUpIcon"
-                      size={13}
-                      variant="outline"
-                      style={{ color: '#10b981' }}
+                  <div className="h-7 w-16 bg-gray-200 rounded mb-1" />
+                  <div className="h-3 w-24 bg-gray-200 rounded mb-1" />
+                  <div className="h-3 w-32 bg-gray-100 rounded mb-3" />
+                  <div className="h-1.5 rounded-full bg-gray-200" />
+                </div>
+              ))
+            ) : (
+              statCards.map((card) => (
+                <div
+                  key={card.label}
+                  className="pm-panel hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div
+                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: `${card.color}18` }}
+                    >
+                      <Icon name={card.icon as any} size={18} variant="outline" style={{ color: card.color }} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Icon
+                        name="ArrowTrendingUpIcon"
+                        size={13}
+                        variant="outline"
+                        style={{ color: '#10b981' }}
+                      />
+                      <span className="text-xs font-medium" style={{ color: '#10b981' }}>
+                        {card.trendValue}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-2xl font-bold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+                    {card.value}
+                  </p>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                    {card.label}
+                  </p>
+                  <p className="text-xs mb-3" style={{ color: 'var(--color-muted-foreground)' }}>{card.sub}</p>
+
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${card.progress}%`, background: card.color }}
                     />
-                    <span className="text-xs font-medium" style={{ color: '#10b981' }}>
-                      {card.trendValue}
-                    </span>
                   </div>
                 </div>
-
-                <p className="text-2xl font-bold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
-                  {card.value}
-                </p>
-                <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                  {card.label}
-                </p>
-                <p className="text-xs mb-3" style={{ color: 'var(--color-muted-foreground)' }}>{card.sub}</p>
-
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${card.progress}%`, background: card.color }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* Smart Suggestions */}
@@ -346,16 +361,41 @@ export default function DashboardPage() {
               </div>
 
               {loadingData ? (
-                <div className="flex items-center justify-center py-8">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-muted-foreground)' }}>
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
+                <div className="space-y-2 animate-pulse">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
+                      <div className="w-7 h-7 rounded-lg bg-gray-200 shrink-0 mt-0.5" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3.5 bg-gray-200 rounded w-3/4" />
+                        <div className="flex gap-2">
+                          <div className="h-4 w-16 bg-gray-200 rounded-md" />
+                          <div className="h-4 w-24 bg-gray-100 rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : activityFeed.length === 0 ? (
-                <div className="text-center py-8">
-                  <Icon name="PaperAirplaneIcon" size={28} variant="outline" className="mx-auto mb-2" style={{ color: 'var(--color-muted-foreground)' }} />
-                  <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>No activity yet. Create your first pitch!</p>
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
+                    <Icon name="PaperAirplaneIcon" size={22} variant="outline" style={{ color: '#3b82f6' }} />
+                  </div>
+                  <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Your pipeline is empty</p>
+                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)' }}>Add artists and pitches to see your stats and activity here.</p>
+                  <div className="flex items-center gap-2">
+                    <Link href="/artists-listing-dashboard" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
+                      <Icon name="MusicalNoteIcon" size={12} variant="outline" />
+                      Add Artist
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setNewPitchModalOpen(true)}
+                      className="pm-btn-primary text-xs py-1.5 px-3 flex items-center gap-1"
+                    >
+                      <Icon name="PlusIcon" size={12} variant="outline" />
+                      New Pitch
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -459,16 +499,29 @@ export default function DashboardPage() {
               </div>
 
               {loadingData ? (
-                <div className="flex items-center justify-center py-8">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-muted-foreground)' }}>
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
+                <div className="space-y-2 animate-pulse">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl">
+                      <div className="w-4 h-4 bg-gray-200 rounded shrink-0" />
+                      <div className="w-8 h-8 rounded-full bg-gray-200 shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-gray-200 rounded w-2/3" />
+                        <div className="h-1.5 bg-gray-200 rounded-full w-full" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : topArtists.length === 0 ? (
-                <div className="text-center py-8">
-                  <Icon name="MusicalNoteIcon" size={28} variant="outline" className="mx-auto mb-2" style={{ color: 'var(--color-muted-foreground)' }} />
-                  <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>No artists with pitches yet.</p>
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center mb-3">
+                    <Icon name="MusicalNoteIcon" size={22} variant="outline" style={{ color: '#8b5cf6' }} />
+                  </div>
+                  <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>No artists yet</p>
+                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)' }}>Add artists and create pitches to see your top performers here.</p>
+                  <Link href="/artists-listing-dashboard" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
+                    <Icon name="PlusIcon" size={12} variant="outline" />
+                    Add Artist
+                  </Link>
                 </div>
               ) : (
                 <div className="space-y-2">

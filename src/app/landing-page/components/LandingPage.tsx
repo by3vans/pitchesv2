@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import AnimatedPitchDemo from './AnimatedPitchDemo';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface DropdownItem { label: string; }
@@ -143,14 +144,8 @@ function AppMockup() {
           app.pitchhood.com/pitches
         </div>
       </div>
-      {/* Actual screenshot */}
-      <div style={{ width: '100%', lineHeight: 0 }}>
-        <img
-          src="/assets/images/Screenshot_2026-03-04_at_9.52.11_PM-1772679141193.png"
-          alt="Pitchhood pitches listing dashboard showing sidebar navigation, metrics cards with total pitches and approval rate, and a grid of pitch cards for artists Marcus James, Sofia Ramos, and DJ Kuro"
-          style={{ width: '100%', display: 'block', objectFit: 'cover', objectPosition: 'top' }}
-        />
-      </div>
+      {/* Animated demo */}
+      <AnimatedPitchDemo />
     </>
   );
 }
@@ -345,6 +340,22 @@ export default function LandingPage() {
           .hero-buttons a, .hero-buttons button { width: 100% !important; justify-content: center !important; min-height: 48px !important; }
           .mockup-metrics { grid-template-columns: repeat(2, 1fr) !important; }
           .mockup-cards { grid-template-columns: 1fr !important; }
+          /* Mobile mockup: full bleed, product-forward like Disco.ac */
+          .hero-section-mobile { overflow: hidden !important; }
+          .hero-disco-right {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100vw !important;
+            position: relative !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+          }
+          .hero-mockup-frame {
+            border-radius: 16px 16px 0 0 !important;
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.2) !important;
+            width: 100% !important;
+            margin: 0 !important;
+          }
         }
       `}</style>
 
@@ -400,7 +411,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ background: '#f2f0eb', paddingTop: 0, paddingBottom: 0, position: 'relative', overflow: 'visible', minHeight: 680 }}>
+      <section className="hero-section-mobile" style={{ background: '#f2f0eb', paddingTop: 0, paddingBottom: 0, position: 'relative', overflow: 'visible', minHeight: 680 }}>
         {/* Dot grid */}
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px', pointerEvents: 'none', zIndex: 0 }} />
         {/* Blobs — only on left side */}
