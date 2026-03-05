@@ -8,8 +8,7 @@ export async function GET(request: NextRequest) {
   const errorParam = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
   const next = searchParams.get('next') ?? '/dashboard';
-
-  const appUrl = 'https://pitchesv23594.builtwithrocket.new';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pitchhood-8oc20eow5-by3vans-projects.vercel.app';
 
   console.log('[auth/callback] ✅ Route hit!');
   console.log('[auth/callback] Incoming URL:', request.url);
@@ -22,6 +21,7 @@ export async function GET(request: NextRequest) {
     console.log('[auth/callback] Code found — exchanging for session...');
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+
     if (!error) {
       const redirectTo = `${appUrl}${next}`;
       console.log('[auth/callback] Session exchange SUCCESS — redirecting to:', redirectTo);
@@ -37,3 +37,10 @@ export async function GET(request: NextRequest) {
   console.log('[auth/callback] Falling back to:', fallbackUrl);
   return NextResponse.redirect(fallbackUrl);
 }
+```
+
+---
+
+**Agora no Google Cloud**, o URI de redirecionamento autorizado deve ser:
+```
+https://pitchhood-8oc20eow5-by3vans-projects.vercel.app/auth/callback
