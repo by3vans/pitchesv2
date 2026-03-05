@@ -305,14 +305,14 @@ export default function ArtistDetailManagement() {
     init();
   }, [loadArtist]);
 
-  const handleArtistChange = (id: string) => {
+  const handleArtistChange = async (id: string) => {
     setSelectedArtistId(id);
     setTableSearch('');
     setTableRoleFilter('');
     setNotesEditing(false);
     setIsEditing(false);
     setIsCreateMode(false);
-    loadArtist(id);
+    await loadArtist(id);
   };
 
   // Create mode handlers
@@ -453,14 +453,14 @@ export default function ArtistDetailManagement() {
 
   const handleTogglePrimary = async (link: ArtistRecipientLink) => {
     await linkStore.update(link.id, { isPrimary: !link.isPrimary });
-    if (artist) loadArtist(artist.id);
+    if (artist) await loadArtist(artist.id);
   };
 
   const handleRemoveLink = async (linkId: string) => {
     const removed = confirmRemove?.contactName;
     await linkStore.delete(linkId);
     setConfirmRemove(null);
-    if (artist) loadArtist(artist.id);
+    if (artist) await loadArtist(artist.id);
     if (removed) showToast(`Removed "${removed}" from recipients`, 'info');
   };
 
@@ -547,7 +547,7 @@ export default function ArtistDetailManagement() {
                       title="Fetch artist metadata from Spotify"
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.56-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-2.82-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.56-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                       </svg>
                       Fetch from Spotify
                     </button>
