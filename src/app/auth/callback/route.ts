@@ -36,12 +36,11 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const redirectTo = `${appUrl}${next}`;
       if (process.env.NODE_ENV === 'development') {
         console.log('[auth/callback] Session exchange SUCCESS — user:', data?.session?.user?.id ?? 'unknown');
-        const redirectTo = `${appUrl}${next}`;
         console.log('[auth/callback] Redirecting to:', redirectTo);
       }
-      const redirectTo = `${appUrl}${next}`;
       return NextResponse.redirect(redirectTo);
     } else {
       console.error('[auth/callback] Session exchange FAILED:', error.message);
