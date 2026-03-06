@@ -40,7 +40,11 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
 
   const update = (k: keyof typeof form, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
-    setErrors((p) => { const e = { ...p }; delete e[k]; return e; });
+    setErrors((p) => {
+      const e = { ...p };
+      delete e[k];
+      return e;
+    });
   };
 
   const validateField = (k: string, v: string) => {
@@ -59,7 +63,8 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.fullName.trim()) e.fullName = 'Full name is required';
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email format';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = 'Invalid email format';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -71,11 +76,13 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
     setSaveError('');
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const payload = {
-        name: form.fullName.trim(),
+        full_name: form.fullName.trim(),
         email: form.email.trim() || null,
         role: form.role,
         company: form.company.trim() || null,
@@ -91,9 +98,7 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
           .eq('user_id', user.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('contacts')
-          .insert({ ...payload, user_id: user.id });
+        const { error } = await supabase.from('contacts').insert({ ...payload, user_id: user.id });
         if (error) throw error;
       }
 
@@ -110,25 +115,37 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.45)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
     >
       <div className="pm-panel w-full max-w-lg">
         <div className="flex items-center justify-between mb-5">
           <h2 className="pm-h1 text-lg">{contact ? 'Edit Contact' : 'New Contact'}</h2>
-          <button onClick={onClose} className="pm-btn focus:ring-2 focus:ring-blue-500 focus:outline-none" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="pm-btn focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            aria-label="Close"
+          >
             <Icon name="XMarkIcon" size={18} variant="outline" />
           </button>
         </div>
 
         {saveError && (
-          <div className="mb-4 px-3 py-2 rounded-lg text-sm text-red-700 bg-red-50 border border-red-200">{saveError}</div>
+          <div className="mb-4 px-3 py-2 rounded-lg text-sm text-red-700 bg-red-50 border border-red-200">
+            {saveError}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="pm-label">Full Name <span className="text-red-500">*</span></label>
+              <label className="pm-label">
+                Full Name <span className="text-red-500">*</span>
+              </label>
               <input
                 className={`pm-input focus:ring-2 focus:ring-blue-500 focus:outline-none${errors.fullName ? ' border-red-400 bg-red-50' : ''}`}
                 value={form.fullName}
@@ -140,7 +157,15 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
                 aria-required="true"
                 aria-describedby={errors.fullName ? 'contact-fullName-error' : undefined}
               />
-              {errors.fullName && <p id="contact-fullName-error" className="text-xs text-red-500 mt-1 flex items-center gap-1"><Icon name="ExclamationCircleIcon" size={12} variant="outline" />{errors.fullName}</p>}
+              {errors.fullName && (
+                <p
+                  id="contact-fullName-error"
+                  className="text-xs text-red-500 mt-1 flex items-center gap-1"
+                >
+                  <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
+                  {errors.fullName}
+                </p>
+              )}
             </div>
 
             <div>
@@ -155,7 +180,15 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
                 tabIndex={2}
                 aria-describedby={errors.email ? 'contact-email-error' : undefined}
               />
-              {errors.email && <p id="contact-email-error" className="text-xs text-red-500 mt-1 flex items-center gap-1"><Icon name="ExclamationCircleIcon" size={12} variant="outline" />{errors.email}</p>}
+              {errors.email && (
+                <p
+                  id="contact-email-error"
+                  className="text-xs text-red-500 mt-1 flex items-center gap-1"
+                >
+                  <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
+                  {errors.email}
+                </p>
+              )}
             </div>
 
             <div>
@@ -177,7 +210,11 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
                 onChange={(e) => update('role', e.target.value)}
                 tabIndex={4}
               >
-                {CONTACT_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                {CONTACT_ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -237,18 +274,38 @@ function ContactTableSkeleton() {
         <thead>
           <tr style={{ borderBottom: '1px solid var(--pm-border)' }}>
             {['Name', 'Role', 'Company', 'Email', 'Phone', ''].map((h) => (
-              <th key={h} className="text-left py-2 px-3 text-xs font-semibold" style={{ color: 'var(--pm-text-muted)' }}>{h}</th>
+              <th
+                key={h}
+                className="text-left py-2 px-3 text-xs font-semibold"
+                style={{ color: 'var(--pm-text-muted)' }}
+              >
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {Array.from({ length: 6 }).map((_, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid var(--pm-border)' }} className="animate-pulse">
-              <td className="py-3 px-3"><div className="h-3.5 bg-gray-200 rounded w-28" /></td>
-              <td className="py-3 px-3"><div className="h-5 bg-gray-200 rounded-full w-20" /></td>
-              <td className="py-3 px-3"><div className="h-3 bg-gray-100 rounded w-24" /></td>
-              <td className="py-3 px-3"><div className="h-3 bg-gray-100 rounded w-32" /></td>
-              <td className="py-3 px-3"><div className="h-3 bg-gray-100 rounded w-20" /></td>
+            <tr
+              key={i}
+              style={{ borderBottom: '1px solid var(--pm-border)' }}
+              className="animate-pulse"
+            >
+              <td className="py-3 px-3">
+                <div className="h-3.5 bg-gray-200 rounded w-28" />
+              </td>
+              <td className="py-3 px-3">
+                <div className="h-5 bg-gray-200 rounded-full w-20" />
+              </td>
+              <td className="py-3 px-3">
+                <div className="h-3 bg-gray-100 rounded w-24" />
+              </td>
+              <td className="py-3 px-3">
+                <div className="h-3 bg-gray-100 rounded w-32" />
+              </td>
+              <td className="py-3 px-3">
+                <div className="h-3 bg-gray-100 rounded w-20" />
+              </td>
               <td className="py-3 px-3">
                 <div className="flex items-center gap-1 justify-end">
                   <div className="h-6 w-6 bg-gray-200 rounded-lg" />
@@ -279,7 +336,7 @@ export default function ContactsPage() {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('contacts')
-      .select('id, name, email, company, role, phone, notes, created_at')
+      .select('id, full_name, email, company, role, phone, notes, created_at')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -291,7 +348,7 @@ export default function ContactsPage() {
     setContacts(
       (data ?? []).map((row) => ({
         id: row.id,
-        fullName: row.name,
+        fullName: row.full_name,
         email: row.email ?? '',
         company: row.company ?? '',
         role: row.role ?? '',
@@ -308,23 +365,37 @@ export default function ContactsPage() {
 
   const filtered = contacts.filter((c) => {
     const q = search.toLowerCase();
-    const matchSearch = !q || c.fullName.toLowerCase().includes(q) || c.company.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+    const matchSearch =
+      !q ||
+      c.fullName.toLowerCase().includes(q) ||
+      c.company.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q);
     const matchRole = !roleFilter || c.role === roleFilter;
     return matchSearch && matchRole;
   });
 
-  const handleEdit = (c: Contact) => { setEditTarget(c); setShowModal(true); };
+  const handleEdit = (c: Contact) => {
+    setEditTarget(c);
+    setShowModal(true);
+  };
   const handleNew = () => {
-    if (!canCreateContact) { setShowUpgrade(true); return; }
+    if (!canCreateContact) {
+      setShowUpgrade(true);
+      return;
+    }
     setEditTarget(null);
     setShowModal(true);
   };
-  const handleDelete = (c: Contact) => { setDeleteTarget(c); };
+  const handleDelete = (c: Contact) => {
+    setDeleteTarget(c);
+  };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
     const { error } = await supabase
       .from('contacts')
@@ -353,12 +424,31 @@ export default function ContactsPage() {
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="relative">
-                  <Icon name="MagnifyingGlassIcon" size={16} variant="outline" className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--pm-text-muted)' }} />
-                  <input className="pm-input pl-9 w-48" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <Icon
+                    name="MagnifyingGlassIcon"
+                    size={16}
+                    variant="outline"
+                    className="absolute left-3 top-1/2 -translate-y-1/2"
+                    style={{ color: 'var(--pm-text-muted)' }}
+                  />
+                  <input
+                    className="pm-input pl-9 w-48"
+                    placeholder="Search..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
-                <select className="pm-input w-36" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                <select
+                  className="pm-input w-36"
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
                   <option value="">All Roles</option>
-                  {CONTACT_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {CONTACT_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
                 </select>
                 <button onClick={handleNew} className="pm-btn-primary flex items-center gap-1">
                   <Icon name="PlusIcon" size={16} variant="outline" />
@@ -372,18 +462,35 @@ export default function ContactsPage() {
             <ContactTableSkeleton />
           ) : filtered.length === 0 ? (
             <div className="pm-panel flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'var(--pm-surface)' }}>
-                <Icon name="UsersIcon" size={36} variant="outline" style={{ color: 'var(--pm-text-muted)' }} />
+              <div
+                className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
+                style={{ background: 'var(--pm-surface)' }}
+              >
+                <Icon
+                  name="UsersIcon"
+                  size={36}
+                  variant="outline"
+                  style={{ color: 'var(--pm-text-muted)' }}
+                />
               </div>
               {search || roleFilter ? (
                 <>
-                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--pm-text)' }}>No contacts found</h3>
-                  <p className="text-sm max-w-xs" style={{ color: 'var(--pm-text-muted)' }}>No contacts match your filters. Try adjusting your search or role filter.</p>
+                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--pm-text)' }}>
+                    No contacts found
+                  </h3>
+                  <p className="text-sm max-w-xs" style={{ color: 'var(--pm-text-muted)' }}>
+                    No contacts match your filters. Try adjusting your search or role filter.
+                  </p>
                 </>
               ) : (
                 <>
-                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--pm-text)' }}>No contacts yet</h3>
-                  <p className="text-sm max-w-xs mb-6" style={{ color: 'var(--pm-text-muted)' }}>Grow your industry network by adding your first contact — labels, managers, and A&Rs.</p>
+                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--pm-text)' }}>
+                    No contacts yet
+                  </h3>
+                  <p className="text-sm max-w-xs mb-6" style={{ color: 'var(--pm-text-muted)' }}>
+                    Grow your industry network by adding your first contact — labels, managers, and
+                    A&Rs.
+                  </p>
                   <button onClick={handleNew} className="pm-btn-primary flex items-center gap-2">
                     <Icon name="PlusIcon" size={16} variant="outline" />
                     Add Your First Contact
@@ -397,26 +504,54 @@ export default function ContactsPage() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--pm-border)' }}>
                     {['Name', 'Role', 'Company', 'Email', 'Phone', ''].map((h) => (
-                      <th key={h} className="text-left py-2 px-3 text-xs font-semibold" style={{ color: 'var(--pm-text-muted)' }}>{h}</th>
+                      <th
+                        key={h}
+                        className="text-left py-2 px-3 text-xs font-semibold"
+                        style={{ color: 'var(--pm-text-muted)' }}
+                      >
+                        {h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((c) => (
                     <tr key={c.id} style={{ borderBottom: '1px solid var(--pm-border)' }}>
-                      <td className="py-2.5 px-3 font-medium" style={{ color: 'var(--pm-text)' }}>{c.fullName}</td>
-                      <td className="py-2.5 px-3">
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--pm-surface)', color: 'var(--pm-text-muted)' }}>{c.role}</span>
+                      <td className="py-2.5 px-3 font-medium" style={{ color: 'var(--pm-text)' }}>
+                        {c.fullName}
                       </td>
-                      <td className="py-2.5 px-3" style={{ color: 'var(--pm-text-muted)' }}>{c.company}</td>
-                      <td className="py-2.5 px-3" style={{ color: 'var(--pm-text-muted)' }}>{c.email}</td>
-                      <td className="py-2.5 px-3" style={{ color: 'var(--pm-text-muted)' }}>{c.phone}</td>
+                      <td className="py-2.5 px-3">
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full"
+                          style={{ background: 'var(--pm-surface)', color: 'var(--pm-text-muted)' }}
+                        >
+                          {c.role}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3" style={{ color: 'var(--pm-text-muted)' }}>
+                        {c.company}
+                      </td>
+                      <td className="py-2.5 px-3" style={{ color: 'var(--pm-text-muted)' }}>
+                        {c.email}
+                      </td>
+                      <td className="py-2.5 px-3" style={{ color: 'var(--pm-text-muted)' }}>
+                        {c.phone}
+                      </td>
                       <td className="py-2.5 px-3">
                         <div className="flex items-center gap-1 justify-end">
-                          <button onClick={() => handleEdit(c)} className="pm-btn p-1.5" aria-label="Edit">
+                          <button
+                            onClick={() => handleEdit(c)}
+                            className="pm-btn p-1.5"
+                            aria-label="Edit"
+                          >
                             <Icon name="PencilSquareIcon" size={14} variant="outline" />
                           </button>
-                          <button onClick={() => handleDelete(c)} className="pm-btn p-1.5" style={{ color: 'var(--pm-danger)' }} aria-label="Delete">
+                          <button
+                            onClick={() => handleDelete(c)}
+                            className="pm-btn p-1.5"
+                            style={{ color: 'var(--pm-danger)' }}
+                            aria-label="Delete"
+                          >
                             <Icon name="TrashIcon" size={14} variant="outline" />
                           </button>
                         </div>
@@ -431,10 +566,7 @@ export default function ContactsPage() {
       </main>
 
       {showUpgrade && (
-        <UpgradeModal
-          trigger="contact_limit"
-          onClose={() => setShowUpgrade(false)}
-        />
+        <UpgradeModal trigger="contact_limit" onClose={() => setShowUpgrade(false)} />
       )}
 
       {showModal && (
@@ -443,7 +575,12 @@ export default function ContactsPage() {
           onClose={() => setShowModal(false)}
           onSave={async () => {
             await refresh();
-            showToast(editTarget ? `Contact "${editTarget.fullName}" updated` : 'Contact added successfully', 'success');
+            showToast(
+              editTarget
+                ? `Contact "${editTarget.fullName}" updated`
+                : 'Contact added successfully',
+              'success'
+            );
           }}
         />
       )}

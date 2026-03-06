@@ -30,12 +30,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for auth changes
     const {
-      data: { subscription }
+      data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      console.log('[AuthContext] Auth state changed. Event:', _event, '| User:', session?.user?.id ?? 'none');
+      console.log(
+        '[AuthContext] Auth state changed. Event:',
+        _event,
+        '| User:',
+        session?.user?.id ?? 'none'
+      );
 
       // After sign-in, verify profile row exists (auto-created by DB trigger)
       if (_event === 'SIGNED_IN' && session?.user) {
@@ -46,9 +51,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .single()
           .then(({ data, error }) => {
             if (error) {
-              console.warn('[AuthContext] Profile row NOT found for user:', session.user.id, '| Error:', error.message);
+              console.warn(
+                '[AuthContext] Profile row NOT found for user:',
+                session.user.id,
+                '| Error:',
+                error.message
+              );
             } else {
-              console.log('[AuthContext] ✅ Profile row EXISTS for user:', session.user.id, '| Data:', data);
+              console.log(
+                '[AuthContext] ✅ Profile row EXISTS for user:',
+                session.user.id,
+                '| Data:',
+                data
+              );
             }
           });
       }
@@ -65,12 +80,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       options: {
         data: {
           full_name: (metadata as any)?.fullName || '',
-          avatar_url: (metadata as any)?.avatarUrl || ''
+          avatar_url: (metadata as any)?.avatarUrl || '',
         },
-        emailRedirectTo: `https://pitchesv23594.builtwithrocket.new/auth/callback`
-      }
+        emailRedirectTo: `https://pitchesv23594.builtwithrocket.new/auth/callback`,
+      },
     });
     if (error) throw error;
+    // Send welcome email via API route (server-side only)
+    try {
+      const name = (metadata as any)?.fullName || 'there';
+      await fetch('/api/email/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      });
+    } catch (emailErr) {
+      console.error('[signup] Welcome email error:', emailErr);
+    }
     return data;
   };
 
@@ -78,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
     if (error) throw error;
     return data;
@@ -92,7 +118,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Get Current User
   const getCurrentUser = async () => {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error) throw error;
     return user;
   };
@@ -106,11 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const getUserProfile = async () => {
     if (!user) return null;
     console.log('[AuthContext] getUserProfile called for user:', user.id);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
     if (error) {
       console.error('[AuthContext] getUserProfile error:', error.message);
       throw error;
@@ -128,7 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     getCurrentUser,
     isEmailVerified,
-    getUserProfile
+    getUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
