@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { PLANS, Plan } from '@/lib/stripe/plans';
 
@@ -27,36 +27,40 @@ export function useSubscription() {
   const [loading, setLoading] = useState(true);
   const supabase = useMemo(() => createClient(), []);
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+  const fetchAll = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-        const [subResult, pitchCount, contactCount, templateCount, reminderCount] = await Promise.all([
-          supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
-          supabase.from('pitches').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('templates').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('completed', false),
-        ]);
+      const [subResult, pitchCount, contactCount, templateCount, reminderCount] = await Promise.all([
+        supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
+        supabase.from('pitches').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('templates').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('completed', false),
+      ]);
 
-        setSubscription(subResult.data);
-        setUsage({
-          pitches: pitchCount.count ?? 0,
-          contacts: contactCount.count ?? 0,
-          templates: templateCount.count ?? 0,
-          reminders: reminderCount.count ?? 0,
-        });
-      } catch (err) {
-        console.error('[useSubscription]', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAll();
+      setSubscription(subResult.data);
+      setUsage({
+        pitches: pitchCount.count ?? 0,
+        contacts: contactCount.count ?? 0,
+        templates: templateCount.count ?? 0,
+        reminders: reminderCount.count ?? 0,
+      });
+    } catch (err) {
+      console.error('[useSubscription]', err);
+    } finally {
+      setLoading(false);
+    }
   }, [supabase]);
+
+  useEffect(() => {
+    fetchAll();
+    // Refetch quando a aba volta ao foco
+    const onFocus = () => fetchAll();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [fetchAll]);
 
   const plan = (subscription?.plan ?? 'free') as Plan;
   const limits = PLANS[plan].limits;
@@ -72,5 +76,6 @@ export function useSubscription() {
     isFree: plan === 'free',
     isPro: plan === 'pro',
     isBusiness: plan === 'business',
+    refetch: fetchAll,
   };
 }
