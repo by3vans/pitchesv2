@@ -36,7 +36,20 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      const redirectTo = `${appUrl}${next}`;
+      // Check if profile is complete (has full_name)
+      const userId = data?.session?.user?.id;
+      let destination = next;
+      if (userId) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
+        if (!profile?.full_name) {
+        destination = '/onboarding-profile-setup';
+        }
+      }
+      const redirectTo = `${appUrl}${destination}`;
       if (process.env.NODE_ENV === 'development') {
         console.log('[auth/callback] Session exchange SUCCESS — user:', data?.session?.user?.id ?? 'unknown');
         console.log('[auth/callback] Redirecting to:', redirectTo);
