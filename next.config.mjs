@@ -18,15 +18,7 @@ const nextConfig = {
     remotePatterns: imageHosts,
   },
 
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/landing-page',
-        permanent: false,
-      },
-    ];
-  },
+
 };
 
 export default withSentryConfig(nextConfig, {
