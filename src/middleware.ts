@@ -36,6 +36,10 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
+    const allowedAdmins = ['5f5cbeba-ff23-4414-9664-13b5cc90d607', '8f160231-4ac4-48b2-82dd-ffeec7cbbea7'];
+    if (!allowedAdmins.includes(user.id)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
   }
 
   return supabaseResponse;
