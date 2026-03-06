@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin') && process.env.NODE_ENV === 'production') {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(new URL('/admin-login', request.url));
     }
     const allowedAdmins = ['5f5cbeba-ff23-4414-9664-13b5cc90d607', '8f160231-4ac4-48b2-82dd-ffeec7cbbea7'];
     if (!allowedAdmins.includes(user.id)) {
