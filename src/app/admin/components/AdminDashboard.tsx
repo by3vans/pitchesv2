@@ -32,7 +32,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetch('/api/admin')
       .then(r => {
-        if (r.status === 403 || r.status === 401) { router.push('/dashboard'); return null; }
+        if (r.status === 403 || r.status === 401) { router.push('/admin-login'); return null; }
         return r.json();
       })
       .then(d => { if (d) setData(d); })
