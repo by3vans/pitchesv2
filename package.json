@@ -65,7 +65,8 @@
     "react-dom": "19.0.3",
     "recharts": "^2.15.2",
     "resend": "^6.9.3",
-    "stripe": "^20.4.0"
+    "stripe": "^20.4.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

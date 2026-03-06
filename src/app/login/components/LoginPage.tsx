@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoginSchema, SignUpSchema } from '@/lib/validations/schemas';
+
 import { createClient } from '@/lib/supabase/client';
 
 type Tab = 'login' | 'signup';
@@ -126,6 +128,14 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    // Validate with Zod
+    const schema = tab === 'login' ? LoginSchema : SignUpSchema;
+    const result = schema.safeParse({ email, password });
+    if (!result.success) {
+      const firstError = result.error.errors[0]?.message ?? 'Invalid input';
+      setAuthError({ message: firstError, type: 'credentials' });
+      return;
+    }
     setLoading(true);
     try {
       if (tab === 'login') {
