@@ -4,6 +4,7 @@ import '../styles/index.css';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { PostHogProvider } from '@/providers/PostHogProvider';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -48,9 +49,11 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <ToastProvider>
-            <AuthProvider>
+            <PostHogProvider>
+        <AuthProvider>
               {children}
             </AuthProvider>
+        </PostHogProvider>
           </ToastProvider>
         </ThemeProvider>
 </body>
