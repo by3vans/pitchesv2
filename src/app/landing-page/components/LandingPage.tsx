@@ -1,22 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import AnimatedPitchDemo from './AnimatedPitchDemo';
+import dynamic from 'next/dynamic';
+import StaggeredMenu from './StaggeredMenu';
+import './StaggeredMenu.css';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-interface DropdownItem { label: string; }
-interface NavDropdown { label: string; items: DropdownItem[]; }
-
-// ─── Data ────────────────────────────────────────────────────────────────────
-const NAV_LINKS: (NavDropdown | { label: string })[] = [
-  { label: 'Features', items: [{ label: 'Pitch Tracking' }, { label: 'Artists' }, { label: 'Contacts' }, { label: 'Reminders' }] },
-  { label: 'Solutions', items: [{ label: 'Record Labels' }, { label: 'A&R Teams' }, { label: 'Managers' }, { label: 'Songwriters' }] },
-  { label: 'Pricing' },
-  { label: 'Blog' },
-];
+// ✅ OPT 3: Lazy load — só carrega quando necessário
+const AnimatedPitchDemo = dynamic(() => import('./AnimatedPitchDemo'), { ssr: false });
 
 const MARQUEE_ITEMS = [
   'Universal Music', 'Sony Music', 'Warner Records', 'Def Jam',
@@ -103,37 +95,10 @@ function FadeUp({ children, delay = 0, className = '' }: { children: React.React
   );
 }
 
-function NavDropdownMenu({ items }: { items: DropdownItem[] }) {
-  return (
-    <div style={{
-      position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(50%)',
-      background: 'rgba(255,255,255,0.98)', backdropFilter: 'blur(20px)',
-      border: '1px solid rgba(0,0,0,0.08)', borderRadius: 10, padding: '6px 0',
-      minWidth: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 200,
-    }}>
-      {items.map((item) => (
-        <a key={item.label} href="#" style={{
-          display: 'block', padding: '8px 16px',
-          fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 500,
-          fontSize: '0.9rem', letterSpacing: '0.02em',
-          color: '#1a1a1a', textDecoration: 'none',
-          transition: 'background 0.15s',
-        }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-        >
-          {item.label}
-        </a>
-      ))}
-    </div>
-  );
-}
-
 // ─── App Mockup ──────────────────────────────────────────────────────────────
 function AppMockup() {
   return (
     <>
-      {/* Browser minimal topbar */}
       <div style={{ background: '#1e1e1e', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ display: 'flex', gap: 6 }}>
           <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57' }} />
@@ -144,7 +109,6 @@ function AppMockup() {
           app.pitchhood.com/pitches
         </div>
       </div>
-      {/* Animated demo */}
       <AnimatedPitchDemo />
     </>
   );
@@ -153,39 +117,36 @@ function AppMockup() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function LandingPage() {
   const router = useRouter();
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [navDark, setNavDark] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
-  const [ringPos, setRingPos] = useState({ x: -100, y: -100 });
-  const [logoText, setLogoText] = useState('PITCHHOOD');
   const [activeStep, setActiveStep] = useState(0);
   const [stepProgress, setStepProgress] = useState(0);
+  const [navDark, setNavDark] = useState(false);
   const howRef = useRef<HTMLDivElement>(null);
   const howVisible = useRef(false);
   const animRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ringRef = useRef({ x: -100, y: -100 });
-  const rafRef = useRef<number | null>(null);
 
-  // Custom cursor
+  // ✅ OPT 1: Cursor via CSS/DOM — zero re-renders no React
   useEffect(() => {
-    const onMove = (e: MouseEvent) => { setMousePos({ x: e.clientX, y: e.clientY }); };
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    if (!dot || !ring) return;
+    let rx = -100, ry = -100, mx = -100, my = -100;
+    let raf: number;
+    const onMove = (e: MouseEvent) => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.transform = `translate(${mx - 4}px, ${my - 4}px)`;
+    };
+    const animate = () => {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.transform = `translate(${rx - 16}px, ${ry - 16}px)`;
+      raf = requestAnimationFrame(animate);
+    };
     window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
+    raf = requestAnimationFrame(animate);
+    return () => { window.removeEventListener('mousemove', onMove); cancelAnimationFrame(raf); };
   }, []);
 
-  useEffect(() => {
-    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-    const animate = () => {
-      ringRef.current.x = lerp(ringRef.current.x, mousePos.x, 0.12);
-      ringRef.current.y = lerp(ringRef.current.y, mousePos.y, 0.12);
-      setRingPos({ x: ringRef.current.x, y: ringRef.current.y });
-      rafRef.current = requestAnimationFrame(animate);
-    };
-    rafRef.current = requestAnimationFrame(animate);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [mousePos]);
-
-  // Nav dark/light based on scroll
+  // ✅ OPT 2: Nav dark detection (scroll passivo, sem re-renders desnecessários)
   useEffect(() => {
     const onScroll = () => {
       const darkSections = document.querySelectorAll('[data-dark-section]');
@@ -199,20 +160,6 @@ export default function LandingPage() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  // Logo scramble
-  const scrambleLogo = useCallback(() => {
-    const original = 'PITCHHOOD';
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let iter = 0;
-    const interval = setInterval(() => {
-      setLogoText(original.split('').map((c, i) => i < iter ? c : chars[Math.floor(Math.random() * chars.length)]).join(''));
-      iter++;
-      if (iter > original.length) { setLogoText(original); clearInterval(interval); }
-    }, 50);
-  }, []);
-
-  useEffect(() => { scrambleLogo(); }, [scrambleLogo]);
 
   // How it works animation
   useEffect(() => {
@@ -252,19 +199,27 @@ export default function LandingPage() {
     return () => { if (animRef.current) clearTimeout(animRef.current); };
   }, []);
 
-  const navBg = navDark ? 'rgba(10,10,10,0.85)' : 'rgba(242,240,235,0.88)';
-  const navColor = navDark ? '#f2f0eb' : '#1a1a1a';
-  const navBorder = navDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)';
-
   return (
     <>
-      {/* Google Fonts */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800;1,900&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body { background: #0a0a0a; cursor: none !important; }
         a, button, [role="button"] { cursor: none !important; }
+
+        /* ✅ OPT 1: Cursor CSS puro — sem React state */
+        #cursor-dot {
+          position: fixed; width: 8px; height: 8px; border-radius: 50%;
+          background: #1d4ed8; pointer-events: none; z-index: 9999;
+          top: 0; left: 0; will-change: transform;
+        }
+        #cursor-ring {
+          position: fixed; width: 32px; height: 32px; border-radius: 50%;
+          border: 1.5px solid rgba(29,78,216,0.5); pointer-events: none;
+          z-index: 9998; top: 0; left: 0; will-change: transform;
+        }
+
         .marquee-track { display: flex; animation: marquee 28s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.18; animation: floatBlob 8s ease-in-out infinite; }
@@ -276,10 +231,10 @@ export default function LandingPage() {
         .feature-cell:hover { background: #fff !important; }
         .step-card { transition: background 0.3s, border-color 0.3s; }
 
-        /* ── Hero Disco layout ── */
+        /* ── Hero layout ── */
         .hero-disco {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr 6fr;
           min-height: 680px;
           align-items: stretch;
           position: relative;
@@ -288,7 +243,7 @@ export default function LandingPage() {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 140px 48px 80px max(24px, calc((100vw - 1200px) / 2 + 24px));
+          padding: 140px 40px 80px max(24px, calc((100vw - 1300px) / 2 + 24px));
           position: relative;
           z-index: 2;
         }
@@ -296,33 +251,33 @@ export default function LandingPage() {
           position: relative;
           display: flex;
           align-items: flex-start;
-          padding-top: 130px;
+          justify-content: center;
+          padding-top: 140px;
           padding-right: clamp(16px, 3vw, 40px);
           overflow: hidden;
         }
         .hero-mockup-frame {
-          width: 100%;
-          border-radius: 12px 12px 0 0;
+          width: 55%;
+          border-radius: 14px;
           overflow: hidden;
-          background: #1e1e1e;
-          box-shadow: 0 32px 80px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.12);
+          background: #fff;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 32px 64px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
           position: relative;
+          transform: perspective(1000px) rotateY(-4deg) rotateX(2deg);
         }
 
-        /* ── Responsive: Tablet (≤768px) ── */
+        /* ── Tablet (≤768px) ── */
         @media (max-width: 768px) {
-          .nav-links-desktop { display: none !important; }
-          .nav-login-desktop { display: none !important; }
           .hero-disco { grid-template-columns: 1fr !important; min-height: auto !important; }
-          .hero-disco-left { padding: 120px 24px 40px 24px !important; }
-          .hero-disco-right { padding-top: 0 !important; padding-right: 0 !important; padding-bottom: 0 !important; overflow: hidden !important; }
-          .hero-mockup-frame { border-radius: 12px 12px 0 0 !important; }
+          .hero-disco-left { padding: 120px 24px 32px 24px !important; }
+          .hero-disco-right { padding: 0 24px 0 24px !important; overflow: hidden !important; align-items: flex-start !important; }
+          .hero-mockup-frame { border-radius: 12px 12px 0 0 !important; width: 100% !important; }
           .features-grid { grid-template-columns: 1fr !important; }
           .features-grid > div { grid-column: span 1 !important; }
           .how-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .how-grid > div:nth-child(2) { border-right: none !important; }
-          .how-grid > div:nth-child(1),
-          .how-grid > div:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
+          .how-grid > div:nth-child(1), .how-grid > div:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
           .pricing-grid { grid-template-columns: 1fr !important; max-width: 420px !important; margin: 0 auto !important; }
           .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
           .mockup-sidebar { display: none !important; }
@@ -330,7 +285,7 @@ export default function LandingPage() {
           .mockup-cards { grid-template-columns: 1fr !important; }
         }
 
-        /* ── Responsive: Mobile (≤480px) ── */
+        /* ── Mobile (≤480px) ── */
         @media (max-width: 480px) {
           .how-grid { grid-template-columns: 1fr !important; }
           .how-grid > div { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
@@ -339,87 +294,46 @@ export default function LandingPage() {
           .hero-buttons a, .hero-buttons button { width: 100% !important; justify-content: center !important; min-height: 48px !important; }
           .mockup-metrics { grid-template-columns: repeat(2, 1fr) !important; }
           .mockup-cards { grid-template-columns: 1fr !important; }
-          /* Mobile mockup: full bleed, product-forward like Disco.ac */
-          .hero-section-mobile { overflow: hidden !important; padding-bottom: 20px !important; }
-          .hero-disco-right {
-            padding: 0 !important;
-            margin: 0 !important;
-            width: 100vw !important;
-            position: relative !important;
-            left: 50% !important;
-            transform: translateX(-40%) !important;
-          }
-          .hero-mockup-frame {
-            border-radius: 16px 16px 0 0 !important;
-            box-shadow: 0 -4px 32px rgba(0,0,0,0.2) !important;
-            width: 100% !important;
-            margin: 0 !important;
-          }
+          .hero-disco-left { padding: 100px 20px 24px 20px !important; }
+          .hero-right-fadein { width: 100% !important; }
+          .hero-disco-right { padding: 0 !important; margin: 0 !important; width: 100% !important; position: static !important; left: auto !important; transform: none !important; display: block !important; overflow: visible !important; }
+          .hero-mockup-frame { width: 100% !important; transform: none !important; border-radius: 12px 12px 0 0 !important; }
         }
       `}</style>
 
-      {/* Custom Cursor */}
-      <div style={{ position: 'fixed', left: mousePos.x - 4, top: mousePos.y - 4, width: 8, height: 8, borderRadius: '50%', background: '#1d4ed8', pointerEvents: 'none', zIndex: 9999, transition: 'opacity 0.2s' }} />
-      <div style={{ position: 'fixed', left: ringPos.x - 16, top: ringPos.y - 16, width: 32, height: 32, borderRadius: '50%', border: '1.5px solid rgba(29,78,216,0.5)', pointerEvents: 'none', zIndex: 9998 }} />
+      {/* ✅ OPT 1: Cursor CSS — não usa React state */}
+      <div id="cursor-dot" />
+      <div id="cursor-ring" />
 
-      {/* XY Coordinates */}
-      <div style={{ position: 'fixed', bottom: 16, left: 20, fontFamily: 'Barlow Condensed, sans-serif', fontSize: '0.6rem', color: 'rgba(0,0,0,0.18)', zIndex: 100, letterSpacing: '0.05em', pointerEvents: 'none' }}>X: {Math.round(mousePos.x)}</div>
-      <div style={{ position: 'fixed', right: 20, top: '50%', transform: 'translateY(-50%)', fontFamily: 'Barlow Condensed, sans-serif', fontSize: '0.6rem', color: 'rgba(0,0,0,0.18)', zIndex: 100, letterSpacing: '0.05em', pointerEvents: 'none' }}>Y: {Math.round(mousePos.y)}</div>
-
-      {/* ── NAV ── */}
-      <nav style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 980, zIndex: 500, padding: '0 16px' }}>
-        <div style={{ background: navBg, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRadius: 14, border: navBorder, padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.4s, border-color 0.4s' }}>
-          {/* Logo */}
-          <a href="#" onMouseEnter={scrambleLogo} style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.08em', color: navColor, textDecoration: 'none', transition: 'color 0.4s' }}>
-            {logoText}
-          </a>
-          {/* Links — desktop only */}
-          <div className="nav-links-desktop" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            {NAV_LINKS.map(link => {
-              const hasDropdown = 'items' in link;
-              const isOpen = openDropdown === link.label;
-              return (
-                <div key={link.label} style={{ position: 'relative' }}
-                  onMouseEnter={() => hasDropdown ? setOpenDropdown(link.label) : null}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 600, fontSize: '0.88rem', letterSpacing: '0.04em', color: navColor, textDecoration: 'none', borderRadius: 8, transition: 'color 0.4s', whiteSpace: 'nowrap' }}>
-                    {link.label}
-                    {hasDropdown && (
-                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ opacity: 0.5, transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                        <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </a>
-                  {hasDropdown && isOpen && <NavDropdownMenu items={(link as NavDropdown).items} />}
-                </div>
-              );
-            })}
-          </div>
-          {/* CTA — desktop: Login + Sign up; mobile: Sign up only */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Link href="/login" className="nav-login-desktop" style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 600, fontSize: '0.88rem', letterSpacing: '0.04em', color: navColor, textDecoration: 'none', padding: '6px 10px', transition: 'color 0.4s' }}>Login</Link>
-            <button
-              onClick={() => handleCtaClick(router, '/login?tab=signup')}
-              style={{ background: '#1d4ed8', color: '#fff', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.04em', padding: '7px 16px', borderRadius: 9, border: 'none', textDecoration: 'none', transition: 'background 0.2s', cursor: 'none' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#1e40af')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#1d4ed8')}
-            >Sign up</button>
-          </div>
-        </div>
-      </nav>
+      <StaggeredMenu
+        isFixed
+        position="right"
+        colors={['#B19EEF', '#5227FF']}
+        accentColor="#1d4ed8"
+        menuButtonColor={navDark ? '#ffffff' : '#1a1a1a'}
+        openMenuButtonColor="#fff"
+        changeMenuColorOnOpen={true}
+        logoUrl={navDark ? "/pitchhood-logo-white.svg" : "/pitchhood-logo-dark.svg"}
+        items={[
+          { label: 'Features', link: '#features' },
+          { label: 'Pricing', link: '#pricing' },
+          { label: 'Login', link: '/login' },
+          { label: 'Sign up', link: '/login?tab=signup' },
+        ]}
+        socialItems={[
+          { label: 'Instagram', link: 'https://instagram.com' },
+          { label: 'Twitter', link: 'https://twitter.com' },
+        ]}
+      />
 
       {/* ── HERO ── */}
-      <section className="hero-section-mobile" style={{ background: '#f2f0eb', paddingTop: 0, paddingBottom: 0, position: 'relative', overflow: 'visible', minHeight: 680 }}>
-        {/* Dot grid */}
+      <section style={{ background: '#f2f0eb', paddingTop: 0, paddingBottom: 0, position: 'relative', overflow: 'hidden', minHeight: 680 }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px', pointerEvents: 'none', zIndex: 0 }} />
-        {/* Blobs — only on left side */}
         <div className="blob" style={{ width: 400, height: 400, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', top: -80, left: -100, animationDelay: '0s' }} />
         <div className="blob" style={{ width: 250, height: 250, background: 'linear-gradient(135deg,#4f46e5,#2563eb)', bottom: 200, left: '15%', animationDelay: '4s' }} />
         <div className="blob" style={{ width: 200, height: 200, background: 'linear-gradient(135deg,#7c3aed,#a855f7)', top: 160, left: '22%', animationDelay: '1s' }} />
 
         <div className="hero-disco" style={{ position: 'relative', zIndex: 1 }}>
-          {/* LEFT: text content */}
           <FadeUp>
             <div className="hero-disco-left">
               <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.18em', color: '#1d4ed8', marginBottom: 20, textTransform: 'uppercase' }}>Product</div>
@@ -444,8 +358,7 @@ export default function LandingPage() {
             </div>
           </FadeUp>
 
-          {/* RIGHT: large mockup bleeding off bottom */}
-          <FadeUp delay={150}>
+          <FadeUp delay={150} className="hero-right-fadein">
             <div className="hero-disco-right">
               <div className="hero-mockup-frame">
                 <AppMockup />
@@ -502,7 +415,6 @@ export default function LandingPage() {
               ))}
             </div>
           </FadeUp>
-          {/* Features CTA */}
           <FadeUp delay={200}>
             <div style={{ textAlign: 'center', marginTop: 40 }}>
               <button
@@ -543,7 +455,6 @@ export default function LandingPage() {
                   <div style={{ fontSize: '1.6rem', marginBottom: 14 }}>{step.icon}</div>
                   <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.08em', color: '#f2f0eb', marginBottom: 10 }}>{step.title}</div>
                   <p style={{ fontFamily: 'Barlow, sans-serif', fontSize: '0.85rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.5)' }}>{step.desc}</p>
-                  {/* Progress bar */}
                   {isActive && (
                     <div style={{ position: 'absolute', bottom: 0, left: 0, height: 2, background: '#1d4ed8', width: `${stepProgress}%`, transition: 'width 0.03s linear' }} />
                   )}
@@ -622,7 +533,6 @@ export default function LandingPage() {
       <footer style={{ background: '#1d4ed8', padding: 'clamp(48px, 6vw, 80px) clamp(16px, 4vw, 32px) 0' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48, paddingBottom: 60, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-            {/* Brand */}
             <div>
               <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 900, fontSize: '1.3rem', letterSpacing: '0.08em', color: '#fff', marginBottom: 12 }}>PITCHHOOD</div>
               <p style={{ fontFamily: 'Barlow, sans-serif', fontSize: '0.88rem', lineHeight: 1.65, color: 'rgba(255,255,255,0.65)', marginBottom: 24, maxWidth: 280 }}>The pitch management platform for composers, artists, and producers who take their career seriously.</p>
@@ -631,38 +541,22 @@ export default function LandingPage() {
                 <button style={{ background: '#fff', color: '#1d4ed8', border: 'none', borderRadius: '0 8px 8px 0', padding: '10px 16px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.04em', cursor: 'none' }}>→</button>
               </div>
             </div>
-            {/* Explore */}
-            <div>
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.5)', marginBottom: 16, textTransform: 'uppercase' }}>Explore</div>
-              {['Features', 'Pricing', 'Changelog', 'Roadmap'].map(l => (
-                <a key={l} href="#" style={{ display: 'block', fontFamily: 'Barlow, sans-serif', fontSize: '0.88rem', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', marginBottom: 10, transition: 'color 0.2s' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-                >{l}</a>
-              ))}
-            </div>
-            {/* Solutions */}
-            <div>
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.5)', marginBottom: 16, textTransform: 'uppercase' }}>Solutions</div>
-              {['Record Labels', 'A&R Teams', 'Managers', 'Songwriters'].map(l => (
-                <a key={l} href="#" style={{ display: 'block', fontFamily: 'Barlow, sans-serif', fontSize: '0.88rem', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', marginBottom: 10, transition: 'color 0.2s' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-                >{l}</a>
-              ))}
-            </div>
-            {/* Get Started */}
-            <div>
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.5)', marginBottom: 16, textTransform: 'uppercase' }}>Get Started</div>
-              {['Book a demo', 'Pricing', 'Login', 'Support'].map(l => (
-                <a key={l} href="#" style={{ display: 'block', fontFamily: 'Barlow, sans-serif', fontSize: '0.88rem', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', marginBottom: 10, transition: 'color 0.2s' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-                >{l}</a>
-              ))}
-            </div>
+            {['Explore', 'Solutions', 'Get Started'].map((section, si) => (
+              <div key={section}>
+                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.5)', marginBottom: 16, textTransform: 'uppercase' }}>{section}</div>
+                {[
+                  ['Features', 'Pricing', 'Changelog', 'Roadmap'],
+                  ['Record Labels', 'A&R Teams', 'Managers', 'Songwriters'],
+                  ['Book a demo', 'Pricing', 'Login', 'Support'],
+                ][si].map(l => (
+                  <a key={l} href="#" style={{ display: 'block', fontFamily: 'Barlow, sans-serif', fontSize: '0.88rem', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', marginBottom: 10, transition: 'color 0.2s' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                  >{l}</a>
+                ))}
+              </div>
+            ))}
           </div>
-          {/* Bottom bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 0', flexWrap: 'wrap', gap: 12 }}>
             <span style={{ fontFamily: 'Barlow, sans-serif', fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)' }}>© 2026 Pitchhood</span>
             <div style={{ display: 'flex', gap: 16 }}>
@@ -675,7 +569,6 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        {/* Big tagline */}
         <div style={{ textAlign: 'center', padding: '20px 0 0', overflow: 'hidden' }}>
           <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 900, fontSize: 'clamp(4rem, 14vw, 14vw)', letterSpacing: '-0.02em', color: 'rgba(255,255,255,0.1)', lineHeight: 0.9, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>PITCH THE HOOD.</div>
         </div>
