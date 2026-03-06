@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/common/Sidebar';
 import Icon from '@/components/ui/AppIcon';
+import { createClient } from '@/lib/supabase/client';
 
 type NotificationType = 'activity' | 'status_change' | 'reconnection';
 type NotificationCategory = 'all' | NotificationType;
@@ -19,153 +20,6 @@ interface Notification {
   actionHref?: string;
   meta?: Record<string, string>;
 }
-
-const mockNotifications: Notification[] = [
-  {
-    id: 'n1',
-    type: 'activity',
-    title: 'New pitch submitted',
-    message: 'Mariana Luz submitted "Noite de Verao - Single Inedito" for review.',
-    detail: 'Pitch ID: #1042 · Category: Pop · Label: Sony Music Brasil',
-    timestamp: '02/03/2026 09:14',
-    isRead: false,
-    actionLabel: 'View Pitch',
-    actionHref: '/pitch-detail-management',
-    meta: { artist: 'Mariana Luz', category: 'Pop' },
-  },
-  {
-    id: 'n2',
-    type: 'status_change',
-    title: 'Pitch approved',
-    message: '"Raizes do Sertao - EP Completo" by Trio Nordestino moved from Draft to Placed.',
-    detail: 'Reviewed by: Admin · Placed at: Universal Music · 3 steps completed',
-    timestamp: '01/03/2026 17:45',
-    isRead: false,
-    actionLabel: 'View Details',
-    actionHref: '/pitch-detail-management',
-    meta: { from: 'Draft', to: 'Placed', steps: '3' },
-  },
-  {
-    id: 'n3',
-    type: 'reconnection',
-    title: 'Back online — sync complete',
-    message: '3 queued actions were synced successfully after reconnecting to the network.',
-    detail: 'Synced: 2 pitch saves, 1 artist update · Duration: 4.2s',
-    timestamp: '01/03/2026 14:22',
-    isRead: false,
-    actionLabel: 'View Activity',
-    actionHref: '/activity-dashboard',
-    meta: { synced: '3', duration: '4.2s' },
-  },
-  {
-    id: 'n4',
-    type: 'activity',
-    title: 'Recipient changed',
-    message: 'The primary recipient for "Batidao Carioca Vol. 3" was updated from Joao Silva to Ana Costa.',
-    detail: 'Changed by: Admin · Pitch ID: #1039 · Artist: DJ Favela',
-    timestamp: '01/03/2026 11:08',
-    isRead: true,
-    actionLabel: 'View Pitch',
-    actionHref: '/pitch-detail-management',
-    meta: { from: 'Joao Silva', to: 'Ana Costa' },
-  },
-  {
-    id: 'n5',
-    type: 'status_change',
-    title: 'Pitch sent for review',
-    message: '"Alma Livre - Album Conceitual" by Beatriz Santos moved from Draft to Sent.',
-    detail: 'Sent to: Warner Music · Reviewer: Maria Oliveira',
-    timestamp: '28/02/2026 16:30',
-    isRead: true,
-    actionLabel: 'View Details',
-    actionHref: '/pitch-detail-management',
-    meta: { from: 'Draft', to: 'Sent' },
-  },
-  {
-    id: 'n6',
-    type: 'activity',
-    title: 'New pitch submitted',
-    message: 'MC Verdade submitted "Rua Sem Saida - Mixtape" for review.',
-    detail: 'Pitch ID: #1041 · Category: Hip-Hop · Label: Independente',
-    timestamp: '28/02/2026 10:55',
-    isRead: true,
-    actionLabel: 'View Pitch',
-    actionHref: '/pitch-detail-management',
-    meta: { artist: 'MC Verdade', category: 'Hip-Hop' },
-  },
-  {
-    id: 'n7',
-    type: 'reconnection',
-    title: 'Connection lost — actions queued',
-    message: '2 actions were queued while offline. They will sync automatically when connection restores.',
-    detail: 'Queued: 1 pitch save, 1 contact update · Offline duration: 12m',
-    timestamp: '27/02/2026 22:10',
-    isRead: true,
-    actionLabel: 'View Queue',
-    actionHref: '/activity-dashboard',
-    meta: { queued: '2', duration: '12m' },
-  },
-  {
-    id: 'n8',
-    type: 'status_change',
-    title: 'Pitch rejected',
-    message: '"Frequencia 432Hz - Album Eletronico" by Synthwave BR was rejected.',
-    detail: 'Rejected by: Admin · Reason: Not aligned with current label priorities',
-    timestamp: '27/02/2026 15:20',
-    isRead: true,
-    actionLabel: 'View Details',
-    actionHref: '/pitch-detail-management',
-    meta: { from: 'Em Analise', to: 'Rejeitado' },
-  },
-  {
-    id: 'n9',
-    type: 'activity',
-    title: 'Artist profile updated',
-    message: 'Profile for Coral Esperanca was updated with new contact information and bio.',
-    detail: 'Updated fields: Bio, Primary Contact, Genre Tags',
-    timestamp: '26/02/2026 09:40',
-    isRead: true,
-    actionLabel: 'View Artist',
-    actionHref: '/artists',
-    meta: { artist: 'Coral Esperanca' },
-  },
-  {
-    id: 'n10',
-    type: 'reconnection',
-    title: 'Back online — partial sync',
-    message: '1 of 3 queued actions failed to sync. Manual retry required.',
-    detail: 'Synced: 2 actions · Failed: 1 pitch save · Error: Timeout',
-    timestamp: '25/02/2026 18:05',
-    isRead: true,
-    actionLabel: 'Retry Failed',
-    actionHref: '/activity-dashboard',
-    meta: { synced: '2', failed: '1' },
-  },
-  {
-    id: 'n11',
-    type: 'status_change',
-    title: 'Pitch placed',
-    message: '"Lua Cheia - Pagode Romantico" by Grupo Harmonia was successfully placed at Universal Music.',
-    detail: 'Placed by: Admin · Contract value: Confidential · Effective: 01/03/2026',
-    timestamp: '24/02/2026 14:00',
-    isRead: true,
-    actionLabel: 'View Details',
-    actionHref: '/pitch-detail-management',
-    meta: { from: 'Aprovado', to: 'Placed' },
-  },
-  {
-    id: 'n12',
-    type: 'activity',
-    title: 'New pitch submitted',
-    message: 'Grupo Harmonia submitted "Lua Cheia - Pagode Romantico" for review.',
-    detail: 'Pitch ID: #1038 · Category: Pop · Label: Universal Music',
-    timestamp: '18/02/2026 11:30',
-    isRead: true,
-    actionLabel: 'View Pitch',
-    actionHref: '/pitch-detail-management',
-    meta: { artist: 'Grupo Harmonia', category: 'Pop' },
-  },
-];
 
 const TYPE_CONFIG: Record<NotificationType, { label: string; icon: string; accent: string; bg: string; border: string; dotColor: string }> = {
   activity: {
@@ -282,32 +136,6 @@ function NotificationItem({
           </div>
         )}
 
-        {notification.type === 'reconnection' && notification.meta && (
-          <div className="flex items-center gap-3 mt-2">
-            {notification.meta.synced && (
-              <span className="flex items-center gap-1 text-xs text-emerald-600">
-                <Icon name="CheckCircleIcon" size={12} variant="outline" />
-                {notification.meta.synced} synced
-              </span>
-            )}
-            {notification.meta.failed && (
-              <span className="flex items-center gap-1 text-xs text-red-500">
-                <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
-                {notification.meta.failed} failed
-              </span>
-            )}
-            {notification.meta.queued && (
-              <span className="flex items-center gap-1 text-xs text-amber-600">
-                <Icon name="ClockIcon" size={12} variant="outline" />
-                {notification.meta.queued} queued
-              </span>
-            )}
-            {notification.meta.duration && (
-              <span className="text-xs text-gray-400 font-mono">{notification.meta.duration}</span>
-            )}
-          </div>
-        )}
-
         {notification.detail && (
           <div className="mt-2">
             <button
@@ -363,7 +191,39 @@ function NotificationItem({
 }
 
 export default function NotificationsCenter() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loadingNotifs, setLoadingNotifs] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
+
+  const fetchNotifications = useCallback(async () => {
+    setLoadingNotifs(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      const mapped: Notification[] = (data ?? []).map((row) => ({
+        id: row.id,
+        type: row.type === 'pitch_status' ? 'status_change' : 'activity' as NotificationType,
+        title: row.title,
+        message: row.body ?? '',
+        timestamp: new Date(row.created_at).toLocaleDateString('pt-BR') + ' ' + new Date(row.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        isRead: row.read,
+        actionLabel: row.link ? 'Ver pitch' : undefined,
+        actionHref: row.link ?? undefined,
+      }));
+      setNotifications(mapped);
+    } finally {
+      setLoadingNotifs(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+
   const [activeCategory, setActiveCategory] = useState<NotificationCategory>('all');
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
 
@@ -376,19 +236,27 @@ export default function NotificationsCenter() {
 
   const grouped = useMemo(() => groupByDate(filtered), [filtered]);
 
-  const markRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+  const markRead = async (id: string) => {
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
   };
 
-  const markAllRead = () => {
+  const markAllRead = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('notifications').update({ read: true }).eq('user_id', user.id);
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
-  const dismiss = (id: string) => {
+  const dismiss = async (id: string) => {
+    await supabase.from('notifications').delete().eq('id', id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('notifications').delete().eq('user_id', user.id);
     setNotifications([]);
   };
 
@@ -509,7 +377,13 @@ export default function NotificationsCenter() {
             })}
           </div>
 
-          {notifications.length === 0 ? (
+          {loadingNotifs ? (
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-24 rounded-xl border border-gray-100 bg-white animate-pulse" />
+              ))}
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                 <Icon name="BellSlashIcon" size={28} variant="outline" className="text-gray-400" />
