@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import Cubes from './Cubes';
 
 const GENRES = [
   'Pop', 'Hip-Hop', 'R&B', 'Electronic', 'Indie',
@@ -409,75 +410,26 @@ export default function OnboardingProfileSetup() {
         </form>
       </div>
 
-      {/* Right Panel — Platform Preview */}
-      <div className="hidden md:flex flex-1 bg-[#0f0f0f] items-center justify-center relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-
-        <div
-          className="relative z-10"
-          style={{
-            transform: 'perspective(1000px) rotateY(-4deg) rotateX(2deg)',
-            filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.8))',
-          }}
-        >
-          <div className="w-[480px] rounded-xl overflow-hidden border border-white/10 bg-[#1a1a1a]">
-            <div className="flex items-center gap-2 px-4 py-3 bg-[#252525] border-b border-white/10">
-              <span className="w-3 h-3 rounded-full bg-[#FF5F57] block" />
-              <span className="w-3 h-3 rounded-full bg-[#FEBC2E] block" />
-              <span className="w-3 h-3 rounded-full bg-[#28C840] block" />
-              <div className="flex-1 mx-3 bg-[#1a1a1a] border border-white/10 rounded px-3 py-1 flex items-center gap-2">
-                <svg className="w-3 h-3 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <span className="text-[11px] text-gray-400 font-mono">app.pitchhood.com</span>
-              </div>
-            </div>
-
-            <div className="bg-[#111111] px-5 py-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[11px] font-bold text-white tracking-wider">ARTISTS</span>
-                <span className="text-[10px] text-gray-500">A&amp;R Pipeline</span>
-              </div>
-              <div className="space-y-2">
-                {artistCards.map((artist) => (
-                  <div
-                    key={artist.name}
-                    className="flex items-center gap-3 bg-[#1a1a1a] rounded-lg px-4 py-3 border border-white/5"
-                  >
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[11px] font-bold"
-                      style={{ backgroundColor: artist.color }}
-                    >
-                      {artist.initials}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-white tracking-wide">{artist.name}</p>
-                      <p className="text-[10px] text-gray-500">{artist.genre}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[13px] font-bold text-white">{artist.score}</p>
-                      <p className="text-[9px] text-gray-600 uppercase tracking-wider">Score</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      {/* Right Panel — Cubes Animation */}
+      <div className="hidden md:flex flex-1 bg-[#060010] items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Cubes
+            gridSize={12}
+            maxAngle={40}
+            radius={3}
+            borderStyle="1px solid rgba(124, 58, 237, 0.3)"
+            faceColor="#060010"
+            rippleColor="#7c3aed"
+            rippleSpeed={1.5}
+            autoAnimate
+            rippleOnClick
+          />
         </div>
-
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse 60% 50% at 60% 50%, rgba(37,99,235,0.06) 0%, transparent 70%)',
-          }}
-        />
+        <div className="relative z-10 text-center px-8">
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#7c3aed', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>PITCHHOOD</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#fff', lineHeight: 1.2, marginBottom: 12 }}>Your A&R workspace,<br />reimagined.</div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Everything your team needs to discover,<br />review, and sign artists.</div>
+        </div>
       </div>
     </div>
   );
