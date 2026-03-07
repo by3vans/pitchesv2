@@ -2,11 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginSchema, SignUpSchema } from '@/lib/validations/schemas';
 import Cubes from './Cubes';
-
 import { createClient } from '@/lib/supabase/client';
 
 type Tab = 'login' | 'signup';
@@ -20,56 +18,44 @@ interface AuthError {
 function getOAuthErrorMessage(err: unknown): AuthError {
   const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
   const code = (err as Record<string, string>)?.code || (err as Record<string, string>)?.error_code || '';
-
-  if (msg.includes('popup_closed') || msg.includes('popup closed') || msg.includes('user closed')) {
-    return { message: 'Sign-in popup was closed. Please try again.', type: 'oauth' };
-  }
-  if (msg.includes('access_denied') || msg.includes('access denied') || code === 'access_denied') {
-    return { message: 'Google access was denied. Please allow permissions and try again.', type: 'oauth' };
-  }
-  if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch') || msg.includes('networkerror')) {
-    return { message: 'Network error. Please check your internet connection and try again.', type: 'network' };
-  }
-  if (msg.includes('timeout') || msg.includes('timed out')) {
-    return { message: 'Request timed out. Please check your connection and try again.', type: 'network' };
-  }
+  if (msg.includes('popup_closed') || msg.includes('user closed')) return { message: 'Sign-in popup was closed. Please try again.', type: 'oauth' };
+  if (msg.includes('access_denied') || code === 'access_denied') return { message: 'Google access was denied. Please allow permissions and try again.', type: 'oauth' };
+  if (msg.includes('network') || msg.includes('fetch') || msg.includes('networkerror')) return { message: 'Network error. Please check your connection and try again.', type: 'network' };
+  if (msg.includes('timeout')) return { message: 'Request timed out. Please check your connection and try again.', type: 'network' };
   return { message: 'Google sign-in failed. Please try again.', type: 'oauth' };
 }
 
 function getCredentialErrorMessage(err: unknown): AuthError {
   const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
   const code = (err as Record<string, string>)?.code || (err as Record<string, string>)?.error_code || '';
-
-  if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch') || msg.includes('networkerror')) {
-    return { message: 'Network error. Please check your internet connection and try again.', type: 'network' };
-  }
-  if (msg.includes('timeout') || msg.includes('timed out')) {
-    return { message: 'Request timed out. Please check your connection and try again.', type: 'network' };
-  }
-  if (msg.includes('invalid login credentials') || msg.includes('invalid credentials') || code === 'invalid_credentials') {
-    return { message: 'Incorrect email or password. Please check your credentials and try again.', type: 'credentials' };
-  }
-  if (msg.includes('email not confirmed') || msg.includes('email not verified') || code === 'email_not_confirmed') {
-    return { message: 'Your email is not verified. Please check your inbox for a verification link.', type: 'credentials' };
-  }
-  if (msg.includes('user not found') || msg.includes('no user found') || code === 'user_not_found') {
-    return { message: 'No account found with this email. Please sign up first.', type: 'credentials' };
-  }
-  if (msg.includes('too many requests') || msg.includes('rate limit') || code === 'over_request_rate_limit') {
-    return { message: 'Too many attempts. Please wait a moment and try again.', type: 'general' };
-  }
-  if (msg.includes('email already') || msg.includes('already registered') || code === 'user_already_exists') {
-    return { message: 'An account with this email already exists. Try signing in instead.', type: 'credentials' };
-  }
+  if (msg.includes('network') || msg.includes('fetch')) return { message: 'Network error. Please check your connection and try again.', type: 'network' };
+  if (msg.includes('invalid login credentials') || code === 'invalid_credentials') return { message: 'Incorrect email or password. Please try again.', type: 'credentials' };
+  if (msg.includes('email not confirmed') || code === 'email_not_confirmed') return { message: 'Your email is not verified. Check your inbox for a verification link.', type: 'credentials' };
+  if (msg.includes('user not found') || code === 'user_not_found') return { message: 'No account found with this email. Please sign up first.', type: 'credentials' };
+  if (msg.includes('too many requests') || code === 'over_request_rate_limit') return { message: 'Too many attempts. Please wait a moment and try again.', type: 'general' };
+  if (msg.includes('email already') || code === 'user_already_exists') return { message: 'An account with this email already exists. Try signing in instead.', type: 'credentials' };
   return { message: err instanceof Error ? err.message : 'Something went wrong. Please try again.', type: 'general' };
 }
 
-const artistCards = [
-  { initials: 'MJ', name: 'MARCUS JAMES', genre: 'R&B · Soul', score: '9.2', color: '#7C3AED' },
-  { initials: 'AL', name: 'ANA LIMA', genre: 'Pop · Electronic', score: '8.7', color: '#DC2626' },
-  { initials: 'DK', name: 'DJ KURO', genre: 'Hip-Hop · Trap', score: '7.9', color: '#2563EB' },
-  { initials: 'SR', name: 'SOFIA RAMOS', genre: 'Indie · Folk', score: '8.1', color: '#059669' },
-];
+// ── Flag-P Logo ────────────────────────────────────────────────────────────────
+function Logo() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <svg width="18" height="26" viewBox="0 0 18 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="4" height="26" rx="2" fill="#1A1A18" />
+        <path d="M4 2 L18 10 L4 18 Z" fill="#486CE3" />
+      </svg>
+      <span style={{
+        fontFamily: "'Cabinet Grotesk', sans-serif",
+        fontWeight: 800,
+        fontSize: '1.1rem',
+        letterSpacing: '-0.03em',
+        color: '#1A1A18',
+        lineHeight: 1,
+      }}>PitchHood</span>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -88,38 +74,11 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       const redirectTo = `${window.location.origin}/auth/callback`;
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[LoginPage] handleGoogleAuth called');
-        console.log('[LoginPage] redirectTo URL:', redirectTo);
-      }
-
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account',
-          },
-        },
+        options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'select_account' } },
       });
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[LoginPage] signInWithOAuth response data:', data);
-        console.log('[LoginPage] signInWithOAuth error:', error);
-      }
-
-      if (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[LoginPage] OAuth error:', error.message, error);
-        }
-        throw error;
-      }
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[LoginPage] OAuth initiated — browser should redirect to Google now');
-      }
+      if (error) throw error;
     } catch (err: unknown) {
       setAuthError(getOAuthErrorMessage(err));
       setGoogleLoading(false);
@@ -129,12 +88,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
-    // Validate with Zod
     const schema = tab === 'login' ? LoginSchema : SignUpSchema;
     const result = schema.safeParse({ email, password });
     if (!result.success) {
-      const firstError = result.error.errors[0]?.message ?? 'Invalid input';
-      setAuthError({ message: firstError, type: 'credentials' });
+      setAuthError({ message: result.error.errors[0]?.message ?? 'Invalid input', type: 'credentials' });
       return;
     }
     setLoading(true);
@@ -153,89 +110,128 @@ export default function LoginPage() {
     }
   };
 
-  const errorIconMap: Record<ErrorType, JSX.Element> = {
-    oauth: (
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-      </svg>
-    ),
-    network: (
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M12 12h.01M8.464 15.536a5 5 0 010-7.072M5.636 18.364a9 9 0 010-12.728" />
-      </svg>
-    ),
-    credentials: (
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-    ),
-    general: (
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
+  // ── Styles ────────────────────────────────────────────────────────────────
+  const S = {
+    panel: {
+      width: '100%', maxWidth: 380,
+      flexShrink: 0,
+      background: '#F8F5F0',
+      display: 'flex', flexDirection: 'column' as const,
+      justifyContent: 'center',
+      padding: '48px 40px',
+    } as React.CSSProperties,
+    heading: {
+      fontFamily: "'Playfair Display', serif",
+      fontStyle: 'italic',
+      fontWeight: 900,
+      fontSize: '2rem',
+      lineHeight: 1.1,
+      color: '#1A1A18',
+      marginBottom: 8,
+    },
+    sub: {
+      fontFamily: "'Epilogue', sans-serif",
+      fontWeight: 300,
+      fontSize: '0.875rem',
+      lineHeight: 1.75,
+      color: '#7A7470',
+      marginBottom: 32,
+    },
+    label: {
+      display: 'block',
+      fontFamily: "'Azeret Mono', monospace",
+      fontSize: '0.62rem',
+      fontWeight: 500,
+      letterSpacing: '0.16em',
+      textTransform: 'uppercase' as const,
+      color: '#7A7470',
+      marginBottom: 6,
+    },
+    input: {
+      width: '100%',
+      fontFamily: "'Epilogue', sans-serif",
+      fontWeight: 300,
+      fontSize: '0.875rem',
+      color: '#1A1A18',
+      background: '#FFFFFF',
+      border: '1px solid rgba(107,101,80,0.2)',
+      borderRadius: 8,
+      padding: '10px 13px',
+      outline: 'none',
+      transition: 'border-color 150ms',
+    },
+  };
+
+  const errorColors: Record<ErrorType, { bg: string; border: string; text: string }> = {
+    network:     { bg: '#FFF8ED', border: '#F0C070', text: '#8A5A00' },
+    oauth:       { bg: '#FFF3ED', border: '#E8A87A', text: '#7A3010' },
+    credentials: { bg: 'rgba(194,59,46,0.06)', border: 'rgba(194,59,46,0.2)', text: '#C23B2E' },
+    general:     { bg: 'rgba(72,108,227,0.06)', border: 'rgba(72,108,227,0.2)', text: '#486CE3' },
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Panel */}
-      <div className="w-full md:w-[340px] lg:w-[380px] flex-shrink-0 bg-white flex flex-col justify-center px-10 py-12">
+    <div style={{ minHeight: '100vh', display: 'flex' }}>
+
+      {/* ── Left Panel ── */}
+      <div style={S.panel}>
         {/* Logo */}
-        <div className="mb-8">
-          <Image
-            src="/assets/images/pitchhood-logo-light-1772649730204.png"
-            alt="Pitchhood logo"
-            width={140}
-            height={36}
-            className="object-contain"
-            priority
-          />
+        <div style={{ marginBottom: 32 }}>
+          <Logo />
         </div>
 
         {/* Heading */}
-        <h1 className="text-[2rem] font-bold italic text-gray-900 mb-2 leading-tight">
-          Welcome back.
-        </h1>
-        <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-          Manage your A&amp;R pipeline, review pitches, and discover the next big artist.
-        </p>
+        <h1 style={S.heading}>Welcome back.</h1>
+        <p style={S.sub}>Manage your A&amp;R pipeline, review pitches, and discover the next big artist.</p>
 
         {/* Tab Toggle */}
-        <div className="flex border border-gray-200 rounded mb-6 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => { setTab('login'); setAuthError(null); }}
-            className={`flex-1 py-2 text-xs font-semibold tracking-widest uppercase transition-colors ${
-              tab === 'login' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 hover:text-gray-700'
-            }`}
-          >
-            Login
-          </button>
-          <button
-            type="button"
-            onClick={() => { setTab('signup'); setAuthError(null); }}
-            className={`flex-1 py-2 text-xs font-semibold tracking-widest uppercase transition-colors ${
-              tab === 'signup' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 hover:text-gray-700'
-            }`}
-          >
-            Signup
-          </button>
+        <div style={{ display: 'flex', border: '1px solid rgba(107,101,80,0.16)', borderRadius: 10, marginBottom: 24, overflow: 'hidden' }}>
+          {(['login', 'signup'] as Tab[]).map(t => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => { setTab(t); setAuthError(null); }}
+              style={{
+                flex: 1, padding: '9px 0',
+                fontFamily: "'Azeret Mono', monospace",
+                fontSize: '0.65rem',
+                fontWeight: 500,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 150ms',
+                background: tab === t ? '#1A1A18' : 'transparent',
+                color: tab === t ? '#F0ECE6' : '#7A7470',
+              }}
+            >{t === 'login' ? 'Login' : 'Sign Up'}</button>
+          ))}
         </div>
 
-        {/* Google OAuth Button */}
+        {/* Google Button */}
         <button
           type="button"
           onClick={handleGoogleAuth}
           disabled={googleLoading || loading}
-          className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded py-2.5 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-60 transition-colors mb-4"
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            border: '1px solid rgba(107,101,80,0.2)', borderRadius: 10,
+            padding: '10px 16px',
+            fontFamily: "'Epilogue', sans-serif",
+            fontSize: '0.875rem', fontWeight: 400,
+            color: '#3A3836',
+            background: '#FFFFFF',
+            cursor: 'pointer', transition: 'all 150ms',
+            marginBottom: 20,
+            opacity: (googleLoading || loading) ? 0.6 : 1,
+          }}
         >
           {googleLoading ? (
-            <svg className="animate-spin h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none">
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
           ) : (
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
@@ -246,62 +242,48 @@ export default function LoginPage() {
         </button>
 
         {/* Divider */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-gray-100" />
-          <span className="text-[10px] font-medium text-gray-400 tracking-wider uppercase">or continue with email</span>
-          <div className="flex-1 h-px bg-gray-100" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+          <div style={{ flex: 1, height: 1, background: 'rgba(107,101,80,0.12)' }} />
+          <span style={{ fontFamily: "'Azeret Mono', monospace", fontSize: '0.6rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A7470' }}>or email</span>
+          <div style={{ flex: 1, height: 1, background: 'rgba(107,101,80,0.12)' }} />
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label className="block text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@label.com"
-              required
-              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:border-gray-400 transition-colors"
+            <label style={S.label}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@label.com" required style={S.input}
+              onFocus={e => (e.target.style.borderColor = '#486CE3')}
+              onBlur={e => (e.target.style.borderColor = 'rgba(107,101,80,0.2)')}
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:border-gray-400 transition-colors"
+            <label style={S.label}>Password</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={S.input}
+              onFocus={e => (e.target.style.borderColor = '#486CE3')}
+              onBlur={e => (e.target.style.borderColor = 'rgba(107,101,80,0.2)')}
             />
           </div>
 
           {tab === 'login' && (
-            <div className="flex justify-end">
-              <a
-                href="/forgot-password"
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-              >
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <a href="/forgot-password" style={{ fontFamily: "'Epilogue', sans-serif", fontSize: '0.75rem', color: '#7A7470', textDecoration: 'none' }}>
                 Forgot password?
               </a>
             </div>
           )}
 
           {authError && (
-            <div className={`flex items-start gap-2.5 rounded px-3 py-2.5 border text-xs ${
-              authError.type === 'network'
-                ? 'bg-amber-50 border-amber-200 text-amber-800'
-                : authError.type === 'oauth'
-                ? 'bg-orange-50 border-orange-200 text-orange-800'
-                : 'bg-red-50 border-red-100 text-red-700'
-            }`}>
-              {errorIconMap[authError.type]}
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+              borderRadius: 10, padding: '10px 14px',
+              border: `1px solid ${errorColors[authError.type].border}`,
+              background: errorColors[authError.type].bg,
+              fontFamily: "'Epilogue', sans-serif",
+              fontSize: '0.8rem', fontWeight: 300,
+              color: errorColors[authError.type].text,
+            }}>
               <span>{authError.message}</span>
             </div>
           )}
@@ -309,7 +291,18 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || googleLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold py-3 rounded flex items-center justify-center gap-2 transition-colors"
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: '#486CE3',
+              color: '#fff',
+              fontFamily: "'Cabinet Grotesk', sans-serif",
+              fontWeight: 700, fontSize: '0.9rem', letterSpacing: '-0.01em',
+              padding: '13px 20px', borderRadius: 10, border: 'none',
+              cursor: 'pointer', transition: 'background 0.2s',
+              opacity: (loading || googleLoading) ? 0.6 : 1,
+            }}
+            onMouseEnter={e => { if (!loading && !googleLoading) e.currentTarget.style.background = '#3558C8'; }}
+            onMouseLeave={e => (e.currentTarget.style.background = '#486CE3')}
           >
             {loading ? (
               <>
@@ -320,35 +313,24 @@ export default function LoginPage() {
                 {tab === 'login' ? 'Signing in...' : 'Creating account...'}
               </>
             ) : (
-              <>
-                {tab === 'login' ? 'SIGN IN' : 'SIGN UP'}
-                <span aria-hidden>→</span>
-              </>
+              <>{tab === 'login' ? 'Sign in' : 'Create account'} →</>
             )}
           </button>
         </form>
 
-        {/* Footer link */}
-        <p className="mt-6 text-xs text-center text-gray-400">
+        {/* Footer */}
+        <p style={{ marginTop: 24, fontFamily: "'Epilogue', sans-serif", fontSize: '0.8rem', textAlign: 'center', color: '#7A7470', fontWeight: 300 }}>
           {tab === 'login' ? (
-            <>
-              Don&apos;t have an account?{' '}
-              <button
-                type="button"
-                onClick={() => { setTab('signup'); setAuthError(null); }}
-                className="text-gray-700 font-semibold hover:underline"
-              >
+            <>Don&apos;t have an account?{' '}
+              <button type="button" onClick={() => { setTab('signup'); setAuthError(null); }}
+                style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontWeight: 700, color: '#1A1A18', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}>
                 Sign up
               </button>
             </>
           ) : (
-            <>
-              Already have an account?{' '}
-              <button
-                type="button"
-                onClick={() => { setTab('login'); setAuthError(null); }}
-                className="text-gray-700 font-semibold hover:underline"
-              >
+            <>Already have an account?{' '}
+              <button type="button" onClick={() => { setTab('login'); setAuthError(null); }}
+                style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontWeight: 700, color: '#1A1A18', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}>
                 Sign in
               </button>
             </>
@@ -356,25 +338,31 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Right Panel — Cubes Animation */}
-      <div className="hidden md:flex flex-1 bg-[#060010] items-center justify-center relative overflow-hidden">
+      {/* ── Right Panel ── */}
+      <div className="hidden md:flex flex-1 items-center justify-center relative overflow-hidden" style={{ background: '#1A1A18' }}>
         <div className="absolute inset-0">
           <Cubes
             gridSize={12}
             maxAngle={40}
             radius={3}
-            borderStyle="1px solid rgba(124, 58, 237, 0.3)"
-            faceColor="#060010"
-            rippleColor="#7c3aed"
+            borderStyle="1px solid rgba(72,108,227,0.2)"
+            faceColor="#1A1A18"
+            rippleColor="#486CE3"
             rippleSpeed={1.5}
             autoAnimate
             rippleOnClick
           />
         </div>
         <div className="relative z-10 text-center px-8">
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#7c3aed', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>PITCHHOOD</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#fff', lineHeight: 1.2, marginBottom: 12 }}>Your A&R workspace,<br />reimagined.</div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Everything your team needs to discover,<br />review, and sign artists.</div>
+          <div style={{ fontFamily: "'Azeret Mono', monospace", fontSize: 10, fontWeight: 500, color: '#486CE3', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 14 }}>
+            Pitchhood
+          </div>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontSize: 30, fontWeight: 900, color: '#F0ECE6', lineHeight: 1.15, marginBottom: 14, letterSpacing: '-0.02em' }}>
+            Your A&amp;R workspace,<br />reimagined.
+          </div>
+          <div style={{ fontFamily: "'Epilogue', sans-serif", fontWeight: 300, fontSize: 14, color: 'rgba(240,236,230,0.45)', lineHeight: 1.75 }}>
+            Everything your team needs to discover,<br />review, and sign artists.
+          </div>
         </div>
       </div>
     </div>
