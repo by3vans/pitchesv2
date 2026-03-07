@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 50" fill="none">
-  <rect x="0" y="0" width="50" height="50" rx="11" fill="#1d4ed8"/>
-  <rect x="13" y="12" width="8" height="26" rx="2" fill="white"/>
-  <path d="M21 12 H33 C39.6 12 45 16.9 45 23 C45 29.1 39.6 34 33 34 H21 V12Z" fill="white"/>
-  <path d="M21 18 H32 C36 18 38.5 20.2 38.5 23 C38.5 25.8 36 28 32 28 H21 V18Z" fill="#1d4ed8"/>
-  <text x="60" y="36" font-family="'Barlow Condensed', sans-serif" font-weight="900" font-size="28" letter-spacing="0.5" fill="white">PITCHHOOD</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" fill="none">
+  <!-- stem -->
+  <rect x="4" y="4" width="6" height="40" rx="3" fill="#F0ECE6"/>
+  <!-- flag triangle -->
+  <path d="M10 7 L36 20 L10 33 Z" fill="#486CE3"/>
+  <!-- wordmark — Cabinet Grotesk 800 -->
+  <text x="48" y="33" font-family="'Cabinet Grotesk',sans-serif" font-weight="800" font-size="26" letter-spacing="-1" fill="#F0ECE6">PitchHood</text>
 </svg>
