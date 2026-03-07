@@ -9,12 +9,27 @@ interface FormSectionHeaderProps {
 export default function FormSectionHeader({ icon, title, subtitle }: FormSectionHeaderProps) {
   return (
     <div className="flex items-start gap-3 mb-5">
-      <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon name={icon as any} size={18} variant="outline" className="text-gray-600" />
+      <div
+        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+        style={{ background: 'rgba(72,108,227,.1)' }}
+      >
+        <Icon name={icon as any} size={18} variant="outline" style={{ color: '#486CE3' }} />
       </div>
       <div>
-        <h2 className="text-sm font-semibold text-gray-900 font-['Inter']">{title}</h2>
-        {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+        <h2
+          className="text-sm font-semibold"
+          style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}
+        >
+          {title}
+        </h2>
+        {subtitle && (
+          <p
+            className="text-xs mt-0.5"
+            style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}
+          >
+            {subtitle}
+          </p>
+        )}
       </div>
     </div>
   );

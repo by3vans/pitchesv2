@@ -10,21 +10,25 @@ interface StatsBarProps {
 }
 
 const statItems = [
-  { key: 'total', label: 'Total', color: 'text-gray-900', bg: 'bg-gray-100' },
-  { key: 'novo', label: 'Novos', color: 'text-blue-700', bg: 'bg-blue-50' },
-  { key: 'em_analise', label: 'Em Análise', color: 'text-amber-700', bg: 'bg-amber-50' },
-  { key: 'aprovado', label: 'Aprovados', color: 'text-emerald-700', bg: 'bg-emerald-50' },
-  { key: 'rejeitado', label: 'Rejeitados', color: 'text-red-700', bg: 'bg-red-50' },
-  { key: 'pendente', label: 'Pendentes', color: 'text-gray-600', bg: 'bg-gray-100' },
+  { key: 'total',      label: 'Total',       bg: '#DDD8CF',              color: '#1A1A18' },
+  { key: 'novo',       label: 'Novos',       bg: 'rgba(72,108,227,.12)', color: '#486CE3' },
+  { key: 'em_analise', label: 'Em Análise',  bg: 'rgba(184,98,42,.12)',  color: '#B8622A' },
+  { key: 'aprovado',   label: 'Aprovados',   bg: 'rgba(78,94,46,.12)',   color: '#4E5E2E' },
+  { key: 'rejeitado',  label: 'Rejeitados',  bg: 'rgba(194,59,46,.12)',  color: '#C23B2E' },
+  { key: 'pendente',   label: 'Pendentes',   bg: 'rgba(122,116,112,.12)',color: '#7A7470' },
 ] as const;
 
 export default function PitchesStatsBar({ stats }: StatsBarProps) {
   return (
     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
       {statItems.map(item => (
-        <div key={item.key} className={`${item.bg} rounded-xl px-3 py-2.5 text-center`}>
-          <p className={`text-lg font-bold font-mono ${item.color}`}>{stats[item.key]}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{item.label}</p>
+        <div key={item.key} className="rounded-xl px-3 py-2.5 text-center" style={{ background: item.bg }}>
+          <p className="text-lg font-bold" style={{ color: item.color, fontFamily: 'var(--font-mono)' }}>
+            {stats[item.key]}
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: item.color, fontFamily: 'var(--font-mono)', opacity: 0.7, letterSpacing: '0.05em' }}>
+            {item.label}
+          </p>
         </div>
       ))}
     </div>

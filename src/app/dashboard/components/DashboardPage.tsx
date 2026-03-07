@@ -36,7 +36,8 @@ interface TopArtist {
   approvalRate: number;
 }
 
-const AVATAR_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
+// New palette avatar colors
+const AVATAR_COLORS = ['#486CE3', '#4E5E2E', '#B8622A', '#C23B2E', '#7A7470', '#486CE3', '#4E5E2E'];
 
 function getInitials(name: string): string {
   return name
@@ -47,24 +48,25 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+// Updated status config with new palette
 const statusConfig: Record<string, { label: string; bg: string; color: string; icon: string }> = {
-  draft: { label: 'Draft', bg: '#f3f4f6', color: '#374151', icon: 'DocumentIcon' },
-  new: { label: 'New', bg: '#eff6ff', color: '#1d4ed8', icon: 'PaperAirplaneIcon' },
-  in_review: { label: 'In Review', bg: '#fef3c7', color: '#92400e', icon: 'EnvelopeIcon' },
-  approved: { label: 'Approved', bg: '#d1fae5', color: '#065f46', icon: 'CheckCircleIcon' },
-  rejected: { label: 'Rejected', bg: '#fee2e2', color: '#991b1b', icon: 'XCircleIcon' },
-  submitted: { label: 'Submitted', bg: '#eff6ff', color: '#1d4ed8', icon: 'PaperAirplaneIcon' },
-  added: { label: 'Added', bg: '#f3e8ff', color: '#6b21a8', icon: 'PlusCircleIcon' },
-  placed: { label: 'Placed', bg: '#dcfce7', color: '#14532d', icon: 'StarIcon' },
-  sent: { label: 'Sent', bg: '#fef3c7', color: '#92400e', icon: 'EnvelopeIcon' },
-  hold: { label: 'Hold', bg: '#fef3c7', color: '#92400e', icon: 'PauseCircleIcon' },
+  draft:     { label: 'Draft',     bg: '#DDD8CF',           color: '#7A7470',  icon: 'DocumentIcon' },
+  new:       { label: 'New',       bg: 'rgba(72,108,227,.12)', color: '#486CE3', icon: 'PaperAirplaneIcon' },
+  in_review: { label: 'In Review', bg: 'rgba(184,98,42,.12)',  color: '#B8622A', icon: 'EnvelopeIcon' },
+  approved:  { label: 'Approved',  bg: 'rgba(78,94,46,.12)',   color: '#4E5E2E', icon: 'CheckCircleIcon' },
+  rejected:  { label: 'Rejected',  bg: 'rgba(194,59,46,.12)',  color: '#C23B2E', icon: 'XCircleIcon' },
+  submitted: { label: 'Submitted', bg: 'rgba(72,108,227,.12)', color: '#486CE3', icon: 'PaperAirplaneIcon' },
+  added:     { label: 'Added',     bg: 'rgba(72,108,227,.12)', color: '#486CE3', icon: 'PlusCircleIcon' },
+  placed:    { label: 'Placed',    bg: 'rgba(78,94,46,.12)',   color: '#4E5E2E', icon: 'StarIcon' },
+  sent:      { label: 'Sent',      bg: 'rgba(184,98,42,.12)',  color: '#B8622A', icon: 'EnvelopeIcon' },
+  hold:      { label: 'Hold',      bg: 'rgba(184,98,42,.12)',  color: '#B8622A', icon: 'PauseCircleIcon' },
 };
 
 const quickActions = [
-  { label: 'New Pitch', icon: 'PaperAirplaneIcon', href: '/pitch-creation-workflow', color: '#3b82f6' },
-  { label: 'Add Artist', icon: 'MusicalNoteIcon', href: '/artists', color: '#8b5cf6' },
-  { label: 'View Pitches', icon: 'ClipboardDocumentListIcon', href: '/pitches-listing-dashboard', color: '#10b981' },
-  { label: 'Notifications', icon: 'BellIcon', href: '/notifications-center', color: '#f59e0b' },
+  { label: 'New Pitch',    icon: 'PaperAirplaneIcon',           href: '/pitch-creation-workflow',      color: '#486CE3' },
+  { label: 'Add Artist',   icon: 'MusicalNoteIcon',             href: '/artists',                      color: '#4E5E2E' },
+  { label: 'View Pitches', icon: 'ClipboardDocumentListIcon',   href: '/pitches-listing-dashboard',    color: '#B8622A' },
+  { label: 'Notifications',icon: 'BellIcon',                    href: '/notifications-center',         color: '#C23B2E' },
 ];
 
 export default function DashboardPage() {
@@ -94,34 +96,23 @@ export default function DashboardPage() {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      // Fetch pitches
       const { data: pitches, error: pitchesError } = await supabase
         .from('pitches')
         .select('id, title, status, created_at, artist_id')
         .order('created_at', { ascending: false });
 
-      if (pitchesError) {
-        console.error('[Dashboard] ❌ Pitches query error:', pitchesError.message);
-      } else if (process.env.NODE_ENV === 'development') {
-        console.log('[Dashboard] ✅ Pitches fetched:', pitches?.length ?? 0, 'rows');
-      }
+      if (pitchesError) console.error('[Dashboard] ❌ Pitches query error:', pitchesError.message);
 
-      // Fetch artists
       const { data: artists, error: artistsError } = await supabase
         .from('artists')
         .select('id, name, genre, created_at')
         .order('created_at', { ascending: false });
 
-      if (artistsError) {
-        console.error('[Dashboard] ❌ Artists query error:', artistsError.message);
-      } else if (process.env.NODE_ENV === 'development') {
-        console.log('[Dashboard] ✅ Artists fetched:', artists?.length ?? 0, 'rows');
-      }
+      if (artistsError) console.error('[Dashboard] ❌ Artists query error:', artistsError.message);
 
       const pitchList = pitches ?? [];
       const artistList = artists ?? [];
 
-      // Compute stats
       const totalPitches = pitchList.length;
       const totalArtists = artistList.length;
       const placedPitches = pitchList.filter((p) => p.status === 'placed').length;
@@ -129,25 +120,14 @@ export default function DashboardPage() {
       const pitchesThisMonth = pitchList.filter((p) => p.created_at >= startOfMonth).length;
       const artistsThisMonth = artistList.filter((a) => a.created_at >= startOfMonth).length;
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Dashboard] Stats computed:', { totalPitches, totalArtists, approvalRate, pitchesThisMonth, artistsThisMonth });
-      }
-
       setStats({ totalPitches, totalArtists, approvalRate, pitchesThisMonth, artistsThisMonth });
 
-      // Build activity feed from recent pitches
       const activity: ActivityItem[] = pitchList.slice(0, 8).map((p) => {
         const artist = artistList.find((a) => a.id === p.artist_id);
         const artistName = artist?.name ?? 'Unknown Artist';
         const statusMap: Record<string, ActivityItem['status']> = {
-          approved: 'approved',
-          new: 'submitted',
-          in_review: 'sent',
-          draft: 'draft',
-          placed: 'placed',
-          rejected: 'submitted',
-          sent: 'sent',
-          hold: 'sent',
+          approved: 'approved', new: 'submitted', in_review: 'sent',
+          draft: 'draft', placed: 'placed', rejected: 'submitted', sent: 'sent', hold: 'sent',
         };
         return {
           id: p.id,
@@ -158,13 +138,8 @@ export default function DashboardPage() {
           href: '/pitch-detail-management',
         };
       });
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Dashboard] Activity feed built:', activity.length, 'items');
-      }
       setActivityFeed(activity);
 
-      // Build top artists by pitch count
       const artistPitchMap: Record<string, { total: number; placed: number }> = {};
       pitchList.forEach((p) => {
         if (!p.artist_id) return;
@@ -190,29 +165,18 @@ export default function DashboardPage() {
         .sort((a, b) => b.approvalRate - a.approvalRate)
         .slice(0, 5);
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Dashboard] Top artists computed:', top.length, 'artists');
-      }
       setTopArtists(top);
     } catch (err: unknown) {
-      console.error('[Dashboard] ❌ Unexpected error fetching dashboard data:', err instanceof Error ? err.message : err);
+      console.error('[Dashboard] ❌ Unexpected error:', err instanceof Error ? err.message : err);
     } finally {
       setLoadingData(false);
     }
   }, [supabase]);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+  useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
 
-  // Listen for real-time refresh events dispatched by the Header's subscription
   useEffect(() => {
-    const handleRealtimeRefresh = () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Dashboard] Realtime refresh event received — refetching data...');
-      }
-      fetchDashboardData();
-    };
+    const handleRealtimeRefresh = () => fetchDashboardData();
     window.addEventListener('realtime-refresh', handleRealtimeRefresh);
     return () => window.removeEventListener('realtime-refresh', handleRealtimeRefresh);
   }, [fetchDashboardData]);
@@ -232,30 +196,27 @@ export default function DashboardPage() {
       label: 'Total Pitches',
       value: loadingData ? '...' : stats.totalPitches,
       sub: 'All time submissions',
-      trend: 'up' as const,
       trendValue: `+${stats.pitchesThisMonth} this month`,
       icon: 'PaperAirplaneIcon',
-      color: '#3b82f6',
+      color: '#486CE3',
       progress: Math.min(stats.totalPitches, 100),
     },
     {
       label: 'Artists',
       value: loadingData ? '...' : stats.totalArtists,
       sub: 'Active roster',
-      trend: 'up' as const,
       trendValue: `+${stats.artistsThisMonth} this month`,
       icon: 'MusicalNoteIcon',
-      color: '#8b5cf6',
+      color: '#4E5E2E',
       progress: Math.min(stats.totalArtists * 2, 100),
     },
     {
       label: 'Approval Rate',
       value: loadingData ? '...' : `${stats.approvalRate}%`,
       sub: 'Pitches placed / submitted',
-      trend: 'up' as const,
       trendValue: 'Based on placements',
       icon: 'CheckCircleIcon',
-      color: '#10b981',
+      color: '#B8622A',
       progress: stats.approvalRate,
     },
   ];
@@ -285,27 +246,24 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick Stats — skeleton while loading */}
+          {/* Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {loadingData ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="pm-panel animate-pulse">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-gray-200" />
-                    <div className="h-4 w-24 bg-gray-200 rounded" />
+                    <div className="w-9 h-9 rounded-xl bg-[#DDD8CF]" />
+                    <div className="h-4 w-24 bg-[#DDD8CF] rounded" />
                   </div>
-                  <div className="h-7 w-16 bg-gray-200 rounded mb-1" />
-                  <div className="h-3 w-24 bg-gray-200 rounded mb-1" />
-                  <div className="h-3 w-32 bg-gray-100 rounded mb-3" />
-                  <div className="h-1.5 rounded-full bg-gray-200" />
+                  <div className="h-7 w-16 bg-[#DDD8CF] rounded mb-1" />
+                  <div className="h-3 w-24 bg-[#DDD8CF] rounded mb-1" />
+                  <div className="h-3 w-32 bg-[#DDD8CF] rounded mb-3" />
+                  <div className="h-1.5 rounded-full bg-[#DDD8CF]" />
                 </div>
               ))
             ) : (
               statCards.map((card) => (
-                <div
-                  key={card.label}
-                  className="pm-panel hover:shadow-md transition-shadow duration-200"
-                >
+                <div key={card.label} className="pm-panel hover:shadow-md transition-shadow duration-200">
                   <div className="flex items-start justify-between mb-3">
                     <div
                       className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -314,25 +272,20 @@ export default function DashboardPage() {
                       <Icon name={card.icon as any} size={18} variant="outline" style={{ color: card.color }} />
                     </div>
                     <div className="flex items-center gap-1">
-                      <Icon
-                        name="ArrowTrendingUpIcon"
-                        size={13}
-                        variant="outline"
-                        style={{ color: '#10b981' }}
-                      />
-                      <span className="text-xs font-medium" style={{ color: '#10b981' }}>
+                      <Icon name="ArrowTrendingUpIcon" size={13} variant="outline" style={{ color: '#4E5E2E' }} />
+                      <span className="text-xs font-medium" style={{ color: '#4E5E2E', fontFamily: 'var(--font-mono)' }}>
                         {card.trendValue}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-2xl font-bold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-2xl font-bold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-heading)' }}>
                     {card.value}
                   </p>
-                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                     {card.label}
                   </p>
-                  <p className="text-xs mb-3" style={{ color: 'var(--color-muted-foreground)' }}>{card.sub}</p>
+                  <p className="text-xs mb-3" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>{card.sub}</p>
 
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
                     <div
@@ -355,15 +308,15 @@ export default function DashboardPage() {
             }}
           />
 
-          {/* Main Content: Activity + Top Artists */}
+          {/* Activity + Top Artists */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-            {/* Recent Activity Feed */}
+            {/* Recent Activity */}
             <div className="lg:col-span-3 pm-panel">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="pm-kicker mb-0">Live</p>
-                  <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>Recent Activity</h2>
+                  <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>Recent Activity</h2>
                 </div>
                 <Link
                   href="/activity-dashboard"
@@ -379,12 +332,12 @@ export default function DashboardPage() {
                 <div className="space-y-2 animate-pulse">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
-                      <div className="w-7 h-7 rounded-lg bg-gray-200 shrink-0 mt-0.5" />
+                      <div className="w-7 h-7 rounded-lg bg-[#DDD8CF] shrink-0 mt-0.5" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-3.5 bg-gray-200 rounded w-3/4" />
+                        <div className="h-3.5 bg-[#DDD8CF] rounded w-3/4" />
                         <div className="flex gap-2">
-                          <div className="h-4 w-16 bg-gray-200 rounded-md" />
-                          <div className="h-4 w-24 bg-gray-100 rounded" />
+                          <div className="h-4 w-16 bg-[#DDD8CF] rounded-md" />
+                          <div className="h-4 w-24 bg-[#DDD8CF] rounded" />
                         </div>
                       </div>
                     </div>
@@ -392,11 +345,11 @@ export default function DashboardPage() {
                 </div>
               ) : activityFeed.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
-                    <Icon name="PaperAirplaneIcon" size={22} variant="outline" style={{ color: '#3b82f6' }} />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: 'rgba(72,108,227,.1)' }}>
+                    <Icon name="PaperAirplaneIcon" size={22} variant="outline" style={{ color: '#486CE3' }} />
                   </div>
-                  <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Your pipeline is empty</p>
-                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)' }}>Add artists and pitches to see your stats and activity here.</p>
+                  <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>Your pipeline is empty</p>
+                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>Add artists and pitches to see your stats and activity here.</p>
                   <div className="flex items-center gap-2">
                     <Link href="/artists" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
                       <Icon name="MusicalNoteIcon" size={12} variant="outline" />
@@ -436,7 +389,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+                              <p className="text-sm font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>
                                 {item.description}
                               </p>
                               <Icon
@@ -449,29 +402,23 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-2 mt-1">
                               <span
                                 className="text-xs px-1.5 py-0.5 rounded-md font-medium"
-                                style={{ background: cfg.bg, color: cfg.color }}
+                                style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-mono)' }}
                               >
                                 {cfg.label}
                               </span>
-                              <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+                              <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
                                 {item.timestamp}
                               </span>
                             </div>
                           </div>
                         </div>
                         {isExpanded && (
-                          <div
-                            className="px-3 pb-3"
-                            style={{ borderTop: '1px solid var(--color-border)' }}
-                          >
+                          <div className="px-3 pb-3" style={{ borderTop: '1px solid var(--color-border)' }}>
                             <div className="pl-10 pt-2">
-                              <p className="text-xs mb-2" style={{ color: 'var(--color-muted-foreground)' }}>
+                              <p className="text-xs mb-2" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
                                 {item.title} &middot; {item.timestamp}
                               </p>
-                              <Link
-                                href={item.href}
-                                className="pm-btn text-xs py-1 px-2.5 inline-flex items-center gap-1"
-                              >
+                              <Link href={item.href} className="pm-btn text-xs py-1 px-2.5 inline-flex items-center gap-1">
                                 View Details
                                 <Icon name="ArrowRightIcon" size={11} variant="outline" />
                               </Link>
@@ -489,7 +436,7 @@ export default function DashboardPage() {
                   type="button"
                   onClick={() => setShowAllActivity((v) => !v)}
                   className="w-full mt-3 py-2 text-xs font-medium rounded-xl transition-colors duration-150 hover:bg-muted"
-                  style={{ color: 'var(--color-muted-foreground)', border: '1px solid var(--color-border)' }}
+                  style={{ color: 'var(--color-muted-foreground)', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
                 >
                   {showAllActivity ? 'Show less' : `Show ${activityFeed.length - 5} more`}
                 </button>
@@ -501,7 +448,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="pm-kicker mb-0">Rankings</p>
-                  <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>Top Artists</h2>
+                  <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>Top Artists</h2>
                 </div>
                 <Link
                   href="/artists"
@@ -517,22 +464,22 @@ export default function DashboardPage() {
                 <div className="space-y-2 animate-pulse">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl">
-                      <div className="w-4 h-4 bg-gray-200 rounded shrink-0" />
-                      <div className="w-8 h-8 rounded-full bg-gray-200 shrink-0" />
+                      <div className="w-4 h-4 bg-[#DDD8CF] rounded shrink-0" />
+                      <div className="w-8 h-8 rounded-full bg-[#DDD8CF] shrink-0" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-3 bg-gray-200 rounded w-2/3" />
-                        <div className="h-1.5 bg-gray-200 rounded-full w-full" />
+                        <div className="h-3 bg-[#DDD8CF] rounded w-2/3" />
+                        <div className="h-1.5 bg-[#DDD8CF] rounded-full w-full" />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : topArtists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center mb-3">
-                    <Icon name="MusicalNoteIcon" size={22} variant="outline" style={{ color: '#8b5cf6' }} />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: 'rgba(78,94,46,.1)' }}>
+                    <Icon name="MusicalNoteIcon" size={22} variant="outline" style={{ color: '#4E5E2E' }} />
                   </div>
-                  <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>No artists yet</p>
-                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)' }}>Add artists and create pitches to see your top performers here.</p>
+                  <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>No artists yet</p>
+                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>Add artists and create pitches to see your top performers here.</p>
                   <Link href="/artists" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
                     <Icon name="PlusIcon" size={12} variant="outline" />
                     Add Artist
@@ -549,33 +496,31 @@ export default function DashboardPage() {
                       <span
                         className="text-xs font-bold w-4 text-center shrink-0"
                         style={{
-                          color: idx === 0 ? '#f59e0b' : idx === 1 ? '#6b7280' : idx === 2 ? '#b45309' : 'var(--color-muted-foreground)',
-                          fontFamily: 'Inter, sans-serif',
+                          color: idx === 0 ? '#B8622A' : idx === 1 ? '#7A7470' : idx === 2 ? '#B8622A' : 'var(--color-muted-foreground)',
+                          fontFamily: 'var(--font-mono)',
                         }}
                       >
                         {idx + 1}
                       </span>
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{ background: artist.avatarColor }}
+                        style={{ background: artist.avatarColor, fontFamily: 'var(--font-heading)' }}
                         aria-label={`${artist.name} avatar`}
                       >
                         {artist.initials}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <p className="text-xs font-semibold truncate" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
-                            {artist.name}
-                          </p>
-                        </div>
+                        <p className="text-xs font-semibold truncate mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>
+                          {artist.name}
+                        </p>
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <span
                             className="text-xs px-1.5 py-0.5 rounded-md"
-                            style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)', fontSize: '0.65rem' }}
+                            style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)', fontSize: '0.65rem', fontFamily: 'var(--font-mono)' }}
                           >
                             {artist.genre}
                           </span>
-                          <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+                          <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
                             {artist.placedPitches}/{artist.totalPitches}
                           </span>
                         </div>
@@ -588,7 +533,7 @@ export default function DashboardPage() {
                           </div>
                           <span
                             className="text-xs font-semibold shrink-0"
-                            style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif', minWidth: '2.2rem', textAlign: 'right' }}
+                            style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', minWidth: '2.2rem', textAlign: 'right' }}
                           >
                             {artist.approvalRate}%
                           </span>
@@ -603,10 +548,10 @@ export default function DashboardPage() {
                 className="mt-4 pt-3 flex items-center justify-between"
                 style={{ borderTop: '1px solid var(--color-border)' }}
               >
-                <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Ranked by placement rate</p>
+                <p className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>Ranked by placement rate</p>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} />
-                  <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#4E5E2E' }} />
+                  <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
                     {topArtists.length > 0
                       ? `Avg ${Math.round(topArtists.reduce((s, a) => s + a.approvalRate, 0) / topArtists.length)}%`
                       : 'No data'}
@@ -635,7 +580,7 @@ export default function DashboardPage() {
                     >
                       <Icon name={action.icon as any} size={20} variant="outline" style={{ color: action.color }} />
                     </div>
-                    <span className="text-xs font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+                    <span className="text-xs font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
                       {action.label}
                     </span>
                   </button>
@@ -652,7 +597,7 @@ export default function DashboardPage() {
                     >
                       <Icon name={action.icon as any} size={20} variant="outline" style={{ color: action.color }} />
                     </div>
-                    <span className="text-xs font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+                    <span className="text-xs font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
                       {action.label}
                     </span>
                   </Link>

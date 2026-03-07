@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#1A1A18"/>
+  <!-- Flag-P: vertical pole -->
+  <rect x="9" y="7" width="3" height="18" fill="#F8F5F0"/>
+  <!-- Flag-P: flag body -->
+  <rect x="12" y="7" width="11" height="10" fill="#486CE3"/>
+  <!-- Flag-P: triangle cutout (notch on right side) -->
+  <polygon points="23,7 23,17 18,12" fill="#1A1A18"/>
+</svg>

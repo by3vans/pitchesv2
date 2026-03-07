@@ -12,12 +12,37 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next.js with Tailwind CSS',
-  description: 'A boilerplate project with Next.js and Tailwind CSS',
+  title: 'Pitchhood — Pitch smarter. Connect faster.',
+  description: 'Pitchhood helps music artists send personalized pitches to labels, blogs, and playlists — and track every open, reply, and follow-up.',
+  metadataBase: new URL('https://pitchhood.com'),
+  openGraph: {
+    title: 'Pitchhood — Pitch smarter. Connect faster.',
+    description: 'Pitchhood helps music artists send personalized pitches to labels, blogs, and playlists — and track every open, reply, and follow-up.',
+    url: 'https://pitchhood.com',
+    siteName: 'Pitchhood',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Pitchhood',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pitchhood — Pitch smarter. Connect faster.',
+    description: 'Pitchhood helps music artists send personalized pitches to labels, blogs, and playlists.',
+    images: ['/og-image.png'],
+  },
   icons: {
     icon: [
-      { url: '/favicon.ico', type: 'image/x-icon' }
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
     ],
+    apple: '/apple-touch-icon.png',
   },
 };
 
@@ -45,18 +70,18 @@ export default function RootLayout({
             `,
           }}
         />
-</head>
+      </head>
       <body>
         <ThemeProvider>
           <ToastProvider>
             <PostHogProvider>
-        <AuthProvider>
-              {children}
-            </AuthProvider>
-        </PostHogProvider>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </PostHogProvider>
           </ToastProvider>
         </ThemeProvider>
-</body>
+      </body>
     </html>
   );
 }
