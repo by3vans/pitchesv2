@@ -55,20 +55,26 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
+      style={{ background: 'rgba(26,26,24,0.55)' }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
         className="w-full max-w-md rounded-2xl p-6 shadow-2xl"
-        style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+        style={{ backgroundColor: 'var(--ice)', border: '1px solid var(--cream)' }}
       >
         {/* Header */}
         <div className="text-center mb-6">
           <div className="text-4xl mb-3">{message.icon}</div>
-          <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--color-foreground)' }}>
+          <h2
+            className="text-lg font-bold mb-2"
+            style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}
+          >
             {message.title}
           </h2>
-          <p className="text-sm" style={{ color: 'var(--color-muted-foreground)' }}>
+          <p
+            className="text-sm"
+            style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
+          >
             {message.description}
           </p>
         </div>
@@ -79,19 +85,34 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
             <div
               key={p}
               className="rounded-xl p-4"
-              style={{ border: '1px solid var(--color-border)', background: 'var(--color-muted)' }}
+              style={{ border: '1px solid var(--cream)', backgroundColor: 'var(--cream)' }}
             >
-              <p className="font-bold text-sm mb-1" style={{ color: 'var(--color-foreground)' }}>
+              <p
+                className="font-bold text-sm mb-1"
+                style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}
+              >
                 {PLANS[p].name}
               </p>
-              <p className="text-lg font-bold mb-3" style={{ color: 'var(--color-foreground)' }}>
+              <p
+                className="text-lg font-bold mb-3"
+                style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}
+              >
                 ${PLANS[p].price}
-                <span className="text-xs font-normal" style={{ color: 'var(--color-muted-foreground)' }}>/mês</span>
+                <span
+                  className="text-xs font-normal"
+                  style={{ color: 'var(--stone)' }}
+                >
+                  /mês
+                </span>
               </p>
               <ul className="space-y-1 mb-3">
                 {PLANS[p].features.slice(0, 3).map((f) => (
-                  <li key={f} className="text-xs flex items-start gap-1" style={{ color: 'var(--color-muted-foreground)' }}>
-                    <span style={{ color: '#10b981' }}>✓</span> {f}
+                  <li
+                    key={f}
+                    className="text-xs flex items-start gap-1"
+                    style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
+                  >
+                    <span style={{ color: 'var(--olive)' }}>✓</span> {f}
                   </li>
                 ))}
               </ul>
@@ -110,7 +131,9 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
         <button
           onClick={onClose}
           className="w-full text-sm py-2 rounded-lg transition-colors"
-          style={{ color: 'var(--color-muted-foreground)' }}
+          style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ink)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--stone)')}
         >
           Continuar no plano Free
         </button>

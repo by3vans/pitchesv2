@@ -16,8 +16,8 @@ interface BreadcrumbProps {
 
 const routeLabels: Record<string, string> = {
   'pitches-listing-dashboard': 'Dashboard',
-  'pitch-detail-management': 'Detalhes do Pitch',
-  'pitch-creation-workflow': 'Novo Pitch',
+  'pitch-detail-management':   'Detalhes do Pitch',
+  'pitch-creation-workflow':   'Novo Pitch',
 };
 
 const Breadcrumb = ({ items, className = '' }: BreadcrumbProps) => {
@@ -28,7 +28,7 @@ const Breadcrumb = ({ items, className = '' }: BreadcrumbProps) => {
     const crumbs: BreadcrumbItem[] = [{ label: 'Início', path: '/pitches-listing-dashboard' }];
     segments.forEach((seg, idx) => {
       const label = routeLabels[seg] ?? seg.replace(/-/g, ' ');
-      const path = '/' + segments.slice(0, idx + 1).join('/');
+      const path  = '/' + segments.slice(0, idx + 1).join('/');
       crumbs.push({ label, path: idx < segments.length - 1 ? path : undefined });
     });
     return crumbs;
@@ -48,19 +48,30 @@ const Breadcrumb = ({ items, className = '' }: BreadcrumbProps) => {
                   name="ChevronRightIcon"
                   size={12}
                   variant="outline"
-                  className="text-muted-foreground shrink-0"
+                  style={{ color: 'var(--stone)', flexShrink: 0 }}
                 />
               )}
               {item.path && !isLast ? (
                 <Link
                   href={item.path}
-                  className="hover:text-foreground transition-colors duration-250 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 rounded"
+                  className="transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 rounded"
+                  style={{
+                    fontFamily: 'Epilogue, sans-serif',
+                    color: 'var(--stone)',
+                    ['--tw-ring-color' as any]: 'var(--blue)',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ink)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--stone)')}
                 >
                   {item.label}
                 </Link>
               ) : (
                 <span
-                  className={isLast ? 'text-foreground font-medium' : ''}
+                  style={{
+                    fontFamily: 'Epilogue, sans-serif',
+                    color: isLast ? 'var(--ink)' : 'var(--stone)',
+                    fontWeight: isLast ? 500 : 400,
+                  }}
                   aria-current={isLast ? 'page' : undefined}
                 >
                   {item.label}

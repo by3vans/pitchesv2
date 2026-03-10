@@ -36,61 +36,48 @@ interface TopArtist {
   approvalRate: number;
 }
 
-// New palette avatar colors
 const AVATAR_COLORS = ['#486CE3', '#4E5E2E', '#B8622A', '#C23B2E', '#7A7470', '#486CE3', '#4E5E2E'];
 
 function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-// Updated status config with new palette
 const statusConfig: Record<string, { label: string; bg: string; color: string; icon: string }> = {
-  draft:     { label: 'Draft',     bg: '#DDD8CF',           color: '#7A7470',  icon: 'DocumentIcon' },
-  new:       { label: 'New',       bg: 'rgba(72,108,227,.12)', color: '#486CE3', icon: 'PaperAirplaneIcon' },
-  in_review: { label: 'In Review', bg: 'rgba(184,98,42,.12)',  color: '#B8622A', icon: 'EnvelopeIcon' },
-  approved:  { label: 'Approved',  bg: 'rgba(78,94,46,.12)',   color: '#4E5E2E', icon: 'CheckCircleIcon' },
-  rejected:  { label: 'Rejected',  bg: 'rgba(194,59,46,.12)',  color: '#C23B2E', icon: 'XCircleIcon' },
-  submitted: { label: 'Submitted', bg: 'rgba(72,108,227,.12)', color: '#486CE3', icon: 'PaperAirplaneIcon' },
-  added:     { label: 'Added',     bg: 'rgba(72,108,227,.12)', color: '#486CE3', icon: 'PlusCircleIcon' },
-  placed:    { label: 'Placed',    bg: 'rgba(78,94,46,.12)',   color: '#4E5E2E', icon: 'StarIcon' },
-  sent:      { label: 'Sent',      bg: 'rgba(184,98,42,.12)',  color: '#B8622A', icon: 'EnvelopeIcon' },
-  hold:      { label: 'Hold',      bg: 'rgba(184,98,42,.12)',  color: '#B8622A', icon: 'PauseCircleIcon' },
+  draft:     { label: 'Draft',     bg: 'rgba(122,116,112,0.1)',  color: '#7A7470', icon: 'DocumentIcon'       },
+  new:       { label: 'New',       bg: 'rgba(72,108,227,0.12)',  color: '#486CE3', icon: 'PaperAirplaneIcon'  },
+  in_review: { label: 'In Review', bg: 'rgba(184,98,42,0.12)',   color: '#B8622A', icon: 'EnvelopeIcon'       },
+  approved:  { label: 'Approved',  bg: 'rgba(78,94,46,0.12)',    color: '#4E5E2E', icon: 'CheckCircleIcon'    },
+  rejected:  { label: 'Rejected',  bg: 'rgba(194,59,46,0.12)',   color: '#C23B2E', icon: 'XCircleIcon'        },
+  submitted: { label: 'Submitted', bg: 'rgba(72,108,227,0.12)',  color: '#486CE3', icon: 'PaperAirplaneIcon'  },
+  added:     { label: 'Added',     bg: 'rgba(72,108,227,0.12)',  color: '#486CE3', icon: 'PlusCircleIcon'     },
+  placed:    { label: 'Placed',    bg: 'rgba(78,94,46,0.12)',    color: '#4E5E2E', icon: 'StarIcon'           },
+  sent:      { label: 'Sent',      bg: 'rgba(184,98,42,0.12)',   color: '#B8622A', icon: 'EnvelopeIcon'       },
+  hold:      { label: 'Hold',      bg: 'rgba(184,98,42,0.12)',   color: '#B8622A', icon: 'PauseCircleIcon'    },
 };
 
 const quickActions = [
-  { label: 'New Pitch',    icon: 'PaperAirplaneIcon',           href: '/pitch-creation-workflow',      color: '#486CE3' },
-  { label: 'Add Artist',   icon: 'MusicalNoteIcon',             href: '/artists',                      color: '#4E5E2E' },
-  { label: 'View Pitches', icon: 'ClipboardDocumentListIcon',   href: '/pitches-listing-dashboard',    color: '#B8622A' },
-  { label: 'Notifications',icon: 'BellIcon',                    href: '/notifications-center',         color: '#C23B2E' },
+  { label: 'New Pitch',     icon: 'PaperAirplaneIcon',         href: '/pitch-creation-workflow',   color: '#486CE3' },
+  { label: 'Add Artist',    icon: 'MusicalNoteIcon',            href: '/artists',                   color: '#4E5E2E' },
+  { label: 'View Pitches',  icon: 'ClipboardDocumentListIcon', href: '/pitches-listing-dashboard', color: '#B8622A' },
+  { label: 'Notifications', icon: 'BellIcon',                  href: '/notifications-center',      color: '#C23B2E' },
 ];
 
 export default function DashboardPage() {
   const supabase = useMemo(() => createClient(), []);
 
   const [stats, setStats] = useState<DashboardStats>({
-    totalPitches: 0,
-    totalArtists: 0,
-    approvalRate: 0,
-    pitchesThisMonth: 0,
-    artistsThisMonth: 0,
+    totalPitches: 0, totalArtists: 0, approvalRate: 0,
+    pitchesThisMonth: 0, artistsThisMonth: 0,
   });
-  const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
-  const [topArtists, setTopArtists] = useState<TopArtist[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [activityFeed, setActivityFeed]     = useState<ActivityItem[]>([]);
+  const [topArtists, setTopArtists]         = useState<TopArtist[]>([]);
+  const [loadingData, setLoadingData]       = useState(true);
   const [activityExpanded, setActivityExpanded] = useState<Set<string>>(new Set());
-  const [showAllActivity, setShowAllActivity] = useState(false);
+  const [showAllActivity, setShowAllActivity]   = useState(false);
   const [newPitchModalOpen, setNewPitchModalOpen] = useState(false);
   const [pitchModalContext, setPitchModalContext] = useState<{ artistId?: string; contactId?: string }>({});
 
   const fetchDashboardData = useCallback(async () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Dashboard] 🔄 Fetching dashboard data from Supabase...');
-    }
     setLoadingData(true);
     try {
       const now = new Date();
@@ -101,29 +88,29 @@ export default function DashboardPage() {
         .select('id, title, status, created_at, artist_id')
         .order('created_at', { ascending: false });
 
-      if (pitchesError) console.error('[Dashboard] ❌ Pitches query error:', pitchesError.message);
+      if (pitchesError) console.error('[Dashboard] pitches error:', pitchesError.message);
 
       const { data: artists, error: artistsError } = await supabase
         .from('artists')
         .select('id, name, genre, created_at')
         .order('created_at', { ascending: false });
 
-      if (artistsError) console.error('[Dashboard] ❌ Artists query error:', artistsError.message);
+      if (artistsError) console.error('[Dashboard] artists error:', artistsError.message);
 
-      const pitchList = pitches ?? [];
-      const artistList = artists ?? [];
+      const pitchList  = pitches  ?? [];
+      const artistList = artists  ?? [];
 
-      const totalPitches = pitchList.length;
-      const totalArtists = artistList.length;
-      const placedPitches = pitchList.filter((p) => p.status === 'placed').length;
-      const approvalRate = totalPitches > 0 ? Math.round((placedPitches / totalPitches) * 100) : 0;
-      const pitchesThisMonth = pitchList.filter((p) => p.created_at >= startOfMonth).length;
-      const artistsThisMonth = artistList.filter((a) => a.created_at >= startOfMonth).length;
+      const totalPitches      = pitchList.length;
+      const totalArtists      = artistList.length;
+      const placedPitches     = pitchList.filter((p) => p.status === 'placed').length;
+      const approvalRate      = totalPitches > 0 ? Math.round((placedPitches / totalPitches) * 100) : 0;
+      const pitchesThisMonth  = pitchList.filter((p) => p.created_at >= startOfMonth).length;
+      const artistsThisMonth  = artistList.filter((a) => a.created_at >= startOfMonth).length;
 
       setStats({ totalPitches, totalArtists, approvalRate, pitchesThisMonth, artistsThisMonth });
 
       const activity: ActivityItem[] = pitchList.slice(0, 8).map((p) => {
-        const artist = artistList.find((a) => a.id === p.artist_id);
+        const artist     = artistList.find((a) => a.id === p.artist_id);
         const artistName = artist?.name ?? 'Unknown Artist';
         const statusMap: Record<string, ActivityItem['status']> = {
           approved: 'approved', new: 'submitted', in_review: 'sent',
@@ -151,14 +138,12 @@ export default function DashboardPage() {
       const top: TopArtist[] = artistList
         .filter((a) => artistPitchMap[a.id])
         .map((a, idx) => ({
-          id: a.id,
-          name: a.name,
-          genre: a.genre ?? 'Unknown',
+          id: a.id, name: a.name, genre: a.genre ?? 'Unknown',
           initials: getInitials(a.name),
           avatarColor: AVATAR_COLORS[idx % AVATAR_COLORS.length],
-          totalPitches: artistPitchMap[a.id]?.total ?? 0,
+          totalPitches:  artistPitchMap[a.id]?.total  ?? 0,
           placedPitches: artistPitchMap[a.id]?.placed ?? 0,
-          approvalRate: artistPitchMap[a.id]?.total > 0
+          approvalRate:  artistPitchMap[a.id]?.total > 0
             ? Math.round((artistPitchMap[a.id].placed / artistPitchMap[a.id].total) * 100)
             : 0,
         }))
@@ -167,7 +152,7 @@ export default function DashboardPage() {
 
       setTopArtists(top);
     } catch (err: unknown) {
-      console.error('[Dashboard] ❌ Unexpected error:', err instanceof Error ? err.message : err);
+      console.error('[Dashboard] unexpected error:', err instanceof Error ? err.message : err);
     } finally {
       setLoadingData(false);
     }
@@ -222,7 +207,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-background)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--ice)' }}>
       <Sidebar />
 
       <main className="pt-16 md:pt-0 md:pl-56">
@@ -235,11 +220,7 @@ export default function DashboardPage() {
                 <p className="pm-kicker">Overview</p>
                 <h1 className="pm-h1">Dashboard</h1>
               </div>
-              <button
-                type="button"
-                onClick={() => setNewPitchModalOpen(true)}
-                className="pm-btn-primary shrink-0"
-              >
+              <button type="button" onClick={() => setNewPitchModalOpen(true)} className="pm-btn-primary shrink-0">
                 <Icon name="PlusIcon" size={16} variant="outline" />
                 New Pitch
               </button>
@@ -252,13 +233,13 @@ export default function DashboardPage() {
               Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="pm-panel animate-pulse">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#DDD8CF]" />
-                    <div className="h-4 w-24 bg-[#DDD8CF] rounded" />
+                    <div className="w-9 h-9 rounded-xl" style={{ backgroundColor: 'var(--cream)' }} />
+                    <div className="h-4 w-24 rounded" style={{ backgroundColor: 'var(--cream)' }} />
                   </div>
-                  <div className="h-7 w-16 bg-[#DDD8CF] rounded mb-1" />
-                  <div className="h-3 w-24 bg-[#DDD8CF] rounded mb-1" />
-                  <div className="h-3 w-32 bg-[#DDD8CF] rounded mb-3" />
-                  <div className="h-1.5 rounded-full bg-[#DDD8CF]" />
+                  <div className="h-7 w-16 rounded mb-1" style={{ backgroundColor: 'var(--cream)' }} />
+                  <div className="h-3 w-24 rounded mb-1" style={{ backgroundColor: 'var(--cream)' }} />
+                  <div className="h-3 w-32 rounded mb-3" style={{ backgroundColor: 'var(--cream)' }} />
+                  <div className="h-1.5 rounded-full" style={{ backgroundColor: 'var(--cream)' }} />
                 </div>
               ))
             ) : (
@@ -267,30 +248,30 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div
                       className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: `${card.color}18` }}
+                      style={{ backgroundColor: `${card.color}18` }}
                     >
                       <Icon name={card.icon as any} size={18} variant="outline" style={{ color: card.color }} />
                     </div>
                     <div className="flex items-center gap-1">
                       <Icon name="ArrowTrendingUpIcon" size={13} variant="outline" style={{ color: '#4E5E2E' }} />
-                      <span className="text-xs font-medium" style={{ color: '#4E5E2E', fontFamily: 'var(--font-mono)' }}>
+                      <span className="text-xs font-medium" style={{ color: '#4E5E2E', fontFamily: 'Azeret Mono, monospace' }}>
                         {card.trendValue}
                       </span>
                     </div>
                   </div>
-
-                  <p className="text-2xl font-bold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-heading)' }}>
+                  <p className="text-2xl font-bold mb-0.5" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
                     {card.value}
                   </p>
-                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--ink)', fontFamily: 'Azeret Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                     {card.label}
                   </p>
-                  <p className="text-xs mb-3" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>{card.sub}</p>
-
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
+                  <p className="text-xs mb-3" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>
+                    {card.sub}
+                  </p>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--cream)' }}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${card.progress}%`, background: card.color }}
+                      style={{ width: `${card.progress}%`, backgroundColor: card.color }}
                     />
                   </div>
                 </div>
@@ -302,10 +283,7 @@ export default function DashboardPage() {
           <SmartSuggestions
             context="Insights"
             maxVisible={3}
-            onPitchNow={(ctx) => {
-              setPitchModalContext(ctx);
-              setNewPitchModalOpen(true);
-            }}
+            onPitchNow={(ctx) => { setPitchModalContext(ctx); setNewPitchModalOpen(true); }}
           />
 
           {/* Activity + Top Artists */}
@@ -316,12 +294,12 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="pm-kicker mb-0">Live</p>
-                  <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>Recent Activity</h2>
+                  <h2 className="font-semibold text-sm" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>Recent Activity</h2>
                 </div>
                 <Link
                   href="/activity-dashboard"
                   className="pm-btn text-xs py-1 px-2.5 flex items-center gap-1"
-                  style={{ color: 'var(--color-muted-foreground)' }}
+                  style={{ color: 'var(--stone)' }}
                 >
                   View all
                   <Icon name="ArrowRightIcon" size={12} variant="outline" />
@@ -332,12 +310,12 @@ export default function DashboardPage() {
                 <div className="space-y-2 animate-pulse">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
-                      <div className="w-7 h-7 rounded-lg bg-[#DDD8CF] shrink-0 mt-0.5" />
+                      <div className="w-7 h-7 rounded-lg shrink-0 mt-0.5" style={{ backgroundColor: 'var(--cream)' }} />
                       <div className="flex-1 space-y-2">
-                        <div className="h-3.5 bg-[#DDD8CF] rounded w-3/4" />
+                        <div className="h-3.5 rounded w-3/4" style={{ backgroundColor: 'var(--cream)' }} />
                         <div className="flex gap-2">
-                          <div className="h-4 w-16 bg-[#DDD8CF] rounded-md" />
-                          <div className="h-4 w-24 bg-[#DDD8CF] rounded" />
+                          <div className="h-4 w-16 rounded-md" style={{ backgroundColor: 'var(--cream)' }} />
+                          <div className="h-4 w-24 rounded"   style={{ backgroundColor: 'var(--cream)' }} />
                         </div>
                       </div>
                     </div>
@@ -345,11 +323,11 @@ export default function DashboardPage() {
                 </div>
               ) : activityFeed.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: 'rgba(72,108,227,.1)' }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(72,108,227,0.1)' }}>
                     <Icon name="PaperAirplaneIcon" size={22} variant="outline" style={{ color: '#486CE3' }} />
                   </div>
-                  <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>Your pipeline is empty</p>
-                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>Add artists and pitches to see your stats and activity here.</p>
+                  <p className="text-sm font-semibold mb-1" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>Your pipeline is empty</p>
+                  <p className="text-xs mb-4" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>Add artists and pitches to see your stats and activity here.</p>
                   <div className="flex items-center gap-2">
                     <Link href="/artists" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
                       <Icon name="MusicalNoteIcon" size={12} variant="outline" />
@@ -368,14 +346,16 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-1">
                   {visibleActivity.map((item) => {
-                    const cfg = statusConfig[item.status] ?? statusConfig.submitted;
+                    const cfg        = statusConfig[item.status] ?? statusConfig.submitted;
                     const isExpanded = activityExpanded.has(item.id);
                     return (
                       <div key={item.id}>
                         <div
-                          className="flex items-start gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors duration-150"
-                          style={{ background: isExpanded ? 'var(--color-muted)' : undefined }}
+                          className="flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors duration-150"
+                          style={{ backgroundColor: isExpanded ? 'var(--cream)' : 'transparent' }}
                           onClick={() => toggleActivity(item.id)}
+                          onMouseEnter={(e) => { if (!isExpanded) e.currentTarget.style.backgroundColor = 'var(--cream)'; }}
+                          onMouseLeave={(e) => { if (!isExpanded) e.currentTarget.style.backgroundColor = 'transparent'; }}
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => e.key === 'Enter' && toggleActivity(item.id)}
@@ -383,39 +363,39 @@ export default function DashboardPage() {
                         >
                           <div
                             className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                            style={{ background: cfg.bg }}
+                            style={{ backgroundColor: cfg.bg }}
                           >
                             <Icon name={cfg.icon as any} size={14} variant="outline" style={{ color: cfg.color }} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>
+                              <p className="text-sm font-medium" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
                                 {item.description}
                               </p>
                               <Icon
                                 name={isExpanded ? 'ChevronUpIcon' : 'ChevronDownIcon'}
                                 size={14}
                                 variant="outline"
-                                style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 }}
+                                style={{ color: 'var(--stone)', flexShrink: 0 }}
                               />
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                               <span
                                 className="text-xs px-1.5 py-0.5 rounded-md font-medium"
-                                style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-mono)' }}
+                                style={{ backgroundColor: cfg.bg, color: cfg.color, fontFamily: 'Azeret Mono, monospace' }}
                               >
                                 {cfg.label}
                               </span>
-                              <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
+                              <span className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
                                 {item.timestamp}
                               </span>
                             </div>
                           </div>
                         </div>
                         {isExpanded && (
-                          <div className="px-3 pb-3" style={{ borderTop: '1px solid var(--color-border)' }}>
+                          <div className="px-3 pb-3" style={{ borderTop: '1px solid var(--cream)' }}>
                             <div className="pl-10 pt-2">
-                              <p className="text-xs mb-2" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
+                              <p className="text-xs mb-2" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
                                 {item.title} &middot; {item.timestamp}
                               </p>
                               <Link href={item.href} className="pm-btn text-xs py-1 px-2.5 inline-flex items-center gap-1">
@@ -435,25 +415,32 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setShowAllActivity((v) => !v)}
-                  className="w-full mt-3 py-2 text-xs font-medium rounded-xl transition-colors duration-150 hover:bg-muted"
-                  style={{ color: 'var(--color-muted-foreground)', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
+                  className="w-full mt-3 py-2 text-xs font-medium rounded-xl transition-colors duration-150"
+                  style={{
+                    color: 'var(--stone)',
+                    border: '1px solid var(--cream)',
+                    fontFamily: 'Azeret Mono, monospace',
+                    backgroundColor: 'transparent',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--cream)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   {showAllActivity ? 'Show less' : `Show ${activityFeed.length - 5} more`}
                 </button>
               )}
             </div>
 
-            {/* Top Performing Artists */}
+            {/* Top Artists */}
             <div className="lg:col-span-2 pm-panel">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="pm-kicker mb-0">Rankings</p>
-                  <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>Top Artists</h2>
+                  <h2 className="font-semibold text-sm" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>Top Artists</h2>
                 </div>
                 <Link
                   href="/artists"
                   className="pm-btn text-xs py-1 px-2.5 flex items-center gap-1"
-                  style={{ color: 'var(--color-muted-foreground)' }}
+                  style={{ color: 'var(--stone)' }}
                 >
                   All artists
                   <Icon name="ArrowRightIcon" size={12} variant="outline" />
@@ -464,22 +451,22 @@ export default function DashboardPage() {
                 <div className="space-y-2 animate-pulse">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl">
-                      <div className="w-4 h-4 bg-[#DDD8CF] rounded shrink-0" />
-                      <div className="w-8 h-8 rounded-full bg-[#DDD8CF] shrink-0" />
+                      <div className="w-4 h-4 rounded shrink-0"   style={{ backgroundColor: 'var(--cream)' }} />
+                      <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: 'var(--cream)' }} />
                       <div className="flex-1 space-y-2">
-                        <div className="h-3 bg-[#DDD8CF] rounded w-2/3" />
-                        <div className="h-1.5 bg-[#DDD8CF] rounded-full w-full" />
+                        <div className="h-3 rounded w-2/3"        style={{ backgroundColor: 'var(--cream)' }} />
+                        <div className="h-1.5 rounded-full w-full" style={{ backgroundColor: 'var(--cream)' }} />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : topArtists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: 'rgba(78,94,46,.1)' }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(78,94,46,0.1)' }}>
                     <Icon name="MusicalNoteIcon" size={22} variant="outline" style={{ color: '#4E5E2E' }} />
                   </div>
-                  <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>No artists yet</p>
-                  <p className="text-xs mb-4" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>Add artists and create pitches to see your top performers here.</p>
+                  <p className="text-sm font-semibold mb-1" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>No artists yet</p>
+                  <p className="text-xs mb-4" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>Add artists and create pitches to see your top performers here.</p>
                   <Link href="/artists" className="pm-btn text-xs py-1.5 px-3 flex items-center gap-1">
                     <Icon name="PlusIcon" size={12} variant="outline" />
                     Add Artist
@@ -491,49 +478,52 @@ export default function DashboardPage() {
                     <Link
                       key={artist.id}
                       href="/artists"
-                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted transition-colors duration-150"
+                      className="flex items-center gap-3 p-2.5 rounded-xl transition-colors duration-150"
+                      style={{ textDecoration: 'none' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--cream)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <span
                         className="text-xs font-bold w-4 text-center shrink-0"
                         style={{
-                          color: idx === 0 ? '#B8622A' : idx === 1 ? '#7A7470' : idx === 2 ? '#B8622A' : 'var(--color-muted-foreground)',
-                          fontFamily: 'var(--font-mono)',
+                          color: idx < 3 ? '#B8622A' : 'var(--stone)',
+                          fontFamily: 'Azeret Mono, monospace',
                         }}
                       >
                         {idx + 1}
                       </span>
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{ background: artist.avatarColor, fontFamily: 'var(--font-heading)' }}
+                        style={{ backgroundColor: artist.avatarColor, fontFamily: 'Epilogue, sans-serif' }}
                         aria-label={`${artist.name} avatar`}
                       >
                         {artist.initials}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold truncate mb-0.5" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>
+                        <p className="text-xs font-semibold truncate mb-0.5" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
                           {artist.name}
                         </p>
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <span
                             className="text-xs px-1.5 py-0.5 rounded-md"
-                            style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)', fontSize: '0.65rem', fontFamily: 'var(--font-mono)' }}
+                            style={{ backgroundColor: 'var(--cream)', color: 'var(--stone)', fontSize: '0.65rem', fontFamily: 'Azeret Mono, monospace' }}
                           >
                             {artist.genre}
                           </span>
-                          <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
+                          <span className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
                             {artist.placedPitches}/{artist.totalPitches}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
+                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--cream)' }}>
                             <div
                               className="h-full rounded-full transition-all duration-500"
-                              style={{ width: `${artist.approvalRate}%`, background: artist.avatarColor }}
+                              style={{ width: `${artist.approvalRate}%`, backgroundColor: artist.avatarColor }}
                             />
                           </div>
                           <span
                             className="text-xs font-semibold shrink-0"
-                            style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', minWidth: '2.2rem', textAlign: 'right' }}
+                            style={{ color: 'var(--ink)', fontFamily: 'Azeret Mono, monospace', minWidth: '2.2rem', textAlign: 'right' }}
                           >
                             {artist.approvalRate}%
                           </span>
@@ -544,14 +534,13 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div
-                className="mt-4 pt-3 flex items-center justify-between"
-                style={{ borderTop: '1px solid var(--color-border)' }}
-              >
-                <p className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>Ranked by placement rate</p>
+              <div className="mt-4 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--cream)' }}>
+                <p className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
+                  Ranked by placement rate
+                </p>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#4E5E2E' }} />
-                  <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#4E5E2E' }} />
+                  <span className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
                     {topArtists.length > 0
                       ? `Avg ${Math.round(topArtists.reduce((s, a) => s + a.approvalRate, 0) / topArtists.length)}%`
                       : 'No data'}
@@ -565,22 +554,24 @@ export default function DashboardPage() {
           <div className="pm-panel">
             <p className="pm-kicker mb-3">Quick Actions</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {quickActions.map((action) => (
+              {quickActions.map((action) =>
                 action.label === 'New Pitch' ? (
                   <button
                     key={action.label}
                     type="button"
                     onClick={() => setNewPitchModalOpen(true)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted transition-all duration-150 text-center group w-full"
-                    style={{ border: '1px solid var(--color-border)' }}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-150 text-center w-full"
+                    style={{ border: '1px solid var(--cream)', backgroundColor: 'transparent' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--cream)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-150 group-hover:scale-110"
-                      style={{ background: `${action.color}18` }}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${action.color}18` }}
                     >
                       <Icon name={action.icon as any} size={20} variant="outline" style={{ color: action.color }} />
                     </div>
-                    <span className="text-xs font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
+                    <span className="text-xs font-medium" style={{ color: 'var(--ink)', fontFamily: 'Azeret Mono, monospace', letterSpacing: '0.05em' }}>
                       {action.label}
                     </span>
                   </button>
@@ -588,21 +579,23 @@ export default function DashboardPage() {
                   <Link
                     key={action.label}
                     href={action.href}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted transition-all duration-150 text-center group"
-                    style={{ border: '1px solid var(--color-border)' }}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-150 text-center"
+                    style={{ border: '1px solid var(--cream)', backgroundColor: 'transparent', textDecoration: 'none' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--cream)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-150 group-hover:scale-110"
-                      style={{ background: `${action.color}18` }}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${action.color}18` }}
                     >
                       <Icon name={action.icon as any} size={20} variant="outline" style={{ color: action.color }} />
                     </div>
-                    <span className="text-xs font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
+                    <span className="text-xs font-medium" style={{ color: 'var(--ink)', fontFamily: 'Azeret Mono, monospace', letterSpacing: '0.05em' }}>
                       {action.label}
                     </span>
                   </Link>
                 )
-              ))}
+              )}
             </div>
           </div>
 

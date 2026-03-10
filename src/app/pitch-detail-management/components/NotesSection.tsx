@@ -97,21 +97,30 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
   }, [notes, searchQuery, startDate, endDate]);
 
   return (
-    <div className="p-5 rounded-xl border bg-white space-y-4" style={{ borderColor: 'var(--color-border)' }}>
+    <div
+      className="p-5 rounded-xl border space-y-4"
+      style={{ backgroundColor: 'var(--ice)', borderColor: 'var(--cream)' }}
+    >
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b pb-3" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex items-center gap-1 border-b pb-3" style={{ borderColor: 'var(--cream)' }}>
         {(['notes', 'history'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-              activeTab === tab ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200"
+            style={{
+              fontFamily: 'Epilogue, sans-serif',
+              backgroundColor: activeTab === tab ? 'var(--cream)' : 'transparent',
+              color: activeTab === tab ? 'var(--ink)' : 'var(--stone)',
+            }}
           >
             {tab === 'notes' ? 'Notas' : 'Histórico'}
           </button>
         ))}
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span
+          className="ml-auto text-xs"
+          style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}
+        >
           {hasActiveFilters ? `${filteredNotes.length} de ${notes.length}` : `${notes.length}`} nota{notes.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -119,38 +128,80 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
       {/* Search & Date Filters */}
       <div className="space-y-2">
         <div className="relative">
-          <Icon name="MagnifyingGlassIcon" size={14} variant="outline" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-muted-foreground)' }} />
+          <Icon
+            name="MagnifyingGlassIcon"
+            size={14}
+            variant="outline"
+            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            style={{ color: 'var(--stone)' }}
+          />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar nas notas..."
-            className="w-full pl-9 pr-8 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]"
-            style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}
+            className="w-full pl-9 pr-8 py-2.5 text-sm rounded-lg border focus:outline-none transition-all min-h-[44px]"
+            style={{
+              fontFamily: 'Epilogue, sans-serif',
+              backgroundColor: 'var(--ice)',
+              borderColor: 'var(--cream)',
+              color: 'var(--ink)',
+              outlineColor: 'var(--blue)',
+            }}
             aria-label="Search notes"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted min-h-[32px] min-w-[32px] flex items-center justify-center" style={{ color: 'var(--color-muted-foreground)' }} aria-label="Clear search">
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded min-h-[32px] min-w-[32px] flex items-center justify-center"
+              style={{ color: 'var(--stone)' }}
+              aria-label="Clear search"
+            >
               <Icon name="XMarkIcon" size={13} variant="outline" />
             </button>
           )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium shrink-0 w-8" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.65rem' }}>De</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex-1 px-3 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]" style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)' }} aria-label="Filter notes from date" />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium shrink-0 w-8" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.65rem' }}>Até</label>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="flex-1 px-3 py-2.5 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all min-h-[44px]" style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)' }} aria-label="Filter notes to date" />
-          </div>
+          {[{ label: 'De', value: startDate, onChange: setStartDate }, { label: 'Até', value: endDate, onChange: setEndDate }].map(({ label, value, onChange }) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <label
+                className="text-xs font-medium shrink-0 w-8"
+                style={{
+                  fontFamily: 'Azeret Mono, monospace',
+                  color: 'var(--stone)',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  fontSize: '0.65rem',
+                }}
+              >
+                {label}
+              </label>
+              <input
+                type="date"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="flex-1 px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-all min-h-[44px]"
+                style={{
+                  backgroundColor: 'var(--ice)',
+                  borderColor: 'var(--cream)',
+                  color: 'var(--ink)',
+                }}
+              />
+            </div>
+          ))}
         </div>
 
         {hasActiveFilters && (
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Mostrando {filteredNotes.length} de {notes.length}</p>
-            <button onClick={clearFilters} className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg border transition-all hover:bg-muted min-h-[36px]" style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted-foreground)' }}>
+            <p className="text-xs" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
+              Mostrando {filteredNotes.length} de {notes.length}
+            </p>
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg border transition-all min-h-[36px]"
+              style={{ borderColor: 'var(--cream)', color: 'var(--stone)' }}
+            >
               <Icon name="XMarkIcon" size={12} variant="outline" />
               Limpar
             </button>
@@ -161,7 +212,7 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
       {/* Loading */}
       {loading ? (
         <div className="text-center py-8">
-          <svg className="animate-spin h-6 w-6 mx-auto" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-muted-foreground)' }}>
+          <svg className="animate-spin h-6 w-6 mx-auto" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--stone)' }}>
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
@@ -178,8 +229,13 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
                   onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAddNote(); }}
                   placeholder="Adicionar uma nota sobre este pitch... (⌘+Enter para salvar)"
                   rows={3}
-                  className="w-full px-3 py-2.5 text-sm rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-accent transition-all"
-                  style={{ borderColor: 'var(--color-border)' }}
+                  className="w-full px-3 py-2.5 text-sm rounded-lg border resize-none focus:outline-none transition-all"
+                  style={{
+                    fontFamily: 'Epilogue, sans-serif',
+                    backgroundColor: 'var(--cream)',
+                    borderColor: 'var(--cream)',
+                    color: 'var(--ink)',
+                  }}
                 />
                 <div className="flex justify-end">
                   <button
@@ -196,22 +252,51 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
               {/* Notes List */}
               <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
                 {filteredNotes.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Icon name="DocumentTextIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" />
-                    <p className="text-sm">{hasActiveFilters ? 'Nenhuma nota encontrada.' : 'Nenhuma nota adicionada ainda.'}</p>
-                    {hasActiveFilters && <button onClick={clearFilters} className="mt-2 text-xs underline" style={{ color: 'var(--color-muted-foreground)' }}>Limpar filtros</button>}
+                  <div className="text-center py-8">
+                    <Icon name="DocumentTextIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" style={{ color: 'var(--stone)' }} />
+                    <p className="text-sm" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
+                      {hasActiveFilters ? 'Nenhuma nota encontrada.' : 'Nenhuma nota adicionada ainda.'}
+                    </p>
+                    {hasActiveFilters && (
+                      <button
+                        onClick={clearFilters}
+                        className="mt-2 text-xs underline"
+                        style={{ color: 'var(--stone)' }}
+                      >
+                        Limpar filtros
+                      </button>
+                    )}
                   </div>
                 ) : (
                   filteredNotes.map((note) => (
-                    <div key={note.id} className="p-4 rounded-lg border bg-muted/20 group" style={{ borderColor: 'var(--color-border)' }}>
+                    <div
+                      key={note.id}
+                      className="p-4 rounded-lg border group"
+                      style={{ backgroundColor: 'var(--cream)', borderColor: 'var(--cream)' }}
+                    >
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <p className="text-xs text-muted-foreground">{formatTimestamp(note.createdAt)}</p>
+                        <p
+                          className="text-xs"
+                          style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}
+                        >
+                          {formatTimestamp(note.createdAt)}
+                        </p>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => { setEditingId(note.id); setEditContent(note.content); }} className="p-1.5 rounded hover:bg-muted transition-colors" aria-label="Editar nota">
-                            <Icon name="PencilIcon" size={13} variant="outline" className="text-muted-foreground" />
+                          <button
+                            onClick={() => { setEditingId(note.id); setEditContent(note.content); }}
+                            className="p-1.5 rounded transition-colors"
+                            style={{ color: 'var(--stone)' }}
+                            aria-label="Editar nota"
+                          >
+                            <Icon name="PencilIcon" size={13} variant="outline" />
                           </button>
-                          <button onClick={() => handleDelete(note.id)} className="p-1.5 rounded hover:bg-red-50 transition-colors" aria-label="Excluir nota">
-                            <Icon name="TrashIcon" size={13} variant="outline" className="text-red-500" />
+                          <button
+                            onClick={() => handleDelete(note.id)}
+                            className="p-1.5 rounded transition-colors"
+                            style={{ color: 'var(--crimson)' }}
+                            aria-label="Excluir nota"
+                          >
+                            <Icon name="TrashIcon" size={13} variant="outline" />
                           </button>
                         </div>
                       </div>
@@ -221,8 +306,13 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
                             rows={3}
-                            className="w-full px-3 py-2 text-sm rounded-lg border bg-white text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-accent"
-                            style={{ borderColor: 'var(--color-border)' }}
+                            className="w-full px-3 py-2 text-sm rounded-lg border resize-none focus:outline-none"
+                            style={{
+                              fontFamily: 'Epilogue, sans-serif',
+                              backgroundColor: 'var(--ice)',
+                              borderColor: 'var(--cream)',
+                              color: 'var(--ink)',
+                            }}
                             autoFocus
                           />
                           <div className="flex gap-2 justify-end">
@@ -231,7 +321,12 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                        <p
+                          className="text-sm leading-relaxed whitespace-pre-wrap"
+                          style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}
+                        >
+                          {note.content}
+                        </p>
                       )}
                     </div>
                   ))
@@ -243,19 +338,42 @@ export default function NotesSection({ pitchId }: NotesSectionProps) {
           {activeTab === 'history' && (
             <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
               {filteredNotes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Icon name="ClockIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" />
-                  <p className="text-sm">{hasActiveFilters ? 'Nenhum resultado.' : 'Sem histórico ainda.'}</p>
+                <div className="text-center py-8">
+                  <Icon name="ClockIcon" size={32} variant="outline" className="mx-auto mb-2 opacity-40" style={{ color: 'var(--stone)' }} />
+                  <p className="text-sm" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
+                    {hasActiveFilters ? 'Nenhum resultado.' : 'Sem histórico ainda.'}
+                  </p>
                 </div>
               ) : (
                 filteredNotes.map((note, idx) => (
-                  <div key={note.id} className="flex items-start gap-3 p-3 rounded-lg border" style={{ borderColor: 'var(--color-border)' }}>
-                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">
+                  <div
+                    key={note.id}
+                    className="flex items-start gap-3 p-3 rounded-lg border"
+                    style={{ borderColor: 'var(--cream)' }}
+                  >
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                      style={{
+                        fontFamily: 'Azeret Mono, monospace',
+                        backgroundColor: 'var(--cream)',
+                        color: 'var(--stone)',
+                      }}
+                    >
                       {notes.length - idx}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground line-clamp-2">{note.content}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{formatTimestamp(note.createdAt)}</p>
+                      <p
+                        className="text-sm line-clamp-2"
+                        style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}
+                      >
+                        {note.content}
+                      </p>
+                      <p
+                        className="text-xs mt-1"
+                        style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}
+                      >
+                        {formatTimestamp(note.createdAt)}
+                      </p>
                     </div>
                   </div>
                 ))

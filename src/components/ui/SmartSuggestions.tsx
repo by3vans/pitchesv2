@@ -56,8 +56,8 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Reconnect with contact',
         body: `You haven't pitched to ${contact.fullName} at ${contact.company} yet — a great opportunity to reach out.`,
         icon: 'ClockIcon',
-        iconColor: '#f59e0b',
-        iconBg: '#fef3c7',
+        iconColor: '#B8622A',
+        iconBg: 'rgba(184,98,42,0.1)',
         pitchContext: { contactId: contact.id },
         primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
         secondaryAction: { label: 'View contact', href: '/contacts' },
@@ -77,8 +77,8 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
             title: 'Inactive contact',
             body: `You haven't pitched to ${contact.fullName} (${contact.company}) in ${months} month${months !== 1 ? 's' : ''} — time to reconnect.`,
             icon: 'ClockIcon',
-            iconColor: '#f59e0b',
-            iconBg: '#fef3c7',
+            iconColor: '#B8622A',
+            iconBg: 'rgba(184,98,42,0.1)',
             pitchContext: { contactId: contact.id },
             primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
             secondaryAction: { label: 'View contact', href: '/contacts' },
@@ -105,8 +105,8 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Tracks ready to pitch',
         body: `${artist.name} has ${draftCount} draft pitch${draftCount !== 1 ? 'es' : ''} waiting — time to send them out.`,
         icon: 'MusicalNoteIcon',
-        iconColor: '#8b5cf6',
-        iconBg: '#f3e8ff',
+        iconColor: '#486CE3',
+        iconBg: 'rgba(72,108,227,0.1)',
         pitchContext: { artistId: artist.id },
         primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
         secondaryAction: { label: 'View artist', href: `/artist-detail-management?artistId=${artist.id}` },
@@ -118,8 +118,8 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Artist not yet pitched',
         body: `${artist.name} hasn't been pitched to anyone yet — create their first pitch to get started.`,
         icon: 'MusicalNoteIcon',
-        iconColor: '#8b5cf6',
-        iconBg: '#f3e8ff',
+        iconColor: '#486CE3',
+        iconBg: 'rgba(72,108,227,0.1)',
         pitchContext: { artistId: artist.id },
         primaryAction: { label: 'Create pitch', href: '/pitch-creation-workflow' },
         secondaryAction: { label: 'View artist', href: `/artist-detail-management?artistId=${artist.id}` },
@@ -158,8 +158,8 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Similar artist placed',
         body: `${placedArtist.name} was placed with ${contact.fullName} (${contact.company}) — ${similar.name} has a similar sound and might be a great fit too.`,
         icon: 'SparklesIcon',
-        iconColor: '#10b981',
-        iconBg: '#d1fae5',
+        iconColor: '#4E5E2E',
+        iconBg: 'rgba(78,94,46,0.1)',
         pitchContext: { artistId: similar.id, contactId: contact.id },
         primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
         secondaryAction: { label: 'View artist', href: `/artist-detail-management?artistId=${similar.id}` },
@@ -210,7 +210,7 @@ export default function SmartSuggestions({ artistId, maxVisible = 3, context = '
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="pm-kicker mb-0">{context}</p>
-          <h2 className="font-semibold text-sm" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+          <h2 className="font-semibold text-sm" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
             Smart Suggestions
           </h2>
         </div>
@@ -218,7 +218,7 @@ export default function SmartSuggestions({ artistId, maxVisible = 3, context = '
           type="button"
           onClick={refresh}
           className="pm-btn p-1.5 flex items-center gap-1 text-xs"
-          style={{ color: 'var(--color-muted-foreground)' }}
+          style={{ color: 'var(--stone)' }}
           title="Refresh suggestions"
           aria-label="Refresh suggestions"
         >
@@ -232,11 +232,13 @@ export default function SmartSuggestions({ artistId, maxVisible = 3, context = '
         <div className="flex flex-col items-center justify-center py-6 gap-2">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'var(--color-muted)' }}
+            style={{ backgroundColor: 'var(--cream)' }}
           >
-            <Icon name="CheckCircleIcon" size={20} variant="outline" style={{ color: 'var(--color-muted-foreground)' }} />
+            <Icon name="CheckCircleIcon" size={20} variant="outline" style={{ color: 'var(--stone)' }} />
           </div>
-          <p className="text-sm" style={{ color: 'var(--color-muted-foreground)' }}>All caught up! No suggestions right now.</p>
+          <p className="text-sm" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>
+            All caught up! No suggestions right now.
+          </p>
           <button
             type="button"
             onClick={refresh}
@@ -252,12 +254,12 @@ export default function SmartSuggestions({ artistId, maxVisible = 3, context = '
             <div
               key={s.id}
               className="flex items-start gap-3 p-3 rounded-xl"
-              style={{ border: '1px solid var(--color-border)', background: 'var(--color-background)' }}
+              style={{ border: '1px solid var(--cream)', backgroundColor: 'var(--ice)' }}
             >
               {/* Icon */}
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                style={{ background: s.iconBg }}
+                style={{ backgroundColor: s.iconBg }}
               >
                 <Icon name={s.icon as any} size={15} variant="outline" style={{ color: s.iconColor }} />
               </div>
@@ -266,11 +268,14 @@ export default function SmartSuggestions({ artistId, maxVisible = 3, context = '
               <div className="flex-1 min-w-0">
                 <p
                   className="text-xs font-semibold mb-0.5"
-                  style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}
+                  style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}
                 >
                   {s.title}
                 </p>
-                <p className="text-xs leading-relaxed mb-2" style={{ color: 'var(--color-muted-foreground)' }}>
+                <p
+                  className="text-xs leading-relaxed mb-2"
+                  style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
+                >
                   {s.body}
                 </p>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -314,16 +319,19 @@ export default function SmartSuggestions({ artistId, maxVisible = 3, context = '
                 aria-label="Dismiss suggestion"
                 title="Dismiss"
               >
-                <Icon name="XMarkIcon" size={13} variant="outline" style={{ color: 'var(--color-muted-foreground)' }} />
+                <Icon name="XMarkIcon" size={13} variant="outline" style={{ color: 'var(--stone)' }} />
               </button>
             </div>
           ))}
         </div>
       )}
 
-      {/* Footer: show count if more exist */}
+      {/* Footer */}
       {allSuggestions.filter((s) => !dismissed.has(s.id)).length > maxVisible && (
-        <p className="text-xs mt-3 text-center" style={{ color: 'var(--color-muted-foreground)' }}>
+        <p
+          className="text-xs mt-3 text-center"
+          style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
+        >
           +{allSuggestions.filter((s) => !dismissed.has(s.id)).length - maxVisible} more suggestion{allSuggestions.filter((s) => !dismissed.has(s.id)).length - maxVisible !== 1 ? 's' : ''} available
         </p>
       )}

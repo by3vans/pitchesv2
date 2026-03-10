@@ -16,24 +16,24 @@ interface AuthError {
 }
 
 function getOAuthErrorMessage(err: unknown): AuthError {
-  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  const msg  = (err instanceof Error ? err.message : String(err)).toLowerCase();
   const code = (err as Record<string, string>)?.code || (err as Record<string, string>)?.error_code || '';
-  if (msg.includes('popup_closed') || msg.includes('user closed')) return { message: 'Sign-in popup was closed. Please try again.', type: 'oauth' };
-  if (msg.includes('access_denied') || code === 'access_denied') return { message: 'Google access was denied. Please allow permissions and try again.', type: 'oauth' };
-  if (msg.includes('network') || msg.includes('fetch') || msg.includes('networkerror')) return { message: 'Network error. Please check your connection and try again.', type: 'network' };
-  if (msg.includes('timeout')) return { message: 'Request timed out. Please check your connection and try again.', type: 'network' };
+  if (msg.includes('popup_closed') || msg.includes('user closed'))        return { message: 'Sign-in popup was closed. Please try again.',                                type: 'oauth'   };
+  if (msg.includes('access_denied') || code === 'access_denied')          return { message: 'Google access was denied. Please allow permissions and try again.',          type: 'oauth'   };
+  if (msg.includes('network') || msg.includes('fetch') || msg.includes('networkerror')) return { message: 'Network error. Please check your connection and try again.',   type: 'network' };
+  if (msg.includes('timeout'))                                             return { message: 'Request timed out. Please check your connection and try again.',             type: 'network' };
   return { message: 'Google sign-in failed. Please try again.', type: 'oauth' };
 }
 
 function getCredentialErrorMessage(err: unknown): AuthError {
-  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  const msg  = (err instanceof Error ? err.message : String(err)).toLowerCase();
   const code = (err as Record<string, string>)?.code || (err as Record<string, string>)?.error_code || '';
-  if (msg.includes('network') || msg.includes('fetch')) return { message: 'Network error. Please check your connection and try again.', type: 'network' };
-  if (msg.includes('invalid login credentials') || code === 'invalid_credentials') return { message: 'Incorrect email or password. Please try again.', type: 'credentials' };
-  if (msg.includes('email not confirmed') || code === 'email_not_confirmed') return { message: 'Your email is not verified. Check your inbox for a verification link.', type: 'credentials' };
-  if (msg.includes('user not found') || code === 'user_not_found') return { message: 'No account found with this email. Please sign up first.', type: 'credentials' };
-  if (msg.includes('too many requests') || code === 'over_request_rate_limit') return { message: 'Too many attempts. Please wait a moment and try again.', type: 'general' };
-  if (msg.includes('email already') || code === 'user_already_exists') return { message: 'An account with this email already exists. Try signing in instead.', type: 'credentials' };
+  if (msg.includes('network') || msg.includes('fetch'))                              return { message: 'Network error. Please check your connection and try again.',                       type: 'network'     };
+  if (msg.includes('invalid login credentials') || code === 'invalid_credentials')  return { message: 'Incorrect email or password. Please try again.',                                  type: 'credentials' };
+  if (msg.includes('email not confirmed')        || code === 'email_not_confirmed')  return { message: 'Your email is not verified. Check your inbox for a verification link.',           type: 'credentials' };
+  if (msg.includes('user not found')             || code === 'user_not_found')       return { message: 'No account found with this email. Please sign up first.',                         type: 'credentials' };
+  if (msg.includes('too many requests')          || code === 'over_request_rate_limit') return { message: 'Too many attempts. Please wait a moment and try again.',                      type: 'general'     };
+  if (msg.includes('email already')             || code === 'user_already_exists')   return { message: 'An account with this email already exists. Try signing in instead.',             type: 'credentials' };
   return { message: err instanceof Error ? err.message : 'Something went wrong. Please try again.', type: 'general' };
 }
 
@@ -58,23 +58,23 @@ function Logo() {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router   = useRouter();
   const { signIn, signUp } = useAuth();
   const supabase = useMemo(() => createClient(), []);
 
-  const [tab, setTab] = useState<Tab>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [tab, setTab]                   = useState<Tab>('login');
+  const [email, setEmail]               = useState('');
+  const [password, setPassword]         = useState('');
+  const [loading, setLoading]           = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [authError, setAuthError] = useState<AuthError | null>(null);
+  const [authError, setAuthError]       = useState<AuthError | null>(null);
 
   const handleGoogleAuth = async () => {
     setAuthError(null);
     setGoogleLoading(true);
     try {
       const redirectTo = `${window.location.origin}/auth/callback`;
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'select_account' } },
       });
@@ -121,9 +121,9 @@ export default function LoginPage() {
       padding: '48px 40px',
     } as React.CSSProperties,
     heading: {
-      fontFamily: "'Playfair Display', serif",
+      fontFamily: "'Epilogue', sans-serif",
       fontStyle: 'italic',
-      fontWeight: 900,
+      fontWeight: 700,
       fontSize: '2rem',
       lineHeight: 1.1,
       color: '#1A1A18',
@@ -165,7 +165,7 @@ export default function LoginPage() {
   const errorColors: Record<ErrorType, { bg: string; border: string; text: string }> = {
     network:     { bg: '#FFF8ED', border: '#F0C070', text: '#8A5A00' },
     oauth:       { bg: '#FFF3ED', border: '#E8A87A', text: '#7A3010' },
-    credentials: { bg: 'rgba(194,59,46,0.06)', border: 'rgba(194,59,46,0.2)', text: '#C23B2E' },
+    credentials: { bg: 'rgba(194,59,46,0.06)',  border: 'rgba(194,59,46,0.2)',  text: '#C23B2E' },
     general:     { bg: 'rgba(72,108,227,0.06)', border: 'rgba(72,108,227,0.2)', text: '#486CE3' },
   };
 
@@ -174,6 +174,7 @@ export default function LoginPage() {
 
       {/* ── Left Panel ── */}
       <div style={S.panel}>
+
         {/* Logo */}
         <div style={{ marginBottom: 32 }}>
           <Logo />
@@ -193,17 +194,15 @@ export default function LoginPage() {
               style={{
                 flex: 1, padding: '9px 0',
                 fontFamily: "'Azeret Mono', monospace",
-                fontSize: '0.65rem',
-                fontWeight: 500,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 150ms',
+                fontSize: '0.65rem', fontWeight: 500,
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+                border: 'none', cursor: 'pointer', transition: 'all 150ms',
                 background: tab === t ? '#1A1A18' : 'transparent',
-                color: tab === t ? '#F0ECE6' : '#7A7470',
+                color:      tab === t ? '#F8F5F0' : '#7A7470',
               }}
-            >{t === 'login' ? 'Login' : 'Sign Up'}</button>
+            >
+              {t === 'login' ? 'Login' : 'Sign Up'}
+            </button>
           ))}
         </div>
 
@@ -218,8 +217,7 @@ export default function LoginPage() {
             padding: '10px 16px',
             fontFamily: "'Epilogue', sans-serif",
             fontSize: '0.875rem', fontWeight: 400,
-            color: '#3A3836',
-            background: '#FFFFFF',
+            color: '#1A1A18', background: '#FFFFFF',
             cursor: 'pointer', transition: 'all 150ms',
             marginBottom: 20,
             opacity: (googleLoading || loading) ? 0.6 : 1,
@@ -252,17 +250,21 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={S.label}>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@label.com" required style={S.input}
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="your@label.com" required style={S.input}
               onFocus={e => (e.target.style.borderColor = '#486CE3')}
-              onBlur={e => (e.target.style.borderColor = 'rgba(107,101,80,0.2)')}
+              onBlur={e  => (e.target.style.borderColor = 'rgba(107,101,80,0.2)')}
             />
           </div>
 
           <div>
             <label style={S.label}>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={S.input}
+            <input
+              type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••" required style={S.input}
               onFocus={e => (e.target.style.borderColor = '#486CE3')}
-              onBlur={e => (e.target.style.borderColor = 'rgba(107,101,80,0.2)')}
+              onBlur={e  => (e.target.style.borderColor = 'rgba(107,101,80,0.2)')}
             />
           </div>
 
@@ -293,8 +295,7 @@ export default function LoginPage() {
             disabled={loading || googleLoading}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              background: '#486CE3',
-              color: '#fff',
+              background: '#486CE3', color: '#F8F5F0',
               fontFamily: "'Cabinet Grotesk', sans-serif",
               fontWeight: 700, fontSize: '0.9rem', letterSpacing: '-0.01em',
               padding: '13px 20px', borderRadius: 10, border: 'none',
@@ -302,7 +303,7 @@ export default function LoginPage() {
               opacity: (loading || googleLoading) ? 0.6 : 1,
             }}
             onMouseEnter={e => { if (!loading && !googleLoading) e.currentTarget.style.background = '#3558C8'; }}
-            onMouseLeave={e => (e.currentTarget.style.background = '#486CE3')}
+            onMouseLeave={e => { e.currentTarget.style.background = '#486CE3'; }}
           >
             {loading ? (
               <>
@@ -357,14 +358,15 @@ export default function LoginPage() {
           <div style={{ fontFamily: "'Azeret Mono', monospace", fontSize: 10, fontWeight: 500, color: '#486CE3', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 14 }}>
             Pitchhood
           </div>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontSize: 30, fontWeight: 900, color: '#F0ECE6', lineHeight: 1.15, marginBottom: 14, letterSpacing: '-0.02em' }}>
+          <div style={{ fontFamily: "'Epilogue', sans-serif", fontStyle: 'italic', fontSize: 30, fontWeight: 700, color: '#F8F5F0', lineHeight: 1.15, marginBottom: 14, letterSpacing: '-0.02em' }}>
             Your A&amp;R workspace,<br />reimagined.
           </div>
-          <div style={{ fontFamily: "'Epilogue', sans-serif", fontWeight: 300, fontSize: 14, color: 'rgba(240,236,230,0.45)', lineHeight: 1.75 }}>
+          <div style={{ fontFamily: "'Epilogue', sans-serif", fontWeight: 300, fontSize: 14, color: 'rgba(248,245,240,0.45)', lineHeight: 1.75 }}>
             Everything your team needs to discover,<br />review, and sign artists.
           </div>
         </div>
       </div>
+
     </div>
   );
 }

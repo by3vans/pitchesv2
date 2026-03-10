@@ -21,13 +21,13 @@ export default function ConfirmModal({
   onCancel,
   variant = 'danger',
 }: ConfirmModalProps) {
-  const iconColor = variant === 'danger' ? 'var(--color-destructive)' : '#f59e0b';
-  const iconBg = variant === 'danger' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)';
+  const iconColor = variant === 'danger' ? 'var(--crimson)' : 'var(--orange)';
+  const iconBg    = variant === 'danger' ? 'rgba(194,59,46,0.1)' : 'rgba(184,98,42,0.1)';
 
   return (
     <div
       className="fixed inset-0 z-[400] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
+      style={{ background: 'rgba(26,26,24,0.55)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
       <div
@@ -39,7 +39,7 @@ export default function ConfirmModal({
         <div className="flex items-start gap-3 mb-5">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: iconBg }}
+            style={{ backgroundColor: iconBg }}
           >
             <Icon
               name="ExclamationTriangleIcon"
@@ -52,13 +52,13 @@ export default function ConfirmModal({
             <h3
               id="confirm-modal-title"
               className="font-semibold text-sm mb-1"
-              style={{ fontFamily: 'Inter, sans-serif', color: 'var(--color-foreground)' }}
+              style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}
             >
               {title}
             </h3>
             <p
               className="text-sm leading-relaxed"
-              style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}
+              style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
               dangerouslySetInnerHTML={{ __html: message }}
             />
           </div>

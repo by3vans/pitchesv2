@@ -20,14 +20,14 @@ interface ContactModalProps {
 function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
   const [form, setForm] = useState({
     fullName: contact?.fullName ?? '',
-    email: contact?.email ?? '',
-    role: contact?.role ?? CONTACT_ROLES[0],
-    company: contact?.company ?? '',
-    phone: contact?.phone ?? '',
-    notes: contact?.notes ?? '',
+    email:    contact?.email    ?? '',
+    role:     contact?.role     ?? CONTACT_ROLES[0],
+    company:  contact?.company  ?? '',
+    phone:    contact?.phone    ?? '',
+    notes:    contact?.notes    ?? '',
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
+  const [errors, setErrors]     = useState<Record<string, string>>({});
+  const [saving, setSaving]     = useState(false);
   const [saveError, setSaveError] = useState('');
 
   const update = (k: keyof typeof form, v: string) => {
@@ -68,11 +68,11 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
 
       const payload = {
         full_name: form.fullName.trim(),
-        email: form.email.trim() || null,
-        role: form.role,
-        company: form.company.trim() || null,
-        phone: form.phone.trim() || null,
-        notes: form.notes.trim() || null,
+        email:     form.email.trim()   || null,
+        role:      form.role,
+        company:   form.company.trim() || null,
+        phone:     form.phone.trim()   || null,
+        notes:     form.notes.trim()   || null,
       };
 
       if (contact) {
@@ -95,7 +95,7 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
   return (
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.45)' }}
+      style={{ background: 'rgba(26,26,24,0.55)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
     >
@@ -108,7 +108,10 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
         </div>
 
         {saveError && (
-          <div className="mb-4 px-3 py-2 rounded-lg text-sm" style={{ color: '#C23B2E', background: 'rgba(194,59,46,.08)', border: '1px solid rgba(194,59,46,.2)' }}>
+          <div
+            className="mb-4 px-3 py-2 rounded-lg text-sm"
+            style={{ color: 'var(--crimson)', backgroundColor: 'rgba(194,59,46,0.08)', border: '1px solid rgba(194,59,46,0.2)', fontFamily: 'Epilogue, sans-serif' }}
+          >
             {saveError}
           </div>
         )}
@@ -116,9 +119,10 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="pm-label">Full Name <span style={{ color: '#C23B2E' }}>*</span></label>
+              <label className="pm-label">Full Name <span style={{ color: 'var(--crimson)' }}>*</span></label>
               <input
-                className={`pm-input${errors.fullName ? ' border-red-400' : ''}`}
+                className="pm-input"
+                style={errors.fullName ? { borderColor: 'var(--crimson)', backgroundColor: 'rgba(194,59,46,0.04)' } : {}}
                 value={form.fullName}
                 onChange={(e) => update('fullName', e.target.value)}
                 onBlur={(e) => validateField('fullName', e.target.value)}
@@ -128,7 +132,7 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
                 aria-required="true"
               />
               {errors.fullName && (
-                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#C23B2E', fontFamily: 'var(--font-mono)' }}>
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--crimson)', fontFamily: 'Azeret Mono, monospace' }}>
                   <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                   {errors.fullName}
                 </p>
@@ -138,7 +142,8 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
             <div>
               <label className="pm-label">Email</label>
               <input
-                className={`pm-input${errors.email ? ' border-red-400' : ''}`}
+                className="pm-input"
+                style={errors.email ? { borderColor: 'var(--crimson)', backgroundColor: 'rgba(194,59,46,0.04)' } : {}}
                 type="email"
                 value={form.email}
                 onChange={(e) => update('email', e.target.value)}
@@ -147,7 +152,7 @@ function ContactModal({ contact, onClose, onSave }: ContactModalProps) {
                 tabIndex={2}
               />
               {errors.email && (
-                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#C23B2E', fontFamily: 'var(--font-mono)' }}>
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--crimson)', fontFamily: 'Azeret Mono, monospace' }}>
                   <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                   {errors.email}
                 </p>
@@ -194,9 +199,9 @@ function ContactTableSkeleton() {
     <div className="pm-panel overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+          <tr style={{ borderBottom: '1px solid var(--cream)' }}>
             {['Name', 'Role', 'Company', 'Email', 'Phone', ''].map((h) => (
-              <th key={h} className="text-left py-2 px-3 text-xs font-semibold" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
+              <th key={h} className="text-left py-2 px-3 text-xs font-semibold" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
                 {h}
               </th>
             ))}
@@ -204,16 +209,16 @@ function ContactTableSkeleton() {
         </thead>
         <tbody>
           {Array.from({ length: 6 }).map((_, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }} className="animate-pulse">
-              <td className="py-3 px-3"><div className="h-3.5 rounded w-28" style={{ background: '#DDD8CF' }} /></td>
-              <td className="py-3 px-3"><div className="h-5 rounded-full w-20" style={{ background: '#DDD8CF' }} /></td>
-              <td className="py-3 px-3"><div className="h-3 rounded w-24" style={{ background: '#DDD8CF' }} /></td>
-              <td className="py-3 px-3"><div className="h-3 rounded w-32" style={{ background: '#DDD8CF' }} /></td>
-              <td className="py-3 px-3"><div className="h-3 rounded w-20" style={{ background: '#DDD8CF' }} /></td>
+            <tr key={i} style={{ borderBottom: '1px solid var(--cream)' }} className="animate-pulse">
+              <td className="py-3 px-3"><div className="h-3.5 rounded w-28" style={{ backgroundColor: 'var(--cream)' }} /></td>
+              <td className="py-3 px-3"><div className="h-5 rounded-full w-20" style={{ backgroundColor: 'var(--cream)' }} /></td>
+              <td className="py-3 px-3"><div className="h-3 rounded w-24" style={{ backgroundColor: 'var(--cream)' }} /></td>
+              <td className="py-3 px-3"><div className="h-3 rounded w-32" style={{ backgroundColor: 'var(--cream)' }} /></td>
+              <td className="py-3 px-3"><div className="h-3 rounded w-20" style={{ backgroundColor: 'var(--cream)' }} /></td>
               <td className="py-3 px-3">
                 <div className="flex items-center gap-1 justify-end">
-                  <div className="h-6 w-6 rounded-lg" style={{ background: '#DDD8CF' }} />
-                  <div className="h-6 w-6 rounded-lg" style={{ background: '#DDD8CF' }} />
+                  <div className="h-6 w-6 rounded-lg" style={{ backgroundColor: 'var(--cream)' }} />
+                  <div className="h-6 w-6 rounded-lg" style={{ backgroundColor: 'var(--cream)' }} />
                 </div>
               </td>
             </tr>
@@ -225,16 +230,16 @@ function ContactTableSkeleton() {
 }
 
 export default function ContactsPage() {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [contacts, setContacts]   = useState<Contact[]>([]);
   const [editTarget, setEditTarget] = useState<Contact | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const { canCreateContact } = useFeatureGate();
+  const { canCreateContact }      = useFeatureGate();
   const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch]       = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const { showToast } = useToast();
+  const { showToast }             = useToast();
 
   const refresh = useCallback(async () => {
     const supabase = createClient();
@@ -247,13 +252,13 @@ export default function ContactsPage() {
 
     setContacts(
       (data ?? []).map((row) => ({
-        id: row.id,
-        fullName: row.full_name,
-        email: row.email ?? '',
-        company: row.company ?? '',
-        role: row.role ?? '',
-        phone: row.phone ?? '',
-        notes: row.notes ?? '',
+        id:        row.id,
+        fullName:  row.full_name,
+        email:     row.email    ?? '',
+        company:   row.company  ?? '',
+        role:      row.role     ?? '',
+        phone:     row.phone    ?? '',
+        notes:     row.notes    ?? '',
         createdAt: row.created_at,
       }))
     );
@@ -264,12 +269,12 @@ export default function ContactsPage() {
   const filtered = contacts.filter((c) => {
     const q = search.toLowerCase();
     const matchSearch = !q || c.fullName.toLowerCase().includes(q) || c.company.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
-    const matchRole = !roleFilter || c.role === roleFilter;
+    const matchRole   = !roleFilter || c.role === roleFilter;
     return matchSearch && matchRole;
   });
 
   const handleEdit = (c: Contact) => { setEditTarget(c); setShowModal(true); };
-  const handleNew = () => {
+  const handleNew  = () => {
     if (!canCreateContact) { setShowUpgrade(true); return; }
     setEditTarget(null);
     setShowModal(true);
@@ -289,11 +294,12 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-background)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--ice)' }}>
       <Sidebar />
       <main className="pt-16 md:pt-0 md:pl-56">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
+          {/* Header panel */}
           <div className="pm-panel mb-6">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
@@ -302,8 +308,19 @@ export default function ContactsPage() {
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="relative">
-                  <Icon name="MagnifyingGlassIcon" size={16} variant="outline" className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-muted-foreground)' }} />
-                  <input className="pm-input pl-9 w-48" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <Icon
+                    name="MagnifyingGlassIcon"
+                    size={16}
+                    variant="outline"
+                    className="absolute left-3 top-1/2 -translate-y-1/2"
+                    style={{ color: 'var(--stone)' }}
+                  />
+                  <input
+                    className="pm-input pl-9 w-48"
+                    placeholder="Search..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
                 <select className="pm-input w-36" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                   <option value="">All Roles</option>
@@ -317,22 +334,26 @@ export default function ContactsPage() {
             </div>
           </div>
 
+          {/* Content */}
           {isLoading ? (
             <ContactTableSkeleton />
           ) : filtered.length === 0 ? (
             <div className="pm-panel flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'var(--color-muted)' }}>
-                <Icon name="UsersIcon" size={36} variant="outline" style={{ color: 'var(--color-muted-foreground)' }} />
+              <div
+                className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
+                style={{ backgroundColor: 'var(--cream)' }}
+              >
+                <Icon name="UsersIcon" size={36} variant="outline" style={{ color: 'var(--stone)' }} />
               </div>
               {search || roleFilter ? (
                 <>
-                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>No contacts found</h3>
-                  <p className="text-sm max-w-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>No contacts match your filters. Try adjusting your search or role filter.</p>
+                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>No contacts found</h3>
+                  <p className="text-sm max-w-xs" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>No contacts match your filters. Try adjusting your search or role filter.</p>
                 </>
               ) : (
                 <>
-                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>No contacts yet</h3>
-                  <p className="text-sm max-w-xs mb-6" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>Grow your industry network by adding your first contact — labels, managers, and A&Rs.</p>
+                  <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>No contacts yet</h3>
+                  <p className="text-sm max-w-xs mb-6" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>Grow your industry network by adding your first contact — labels, managers, and A&Rs.</p>
                   <button onClick={handleNew} className="pm-btn-primary flex items-center gap-2">
                     <Icon name="PlusIcon" size={16} variant="outline" />
                     Add Your First Contact
@@ -344,9 +365,13 @@ export default function ContactsPage() {
             <div className="pm-panel overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <tr style={{ borderBottom: '1px solid var(--cream)' }}>
                     {['Name', 'Role', 'Company', 'Email', 'Phone', ''].map((h) => (
-                      <th key={h} className="text-left py-2 px-3 text-xs font-semibold" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
+                      <th
+                        key={h}
+                        className="text-left py-2 px-3 text-xs font-semibold"
+                        style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}
+                      >
                         {h}
                       </th>
                     ))}
@@ -354,22 +379,27 @@ export default function ContactsPage() {
                 </thead>
                 <tbody>
                   {filtered.map((c) => (
-                    <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <td className="py-2.5 px-3 font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>{c.fullName}</td>
+                    <tr key={c.id} style={{ borderBottom: '1px solid var(--cream)' }}>
+                      <td className="py-2.5 px-3 font-medium" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
+                        {c.fullName}
+                      </td>
                       <td className="py-2.5 px-3">
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: 'var(--cream)', color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}
+                        >
                           {c.role}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>{c.company}</td>
-                      <td className="py-2.5 px-3" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>{c.email}</td>
-                      <td className="py-2.5 px-3" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-mono)' }}>{c.phone}</td>
+                      <td className="py-2.5 px-3" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>{c.company}</td>
+                      <td className="py-2.5 px-3" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>{c.email}</td>
+                      <td className="py-2.5 px-3" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>{c.phone}</td>
                       <td className="py-2.5 px-3">
                         <div className="flex items-center gap-1 justify-end">
                           <button onClick={() => handleEdit(c)} className="pm-btn p-1.5" aria-label="Edit">
                             <Icon name="PencilSquareIcon" size={14} variant="outline" />
                           </button>
-                          <button onClick={() => handleDelete(c)} className="pm-btn p-1.5" style={{ color: '#C23B2E' }} aria-label="Delete">
+                          <button onClick={() => handleDelete(c)} className="pm-btn p-1.5" style={{ color: 'var(--crimson)' }} aria-label="Delete">
                             <Icon name="TrashIcon" size={14} variant="outline" />
                           </button>
                         </div>

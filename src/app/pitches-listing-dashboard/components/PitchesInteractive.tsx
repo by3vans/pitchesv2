@@ -17,97 +17,69 @@ import { createClient } from '@/lib/supabase/client';
 type StatusType = 'novo' | 'em_analise' | 'aprovado' | 'rejeitado' | 'pendente' | 'arquivado';
 
 interface Pitch {
-  id: string;
-  title: string;
-  artist: string;
-  artistImage: string;
-  artistImageAlt: string;
-  status: StatusType;
-  category: string;
-  tags: string[];
-  submittedAt: string;
-  label: string;
-  description: string;
-  reminderCount?: number;
+  id: string; title: string; artist: string; artistImage: string; artistImageAlt: string;
+  status: StatusType; category: string; tags: string[]; submittedAt: string;
+  label: string; description: string; reminderCount?: number;
 }
 
 interface EditingPitch {
-  id: string;
-  title: string;
-  artistId: string;
-  trackUrl: string;
-  status: string;
-  notes: string;
-  createdAt: string;
+  id: string; title: string; artistId: string; trackUrl: string;
+  status: string; notes: string; createdAt: string;
 }
 
 interface FilterState {
-  search: string;
-  status: string;
-  category: string;
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
+  search: string; status: string; category: string;
+  sortBy: string; sortOrder: 'asc' | 'desc';
 }
 
 const STATUS_OPTIONS: { value: StatusType; label: string }[] = [
-  { value: 'novo', label: 'Novo' },
-  { value: 'em_analise', label: 'Em Análise' },
-  { value: 'aprovado', label: 'Aprovado' },
-  { value: 'rejeitado', label: 'Rejeitado' },
-  { value: 'pendente', label: 'Pendente' },
-  { value: 'arquivado', label: 'Arquivado' },
+  { value: 'novo', label: 'Novo' }, { value: 'em_analise', label: 'Em Análise' },
+  { value: 'aprovado', label: 'Aprovado' }, { value: 'rejeitado', label: 'Rejeitado' },
+  { value: 'pendente', label: 'Pendente' }, { value: 'arquivado', label: 'Arquivado' },
 ];
 
 const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
 
 const DB_STATUS_MAP: Record<string, StatusType> = {
-  draft: 'novo',
-  new: 'novo',
-  in_review: 'em_analise',
-  sent: 'em_analise',
-  hold: 'pendente',
-  placed: 'aprovado',
-  approved: 'aprovado',
-  rejected: 'rejeitado',
-  archived: 'arquivado',
-  novo: 'novo',
-  em_analise: 'em_analise',
-  aprovado: 'aprovado',
-  rejeitado: 'rejeitado',
-  pendente: 'pendente',
-  arquivado: 'arquivado',
+  draft: 'novo', new: 'novo', in_review: 'em_analise', sent: 'em_analise',
+  hold: 'pendente', placed: 'aprovado', approved: 'aprovado', rejected: 'rejeitado',
+  archived: 'arquivado', novo: 'novo', em_analise: 'em_analise', aprovado: 'aprovado',
+  rejeitado: 'rejeitado', pendente: 'pendente', arquivado: 'arquivado',
 };
 
+// ─── Skeletons ───────────────────────────────────────────────────────────────
 function PitchCardSkeleton({ viewMode }: { viewMode: 'card' | 'list' }) {
   if (viewMode === 'list') {
     return (
-      <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-gray-200 bg-white animate-pulse">
-        <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
+      <div className="flex items-center gap-4 px-4 py-3 rounded-xl border animate-pulse"
+        style={{ borderColor: 'var(--cream)', backgroundColor: 'var(--ice)' }}>
+        <div className="w-9 h-9 rounded-full shrink-0" style={{ backgroundColor: 'var(--cream)' }} />
         <div className="flex-1 min-w-0 space-y-2">
-          <div className="h-3.5 bg-gray-200 rounded w-2/5" />
-          <div className="h-3 bg-gray-100 rounded w-1/4" />
+          <div className="h-3.5 rounded w-2/5" style={{ backgroundColor: 'var(--cream)' }} />
+          <div className="h-3 rounded w-1/4" style={{ backgroundColor: 'var(--cream)' }} />
         </div>
         <div className="hidden sm:flex items-center gap-3">
-          <div className="h-5 w-16 bg-gray-200 rounded-full" />
-          <div className="h-3 w-20 bg-gray-100 rounded" />
+          <div className="h-5 w-16 rounded-full" style={{ backgroundColor: 'var(--cream)' }} />
+          <div className="h-3 w-20 rounded" style={{ backgroundColor: 'var(--cream)' }} />
         </div>
-        <div className="h-5 w-5 bg-gray-200 rounded shrink-0" />
+        <div className="h-5 w-5 rounded shrink-0" style={{ backgroundColor: 'var(--cream)' }} />
       </div>
     );
   }
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden animate-pulse">
-      <div className="h-28 bg-gray-200" />
+    <div className="rounded-xl border overflow-hidden animate-pulse"
+      style={{ borderColor: 'var(--cream)', backgroundColor: 'var(--ice)' }}>
+      <div className="h-28" style={{ backgroundColor: 'var(--cream)' }} />
       <div className="p-3 space-y-2.5">
-        <div className="h-4 bg-gray-200 rounded w-3/4" />
-        <div className="h-3 bg-gray-100 rounded w-1/2" />
+        <div className="h-4 rounded w-3/4" style={{ backgroundColor: 'var(--cream)' }} />
+        <div className="h-3 rounded w-1/2" style={{ backgroundColor: 'var(--cream)' }} />
         <div className="flex gap-1.5 mt-2">
-          <div className="h-5 w-12 bg-gray-200 rounded-full" />
-          <div className="h-5 w-14 bg-gray-100 rounded-full" />
+          <div className="h-5 w-12 rounded-full" style={{ backgroundColor: 'var(--cream)' }} />
+          <div className="h-5 w-14 rounded-full" style={{ backgroundColor: 'var(--cream)' }} />
         </div>
         <div className="flex items-center justify-between pt-1">
-          <div className="h-3 w-20 bg-gray-100 rounded" />
-          <div className="h-5 w-16 bg-gray-200 rounded-full" />
+          <div className="h-3 w-20 rounded" style={{ backgroundColor: 'var(--cream)' }} />
+          <div className="h-5 w-16 rounded-full" style={{ backgroundColor: 'var(--cream)' }} />
         </div>
       </div>
     </div>
@@ -118,7 +90,7 @@ function StatsBarSkeleton() {
   return (
     <div className="flex gap-3 flex-wrap animate-pulse">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-8 w-24 bg-gray-200 rounded-lg" />
+        <div key={i} className="h-8 w-24 rounded-lg" style={{ backgroundColor: 'var(--cream)' }} />
       ))}
     </div>
   );
@@ -126,105 +98,108 @@ function StatsBarSkeleton() {
 
 function SummaryCardSkeleton() {
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl border border-gray-200 bg-white animate-pulse">
-      <div className="w-9 h-9 rounded-lg bg-gray-200 shrink-0" />
+    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl border animate-pulse"
+      style={{ borderColor: 'var(--cream)', backgroundColor: 'var(--ice)' }}>
+      <div className="w-9 h-9 rounded-lg shrink-0" style={{ backgroundColor: 'var(--cream)' }} />
       <div className="space-y-2 flex-1">
-        <div className="h-3 bg-gray-200 rounded w-2/3" />
-        <div className="h-5 bg-gray-200 rounded w-1/2" />
+        <div className="h-3 rounded w-2/3" style={{ backgroundColor: 'var(--cream)' }} />
+        <div className="h-5 rounded w-1/2" style={{ backgroundColor: 'var(--cream)' }} />
       </div>
     </div>
   );
 }
 
+// ─── Empty State ─────────────────────────────────────────────────────────────
 function EmptyPitchesState({ hasFilters, onClearFilters }: { hasFilters: boolean; onClearFilters: () => void }) {
   if (hasFilters) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-          <Icon name="FunnelIcon" size={28} variant="outline" className="text-gray-400" />
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+          style={{ backgroundColor: 'var(--cream)' }}>
+          <Icon name="FunnelIcon" size={28} variant="outline" style={{ color: 'var(--stone)' }} />
         </div>
-        <h3 className="text-base font-semibold text-gray-900 mb-1">No pitches match your filters</h3>
-        <p className="text-sm text-gray-400 mb-4 max-w-xs">Try adjusting your search or filter criteria to find what you're looking for.</p>
-        <button
-          onClick={onClearFilters}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-gray-600">
+        <h3 className="text-base font-semibold mb-1"
+          style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}>
+          Nenhum pitch encontrado
+        </h3>
+        <p className="text-sm mb-4 max-w-xs"
+          style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
+          Tente ajustar os filtros para encontrar o que procura.
+        </p>
+        <button onClick={onClearFilters}
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border rounded-lg transition-all"
+          style={{ borderColor: 'var(--cream)', color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--cream)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
           <Icon name="XCircleIcon" size={14} variant="outline" />
-          Clear Filters
+          Limpar Filtros
         </button>
       </div>
     );
   }
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-        <Icon name="PaperAirplaneIcon" size={28} variant="outline" className="text-blue-400" />
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+        style={{ backgroundColor: 'var(--cream)' }}>
+        <Icon name="PaperAirplaneIcon" size={28} variant="outline" style={{ color: 'var(--blue)' }} />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-1">No pitches yet</h3>
-      <p className="text-sm text-gray-400 mb-5 max-w-xs">Start by creating your first pitch to track your music submissions and follow up with labels.</p>
-      <Link
-        href="/pitch-creation-workflow"
-        className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
+      <h3 className="text-base font-semibold mb-1"
+        style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}>
+        Nenhum pitch ainda
+      </h3>
+      <p className="text-sm mb-5 max-w-xs"
+        style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
+        Crie seu primeiro pitch para começar a acompanhar suas submissões.
+      </p>
+      <Link href="/pitch-creation-workflow"
+        className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all"
+        style={{ backgroundColor: 'var(--blue)', color: 'var(--ice)', fontFamily: 'Epilogue, sans-serif' }}>
         <Icon name="PlusIcon" size={16} variant="outline" />
-        + New Pitch
+        + Novo Pitch
       </Link>
     </div>
   );
 }
 
+// ─── Spinner ─────────────────────────────────────────────────────────────────
 function Spinner({ size = 13 }: { size?: number }) {
   return (
-    <svg
-      className="animate-spin"
-      style={{ width: size, height: size }}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      aria-hidden="true">
+    <svg className="animate-spin" style={{ width: size, height: size }}
+      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
   );
 }
 
-interface SummaryCardProps {
-  icon: string;
-  label: string;
-  value: string | number;
-  sub?: string;
-  accent?: boolean;
-}
+// ─── Summary Card ─────────────────────────────────────────────────────────────
+interface SummaryCardProps { icon: string; label: string; value: string | number; sub?: string; accent?: boolean; }
 
 function SummaryCard({ icon, label, value, sub, accent }: SummaryCardProps) {
   return (
-    <div
-      className="flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-white"
-      style={{ borderColor: accent ? 'var(--color-foreground)' : '#e5e7eb' }}>
-      <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-        style={{ background: accent ? 'var(--color-foreground)' : '#f3f4f6' }}>
-        <Icon
-          name={icon as Parameters<typeof Icon>[0]['name']}
-          size={18}
-          variant="outline"
-          className={accent ? 'text-white' : 'text-gray-500'} />
+    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl border"
+      style={{ backgroundColor: 'var(--ice)', borderColor: accent ? 'var(--ink)' : 'var(--cream)' }}>
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+        style={{ backgroundColor: accent ? 'var(--ink)' : 'var(--cream)' }}>
+        <Icon name={icon as Parameters<typeof Icon>[0]['name']} size={18} variant="outline"
+          style={{ color: accent ? 'var(--ice)' : 'var(--stone)' }} />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{label}</p>
-        <p className="text-xl font-bold text-gray-900 leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{sub}</p>}
+        <p className="text-xs font-medium uppercase tracking-wider"
+          style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>{label}</p>
+        <p className="text-xl font-bold leading-tight"
+          style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}>{value}</p>
+        {sub && <p className="text-xs mt-0.5"
+          style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>{sub}</p>}
       </div>
     </div>
   );
 }
 
+// ─── Pagination ───────────────────────────────────────────────────────────────
 interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  totalItems: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
-  isLoading?: boolean;
+  currentPage: number; totalPages: number; pageSize: number; totalItems: number;
+  onPageChange: (page: number) => void; onPageSizeChange: (size: number) => void; isLoading?: boolean;
 }
 
 function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChange, onPageSizeChange, isLoading }: PaginationProps) {
@@ -247,26 +222,31 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
     return pages;
   };
 
+  const btnBase: React.CSSProperties = {
+    fontFamily: 'Azeret Mono, monospace',
+    backgroundColor: 'var(--ice)',
+    borderColor: 'var(--cream)',
+    color: 'var(--stone)',
+  };
+
   return (
-    <div className="flex flex-col gap-3 pt-4 mt-4 border-t border-gray-100">
+    <div className="flex flex-col gap-3 pt-4 mt-4 border-t" style={{ borderColor: 'var(--cream)' }}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-gray-400" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-          {isLoading ? (
-            <span className="inline-block h-3 w-28 bg-gray-200 rounded animate-pulse" />
-          ) : totalItems === 0 ? 'No results' : `${startItem}–${endItem} of ${totalItems}`}
+        <span className="text-xs" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
+          {isLoading
+            ? <span className="inline-block h-3 w-28 rounded animate-pulse" style={{ backgroundColor: 'var(--cream)' }} />
+            : totalItems === 0 ? 'Sem resultados' : `${startItem}–${endItem} de ${totalItems}`}
         </span>
         <div className="flex items-center gap-1.5">
-          <label className="text-xs text-gray-400" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Per page:</label>
+          <label className="text-xs" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>Por página:</label>
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
             disabled={isLoading}
             aria-label="Items per page"
-            className="text-xs rounded-lg px-2 py-1.5 border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-            {PAGE_SIZE_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            className="text-xs rounded-lg px-2 py-1.5 border focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            style={btnBase}>
+            {PAGE_SIZE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
       </div>
@@ -276,14 +256,15 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1 || isLoading}
             aria-label="Previous page"
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
-            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
+            style={btnBase}>
             <Icon name="ChevronLeftIcon" size={13} variant="outline" aria-hidden="true" />
-            <span className="hidden sm:inline">Prev</span>
+            <span className="hidden sm:inline">Ant.</span>
           </button>
           {getPageNumbers().map((page, idx) =>
             page === '...' ? (
-              <span key={`ellipsis-${idx}`} className="px-2 py-2 text-xs text-gray-400" aria-hidden="true">…</span>
+              <span key={`ellipsis-${idx}`} className="px-2 py-2 text-xs"
+                style={{ color: 'var(--stone)' }} aria-hidden="true">…</span>
             ) : (
               <button
                 key={page}
@@ -291,12 +272,14 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
                 disabled={isLoading}
                 aria-label={`Page ${page}`}
                 aria-current={currentPage === page ? 'page' : undefined}
-                className={`min-w-[36px] min-h-[36px] px-2.5 py-2 rounded-lg text-xs border transition-all disabled:cursor-not-allowed ${
-                  currentPage === page
-                    ? 'bg-blue-600 border-blue-600 text-white font-semibold'
-                    : 'border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
-                }`}
-                style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                className="min-w-[36px] min-h-[36px] px-2.5 py-2 rounded-lg text-xs border transition-all disabled:cursor-not-allowed"
+                style={{
+                  fontFamily: 'Azeret Mono, monospace',
+                  backgroundColor: currentPage === page ? 'var(--ink)' : 'var(--ice)',
+                  borderColor: currentPage === page ? 'var(--ink)' : 'var(--cream)',
+                  color: currentPage === page ? 'var(--ice)' : 'var(--stone)',
+                  fontWeight: currentPage === page ? 600 : 400,
+                }}>
                 {page}
               </button>
             )
@@ -305,9 +288,9 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages || isLoading}
             aria-label="Next page"
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border border-gray-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
-            style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-            <span className="hidden sm:inline">Next</span>
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs border transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[36px] min-w-[44px] justify-center"
+            style={btnBase}>
+            <span className="hidden sm:inline">Próx.</span>
             <Icon name="ChevronRightIcon" size={13} variant="outline" aria-hidden="true" />
           </button>
         </div>
@@ -316,19 +299,14 @@ function Pagination({ currentPage, totalPages, pageSize, totalItems, onPageChang
   );
 }
 
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function PitchesInteractive() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [isLoading, setIsLoading] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    search: '',
-    status: '',
-    category: '',
-    sortBy: 'date',
-    sortOrder: 'desc',
-  });
+  const [filters, setFilters] = useState<FilterState>({ search: '', status: '', category: '', sortBy: 'date', sortOrder: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -342,128 +320,74 @@ export default function PitchesInteractive() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const prevFiltersRef = useRef(filters);
 
-  // ── Supabase fetch ──────────────────────────────────────────────────────────
   const fetchPitches = async () => {
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setPitches([]);
-        setIsLoading(false);
-        return;
-      }
+      if (!user) { setPitches([]); setIsLoading(false); return; }
 
       const { data: pitchRows, error: pitchError } = await supabase
-        .from('pitches')
-        .select('id, title, artist_id, status, notes, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
+        .from('pitches').select('id, title, artist_id, status, notes, created_at')
+        .eq('user_id', user.id).order('created_at', { ascending: false });
       if (pitchError) throw pitchError;
 
-      const { data: artistRows } = await supabase
-        .from('artists')
-        .select('id, name, genre, avatar_url')
-        .eq('user_id', user.id);
-
-      const { data: reminderRows } = await supabase
-        .from('reminders')
-        .select('pitch_id, status')
-        .eq('user_id', user.id)
-        .eq('status', 'pending');
+      const { data: artistRows } = await supabase.from('artists').select('id, name, genre, avatar_url').eq('user_id', user.id);
+      const { data: reminderRows } = await supabase.from('reminders').select('pitch_id, status').eq('user_id', user.id).eq('status', 'pending');
 
       const artistMap: Record<string, { name: string; genre: string; avatar: string }> = {};
-      (artistRows || []).forEach((a) => {
-        artistMap[a.id] = { name: a.name, genre: a.genre || '', avatar: a.avatar_url || '' };
-      });
+      (artistRows || []).forEach((a) => { artistMap[a.id] = { name: a.name, genre: a.genre || '', avatar: a.avatar_url || '' }; });
 
       const reminderCountMap: Record<string, number> = {};
-      (reminderRows || []).forEach((r) => {
-        if (r.pitch_id) {
-          reminderCountMap[r.pitch_id] = (reminderCountMap[r.pitch_id] || 0) + 1;
-        }
-      });
+      (reminderRows || []).forEach((r) => { if (r.pitch_id) reminderCountMap[r.pitch_id] = (reminderCountMap[r.pitch_id] || 0) + 1; });
 
       const mapped: Pitch[] = (pitchRows || []).map((row) => {
         const artist = artistMap[row.artist_id] || { name: 'Unknown Artist', genre: '', avatar: '' };
         const d = new Date(row.created_at);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
         return {
-          id: row.id,
-          title: row.title,
-          artist: artist.name,
-          artistImage: artist.avatar,
-          artistImageAlt: `${artist.name} artist photo`,
-          status: DB_STATUS_MAP[row.status] ?? 'novo',
-          category: artist.genre,
-          tags: [],
-          submittedAt: `${day}/${month}/${year}`,
-          label: '',
-          description: row.notes || '',
-          reminderCount: reminderCountMap[row.id] || 0,
+          id: row.id, title: row.title, artist: artist.name,
+          artistImage: artist.avatar, artistImageAlt: `${artist.name} artist photo`,
+          status: DB_STATUS_MAP[row.status] ?? 'novo', category: artist.genre, tags: [],
+          submittedAt: `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,
+          label: '', description: row.notes || '', reminderCount: reminderCountMap[row.id] || 0,
         };
       });
-
       setPitches(mapped);
     } catch (err: unknown) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[PitchesInteractive] Failed to fetch pitches:', err instanceof Error ? err.message : err);
-      }
+      if (process.env.NODE_ENV === 'development') console.error('[PitchesInteractive]', err instanceof Error ? err.message : err);
       setPitches([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchPitches();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { fetchPitches(); }, []); // eslint-disable-line
 
-  // ── Realtime subscription ───────────────────────────────────────────────────
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
-
     const setupRealtime = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      channel = supabase
-        .channel('pitches-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pitches', filter: `user_id=eq.${user.id}` }, () => { fetchPitches(); })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'reminders', filter: `user_id=eq.${user.id}` }, () => { fetchPitches(); })
+      channel = supabase.channel('pitches-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pitches', filter: `user_id=eq.${user.id}` }, () => fetchPitches())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reminders', filter: `user_id=eq.${user.id}` }, () => fetchPitches())
         .subscribe();
     };
-
     setupRealtime();
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => { if (channel) supabase.removeChannel(channel); };
+  }, []); // eslint-disable-line
 
   useEffect(() => {
-    const handleRealtimeRefresh = () => { fetchPitches(); };
+    const handleRealtimeRefresh = () => fetchPitches();
     window.addEventListener('realtime-refresh', handleRealtimeRefresh);
     return () => window.removeEventListener('realtime-refresh', handleRealtimeRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // eslint-disable-line
 
-  // Trigger skeleton on filter/search/sort changes
   useEffect(() => {
     const prev = prevFiltersRef.current;
-    const changed =
-      prev.search !== filters.search ||
-      prev.status !== filters.status ||
-      prev.category !== filters.category ||
-      prev.sortBy !== filters.sortBy ||
-      prev.sortOrder !== filters.sortOrder;
-
+    const changed = prev.search !== filters.search || prev.status !== filters.status ||
+      prev.category !== filters.category || prev.sortBy !== filters.sortBy || prev.sortOrder !== filters.sortOrder;
     if (changed && !isLoading) {
-      setIsFilterLoading(true);
-      setCurrentPage(1);
+      setIsFilterLoading(true); setCurrentPage(1);
       const timer = setTimeout(() => setIsFilterLoading(false), 400);
       prevFiltersRef.current = filters;
       return () => clearTimeout(timer);
@@ -473,35 +397,23 @@ export default function PitchesInteractive() {
 
   const filteredPitches = useMemo(() => {
     let result = [...pitches];
-
     if (filters.search) {
       const q = filters.search.toLowerCase();
-      result = result.filter((p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.artist.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q)) ||
-        p.category.toLowerCase().includes(q)
-      );
+      result = result.filter((p) => p.title.toLowerCase().includes(q) || p.artist.toLowerCase().includes(q) || p.tags.some((t) => t.toLowerCase().includes(q)) || p.category.toLowerCase().includes(q));
     }
-
     if (filters.status) result = result.filter((p) => p.status === filters.status);
     if (filters.category) result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
-
     result.sort((a, b) => {
       let cmp = 0;
       if (filters.sortBy === 'artist') cmp = a.artist.localeCompare(b.artist);
       else if (filters.sortBy === 'title') cmp = a.title.localeCompare(b.title);
       else if (filters.sortBy === 'status') cmp = a.status.localeCompare(b.status);
       else {
-        const parseDate = (d: string) => {
-          const [day, month, year] = d.split('/');
-          return new Date(+year, +month - 1, +day).getTime();
-        };
+        const parseDate = (d: string) => { const [day, month, year] = d.split('/'); return new Date(+year, +month - 1, +day).getTime(); };
         cmp = parseDate(a.submittedAt) - parseDate(b.submittedAt);
       }
       return filters.sortOrder === 'asc' ? cmp : -cmp;
     });
-
     return result;
   }, [filters, pitches]);
 
@@ -528,14 +440,11 @@ export default function PitchesInteractive() {
     const avgDays = reviewedPitches.length > 0
       ? Math.round(reviewedPitches.reduce((sum, p) => {
           const [day, month, year] = p.submittedAt.split('/');
-          const submitted = new Date(+year, +month - 1, +day);
-          return sum + Math.max(0, Math.floor((now.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24)));
-        }, 0) / reviewedPitches.length)
-      : 0;
+          return sum + Math.max(0, Math.floor((now.getTime() - new Date(+year, +month - 1, +day).getTime()) / 86400000));
+        }, 0) / reviewedPitches.length) : 0;
     const recentCount = pitches.filter((p) => {
       const [day, month, year] = p.submittedAt.split('/');
-      const submitted = new Date(+year, +month - 1, +day);
-      return (now.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24) <= 7;
+      return (now.getTime() - new Date(+year, +month - 1, +day).getTime()) / 86400000 <= 7;
     }).length;
     return { total, approvalRate, avgDays, recentCount };
   }, [pitches]);
@@ -543,19 +452,12 @@ export default function PitchesInteractive() {
   const hasActiveFilters = !!(filters.search || filters.status || filters.category);
 
   const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+    setSelectedIds((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === paginatedPitches.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(paginatedPitches.map((p) => p.id)));
-    }
+    if (selectedIds.size === paginatedPitches.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(paginatedPitches.map((p) => p.id)));
   };
 
   const clearSelection = () => setSelectedIds(new Set());
@@ -564,17 +466,10 @@ export default function PitchesInteractive() {
     setIsBulkDeleting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('pitches').delete().in('id', Array.from(selectedIds)).eq('user_id', user.id);
-      }
-      await fetchPitches();
-      setSelectedIds(new Set());
-      setCurrentPage(1);
-    } catch {
-      if (process.env.NODE_ENV === 'development') console.error('Failed to delete pitches');
-    } finally {
-      setIsBulkDeleting(false);
-    }
+      if (user) await supabase.from('pitches').delete().in('id', Array.from(selectedIds)).eq('user_id', user.id);
+      await fetchPitches(); setSelectedIds(new Set()); setCurrentPage(1);
+    } catch { if (process.env.NODE_ENV === 'development') console.error('Failed to delete pitches'); }
+    finally { setIsBulkDeleting(false); }
   };
 
   const handleBulkStatusUpdate = async () => {
@@ -582,59 +477,35 @@ export default function PitchesInteractive() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const dbStatusReverseMap: Record<StatusType, string> = {
-        novo: 'draft',
-        em_analise: 'in_review',
-        aprovado: 'approved',
-        rejeitado: 'rejected',
-        pendente: 'hold',
-        arquivado: 'archived',
+        novo: 'draft', em_analise: 'in_review', aprovado: 'approved',
+        rejeitado: 'rejected', pendente: 'hold', arquivado: 'archived',
       };
       if (user) {
-        await supabase
-          .from('pitches')
-          .update({ status: dbStatusReverseMap[bulkStatusValue] })
-          .in('id', Array.from(selectedIds))
-          .eq('user_id', user.id);
+        await supabase.from('pitches').update({ status: dbStatusReverseMap[bulkStatusValue] })
+          .in('id', Array.from(selectedIds)).eq('user_id', user.id);
         await fetchPitches();
       }
       setSelectedIds(new Set());
-    } catch {
-      if (process.env.NODE_ENV === 'development') console.error('Failed to update pitch statuses');
-    } finally {
-      setIsBulkUpdating(false);
-    }
+    } catch { if (process.env.NODE_ENV === 'development') console.error('Failed to update pitch statuses'); }
+    finally { setIsBulkUpdating(false); }
   };
 
   const handleBulkExport = () => {
     const selected = pitches.filter((p) => selectedIds.has(p.id));
     const header = 'ID,Title,Artist,Status,Category,Label,Submitted';
-    const rows = selected.map((p) =>
-      `${p.id},"${p.title}","${p.artist}",${p.status},${p.category},"${p.label}",${p.submittedAt}`
-    ).join('\n');
-    const csv = `${header}\n${rows}`;
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const rows = selected.map((p) => `${p.id},"${p.title}","${p.artist}",${p.status},${p.category},"${p.label}",${p.submittedAt}`).join('\n');
+    const blob = new Blob([`${header}\n${rows}`], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+    const a = document.createElement('a'); a.href = url;
     a.download = `pitches_export_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setSelectedIds(new Set());
+    a.click(); URL.revokeObjectURL(url); setSelectedIds(new Set());
   };
 
   const handlePageSizeChange = (size: number) => { setPageSize(size); setCurrentPage(1); setSelectedIds(new Set()); };
   const handlePageChange = (page: number) => { setCurrentPage(page); setSelectedIds(new Set()); };
 
   const handleEditPitch = (pitch: Pitch) => {
-    setEditingPitch({
-      id: pitch.id,
-      title: pitch.title,
-      artistId: '',
-      trackUrl: '',
-      status: 'draft',
-      notes: pitch.description || '',
-      createdAt: pitch.submittedAt,
-    });
+    setEditingPitch({ id: pitch.id, title: pitch.title, artistId: '', trackUrl: '', status: 'draft', notes: pitch.description || '', createdAt: pitch.submittedAt });
     setIsEditModalOpen(true);
   };
 
@@ -646,16 +517,13 @@ export default function PitchesInteractive() {
 
   useKeyboardShortcuts({
     onNewPitch: () => router.push('/pitch-creation-workflow'),
-    onSearch: () => {
-      const searchInput = document.querySelector<HTMLInputElement>('input[placeholder*="Buscar"]');
-      if (searchInput) { searchInput.focus(); searchInput.select(); }
-    },
+    onSearch: () => { const el = document.querySelector<HTMLInputElement>('input[placeholder*="Buscar"]'); if (el) { el.focus(); el.select(); } },
     onFilter: () => setFiltersOpen((prev) => !prev),
     onHelp: () => setShowHelpModal(true),
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--ice)' }}>
       <Sidebar />
 
       <main className="pt-16 md:pt-0 md:pl-56">
@@ -664,53 +532,52 @@ export default function PitchesInteractive() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" role="region" aria-label="Pitches summary statistics">
-            {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => <SummaryCardSkeleton key={i} />)
-            ) : (
+            {isLoading ? Array.from({ length: 4 }).map((_, i) => <SummaryCardSkeleton key={i} />) : (
               <>
                 <SummaryCard icon="DocumentTextIcon" label="Total Pitches" value={summaryMetrics.total} sub="all time" accent />
-                <SummaryCard icon="CheckCircleIcon" label="Approval Rate" value={`${summaryMetrics.approvalRate}%`} sub="of reviewed pitches" />
-                <SummaryCard icon="ClockIcon" label="Avg Review Time" value={`${summaryMetrics.avgDays}d`} sub="days to decision" />
+                <SummaryCard icon="CheckCircleIcon" label="Approval Rate" value={`${summaryMetrics.approvalRate}%`} sub="of reviewed" />
+                <SummaryCard icon="ClockIcon" label="Avg Review" value={`${summaryMetrics.avgDays}d`} sub="days to decision" />
                 <SummaryCard icon="BoltIcon" label="Recent (7d)" value={summaryMetrics.recentCount} sub="new submissions" />
               </>
             )}
           </div>
 
           {/* Main Panel */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-[18px] shadow-sm">
+          <div className="rounded-2xl p-[18px]" style={{ backgroundColor: 'var(--ice)', border: '1px solid var(--cream)' }}>
 
             {/* Topbar */}
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                <p className="text-xs font-medium uppercase tracking-widest mb-1"
+                  style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
                   Gerenciamento
                 </p>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <h1 className="text-2xl lg:text-3xl font-bold tracking-tight"
+                  style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}>
                   Pitches
                 </h1>
               </div>
               <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-                <div className="hidden sm:flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setViewMode('card')}
-                    className={`p-2.5 transition-all ${viewMode === 'card' ? 'bg-gray-900 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                    aria-label="Visualização em cards">
-                    <Icon name="Squares2X2Icon" size={16} variant="outline" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2.5 transition-all ${viewMode === 'list' ? 'bg-gray-900 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                    aria-label="Visualização em lista">
-                    <Icon name="ListBulletIcon" size={16} variant="outline" />
-                  </button>
+                {/* View Toggle */}
+                <div className="hidden sm:flex items-center border rounded-lg overflow-hidden" style={{ borderColor: 'var(--cream)' }}>
+                  {(['card', 'list'] as const).map((mode) => (
+                    <button key={mode} onClick={() => setViewMode(mode)}
+                      className="p-2.5 transition-all"
+                      style={{
+                        backgroundColor: viewMode === mode ? 'var(--ink)' : 'var(--ice)',
+                        color: viewMode === mode ? 'var(--ice)' : 'var(--stone)',
+                      }}
+                      aria-label={mode === 'card' ? 'Visualização em cards' : 'Visualização em lista'}>
+                      <Icon name={mode === 'card' ? 'Squares2X2Icon' : 'ListBulletIcon'} size={16} variant="outline" />
+                    </button>
+                  ))}
                 </div>
-                <button
-                  onClick={() => setShowHelpModal(true)}
-                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 text-xs rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition-all"
-                  aria-label="Show keyboard shortcuts (⌘+?)"
-                  title="Keyboard shortcuts (⌘+?)">
+                <button onClick={() => setShowHelpModal(true)}
+                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 text-xs rounded-lg border transition-all"
+                  style={{ borderColor: 'var(--cream)', backgroundColor: 'var(--ice)', color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}
+                  aria-label="Show keyboard shortcuts (⌘+?)" title="Keyboard shortcuts (⌘+?)">
                   <Icon name="QuestionMarkCircleIcon" size={15} variant="outline" />
-                  <span className="hidden lg:inline">Shortcuts</span>
+                  <span className="hidden lg:inline">Atalhos</span>
                 </button>
                 <Link href="/pitch-creation-workflow" className="pm-btn-primary text-sm min-h-[36px] flex items-center gap-1.5">
                   <Icon name="PlusIcon" size={16} variant="outline" />
@@ -728,12 +595,9 @@ export default function PitchesInteractive() {
             {/* Filters */}
             <div className="mb-5">
               <PitchesFilterBar
-                filters={filters}
-                onFilterChange={setFilters}
-                totalCount={pitches.length}
-                filteredCount={filteredPitches.length}
-                mobileFiltersOpen={filtersOpen}
-                onMobileFiltersToggle={() => setFiltersOpen((prev) => !prev)} />
+                filters={filters} onFilterChange={setFilters}
+                totalCount={pitches.length} filteredCount={filteredPitches.length}
+                mobileFiltersOpen={filtersOpen} onMobileFiltersToggle={() => setFiltersOpen((prev) => !prev)} />
             </div>
 
             {/* Select-all row */}
@@ -743,18 +607,19 @@ export default function PitchesInteractive() {
                   <div
                     role="checkbox"
                     aria-checked={allPageSelected ? true : someSelected ? 'mixed' : false}
-                    aria-label={allPageSelected ? 'Deselect all pitches on this page' : 'Select all pitches on this page'}
+                    aria-label={allPageSelected ? 'Desmarcar todos' : 'Selecionar todos'}
                     tabIndex={0}
                     onClick={toggleSelectAll}
                     onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleSelectAll(); } }}
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
-                      allPageSelected ? 'bg-gray-900 border-gray-900' : someSelected ? 'bg-gray-400 border-gray-400' : 'border-gray-300 hover:border-gray-500'
-                    }`}>
-                    {(allPageSelected || someSelected) && <Icon name="MinusIcon" size={10} variant="outline" className="text-white" />}
-                    {allPageSelected && <Icon name="CheckIcon" size={10} variant="outline" className="text-white" />}
+                    className="w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all focus:outline-none"
+                    style={{
+                      backgroundColor: allPageSelected || someSelected ? 'var(--ink)' : 'transparent',
+                      borderColor: allPageSelected || someSelected ? 'var(--ink)' : 'var(--cream)',
+                    }}>
+                    {(allPageSelected || someSelected) && <Icon name={allPageSelected ? 'CheckIcon' : 'MinusIcon'} size={10} variant="outline" style={{ color: 'var(--ice)' }} />}
                   </div>
-                  <span className="text-xs text-gray-500" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                    {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
+                  <span className="text-xs" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
+                    {selectedIds.size > 0 ? `${selectedIds.size} selecionado${selectedIds.size !== 1 ? 's' : ''}` : 'Selecionar todos'}
                   </span>
                 </label>
               </div>
@@ -764,65 +629,52 @@ export default function PitchesInteractive() {
             {selectionMode && (
               <div
                 className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 px-3 py-3 rounded-xl border"
-                style={{ background: '#1d4ed8', borderColor: '#2563EB' }}
+                style={{ backgroundColor: 'var(--ink)', borderColor: 'var(--ink)' }}
                 role="toolbar"
-                aria-label={`Bulk actions for ${selectedIds.size} selected pitch${selectedIds.size !== 1 ? 'es' : ''}`}>
+                aria-label={`Bulk actions for ${selectedIds.size} selected`}>
                 <div className="flex items-center justify-between sm:justify-start gap-2">
-                  <span className="text-xs font-semibold text-white" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                    {selectedIds.size} pitch{selectedIds.size !== 1 ? 'es' : ''} selected
+                  <span className="text-xs font-semibold" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--ice)' }}>
+                    {selectedIds.size} pitch{selectedIds.size !== 1 ? 'es' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
                   </span>
-                  <button
-                    onClick={clearSelection}
-                    disabled={isBulkProcessing}
-                    aria-label="Clear selection"
-                    className="sm:hidden flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button onClick={clearSelection} disabled={isBulkProcessing}
+                    className="sm:hidden flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    style={{ color: 'var(--cream)' }}>
                     <Icon name="XMarkIcon" size={13} variant="outline" aria-hidden="true" />
-                    Clear
+                    Limpar
                   </button>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap sm:ml-auto">
                   <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
-                    <select
-                      value={bulkStatusValue}
-                      onChange={(e) => setBulkStatusValue(e.target.value as StatusType)}
-                      disabled={isBulkProcessing}
-                      aria-label="Select new status for bulk update"
-                      className="flex-1 sm:flex-none text-xs rounded-lg px-2 py-2 border border-blue-400 bg-blue-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                      style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                    <select value={bulkStatusValue} onChange={(e) => setBulkStatusValue(e.target.value as StatusType)}
+                      disabled={isBulkProcessing} aria-label="Select new status for bulk update"
+                      className="flex-1 sm:flex-none text-xs rounded-lg px-2 py-2 border focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                      style={{ fontFamily: 'Azeret Mono, monospace', backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)', color: 'var(--ice)' }}>
                       {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
-                    <button
-                      onClick={handleBulkStatusUpdate}
-                      disabled={isBulkProcessing}
-                      aria-label={isBulkUpdating ? 'Updating status…' : `Update status of ${selectedIds.size} selected`}
+                    <button onClick={handleBulkStatusUpdate} disabled={isBulkProcessing}
                       aria-busy={isBulkUpdating}
-                      className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                      className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: 'var(--ice)', fontFamily: 'Epilogue, sans-serif' }}>
                       {isBulkUpdating ? <Spinner size={13} /> : <Icon name="ArrowPathIcon" size={13} variant="outline" aria-hidden="true" />}
-                      <span>{isBulkUpdating ? 'Updating…' : 'Update'}</span>
+                      {isBulkUpdating ? 'Atualizando…' : 'Atualizar'}
                     </button>
                   </div>
-                  <button
-                    onClick={handleBulkExport}
-                    disabled={isBulkProcessing}
-                    aria-label={`Export ${selectedIds.size} selected pitches as CSV`}
-                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                  <button onClick={handleBulkExport} disabled={isBulkProcessing}
+                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: 'var(--ice)', fontFamily: 'Epilogue, sans-serif' }}>
                     <Icon name="ArrowDownTrayIcon" size={13} variant="outline" aria-hidden="true" />
-                    <span>Export</span>
+                    Exportar
                   </button>
-                  <button
-                    onClick={handleBulkDelete}
-                    disabled={isBulkProcessing}
-                    aria-label={isBulkDeleting ? 'Deleting…' : `Delete ${selectedIds.size} selected pitches`}
+                  <button onClick={handleBulkDelete} disabled={isBulkProcessing}
                     aria-busy={isBulkDeleting}
-                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                    className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                    style={{ backgroundColor: 'var(--crimson)', color: 'var(--ice)', fontFamily: 'Epilogue, sans-serif' }}>
                     {isBulkDeleting ? <Spinner size={13} /> : <Icon name="TrashIcon" size={13} variant="outline" aria-hidden="true" />}
-                    <span>{isBulkDeleting ? 'Deleting…' : 'Delete'}</span>
+                    {isBulkDeleting ? 'Deletando…' : 'Deletar'}
                   </button>
-                  <button
-                    onClick={clearSelection}
-                    disabled={isBulkProcessing}
-                    aria-label="Clear selection"
-                    className="hidden sm:flex items-center gap-1 text-xs px-2 py-2 rounded-lg hover:bg-blue-700 text-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]">
+                  <button onClick={clearSelection} disabled={isBulkProcessing}
+                    className="hidden sm:flex items-center gap-1 text-xs px-2 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                    style={{ color: 'var(--cream)' }}>
                     <Icon name="XMarkIcon" size={13} variant="outline" aria-hidden="true" />
                   </button>
                 </div>
@@ -842,33 +694,22 @@ export default function PitchesInteractive() {
                   </div>
                 )
               ) : filteredPitches.length === 0 ? (
-                <EmptyPitchesState
-                  hasFilters={hasActiveFilters}
+                <EmptyPitchesState hasFilters={hasActiveFilters}
                   onClearFilters={() => setFilters({ search: '', status: '', category: '', sortBy: 'date', sortOrder: 'desc' })} />
               ) : viewMode === 'card' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   {paginatedPitches.map((pitch) => (
-                    <PitchCard
-                      key={pitch.id}
-                      pitch={pitch}
-                      viewMode="card"
-                      isSelected={selectedIds.has(pitch.id)}
-                      onToggleSelect={toggleSelect}
-                      selectionMode={selectionMode}
-                      onEdit={handleEditPitch} />
+                    <PitchCard key={pitch.id} pitch={pitch} viewMode="card"
+                      isSelected={selectedIds.has(pitch.id)} onToggleSelect={toggleSelect}
+                      selectionMode={selectionMode} onEdit={handleEditPitch} />
                   ))}
                 </div>
               ) : (
                 <div className="space-y-2">
                   {paginatedPitches.map((pitch) => (
-                    <PitchCard
-                      key={pitch.id}
-                      pitch={pitch}
-                      viewMode="list"
-                      isSelected={selectedIds.has(pitch.id)}
-                      onToggleSelect={toggleSelect}
-                      selectionMode={selectionMode}
-                      onEdit={handleEditPitch} />
+                    <PitchCard key={pitch.id} pitch={pitch} viewMode="list"
+                      isSelected={selectedIds.has(pitch.id)} onToggleSelect={toggleSelect}
+                      selectionMode={selectionMode} onEdit={handleEditPitch} />
                   ))}
                 </div>
               )}
@@ -877,25 +718,23 @@ export default function PitchesInteractive() {
             {/* Pagination */}
             {!showSkeleton && filteredPitches.length > 0 && (
               <Pagination
-                currentPage={safePage}
-                totalPages={totalPages}
-                pageSize={pageSize}
-                totalItems={filteredPitches.length}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                isLoading={showSkeleton} />
+                currentPage={safePage} totalPages={totalPages} pageSize={pageSize}
+                totalItems={filteredPitches.length} onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange} isLoading={showSkeleton} />
             )}
           </div>
         </div>
       </main>
 
+      {/* Footer */}
       <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
-          <p>&copy; {new Date().getFullYear()} PitchManager. Todos os direitos reservados.</p>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs"
+          style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
+          <p>&copy; {new Date().getFullYear()} Pitchhood. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
-            <Link href="/pitches-listing-dashboard" className="hover:text-gray-600 transition-colors">Dashboard</Link>
-            <Link href="/pitch-creation-workflow" className="hover:text-gray-600 transition-colors">Novo Pitch</Link>
-            <Link href="/pitch-detail-management" className="hover:text-gray-600 transition-colors">Detalhes</Link>
+            <Link href="/pitches-listing-dashboard" className="transition-colors hover:opacity-70">Dashboard</Link>
+            <Link href="/pitch-creation-workflow" className="transition-colors hover:opacity-70">Novo Pitch</Link>
+            <Link href="/pitch-detail-management" className="transition-colors hover:opacity-70">Detalhes</Link>
           </div>
         </div>
       </footer>
@@ -904,11 +743,7 @@ export default function PitchesInteractive() {
 
       <NewPitchModal
         isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingPitch(null);
-          fetchPitches();
-        }}
+        onClose={() => { setIsEditModalOpen(false); setEditingPitch(null); fetchPitches(); }}
         editPitch={editingPitch ?? undefined} />
     </div>
   );

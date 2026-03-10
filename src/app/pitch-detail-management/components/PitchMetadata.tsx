@@ -20,6 +20,30 @@ interface PitchMetadataProps {
   imageAlt: string;
 }
 
+const sectionStyle = {
+  backgroundColor: 'var(--ice)',
+  borderColor: 'var(--cream)',
+};
+
+const labelStyle = {
+  fontFamily: 'Azeret Mono, monospace',
+  color: 'var(--stone)',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase' as const,
+  fontSize: '0.65rem',
+};
+
+const metaLabelStyle = {
+  fontFamily: 'Azeret Mono, monospace',
+  color: 'var(--stone)',
+  fontSize: '0.7rem',
+};
+
+const metaValueStyle = {
+  fontFamily: 'Epilogue, sans-serif',
+  color: 'var(--ink)',
+};
+
 export default function PitchMetadata({
   artist,
   genre,
@@ -33,58 +57,66 @@ export default function PitchMetadata({
 }: PitchMetadataProps) {
   return (
     <div className="space-y-5">
+
       {/* Artist Card */}
-      <div className="flex items-center gap-4 p-4 rounded-xl border bg-white" style={{ borderColor: 'var(--color-border)' }}>
+      <div className="flex items-center gap-4 p-4 rounded-xl border" style={sectionStyle}>
         <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
           <AppImage src={imageUrl} alt={imageAlt} width={64} height={64} className="w-full h-full object-cover" />
         </div>
         <div>
-          <p className="font-semibold text-base text-foreground">{artist}</p>
-          <p className="text-sm text-muted-foreground">{genre}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+          <p className="font-semibold text-base" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}>
+            {artist}
+          </p>
+          <p className="text-sm" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
+            {genre}
+          </p>
+          <p className="text-xs mt-0.5" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
+            {label}
+          </p>
         </div>
       </div>
 
       {/* Status */}
-      <div className="p-4 rounded-xl border bg-white space-y-3" style={{ borderColor: 'var(--color-border)' }}>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Status Atual</p>
+      <div className="p-4 rounded-xl border space-y-3" style={sectionStyle}>
+        <p style={labelStyle}>Status Atual</p>
         <StatusBadge status={status} size="md" showIcon />
       </div>
 
       {/* Details */}
-      <div className="p-4 rounded-xl border bg-white space-y-3" style={{ borderColor: 'var(--color-border)' }}>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Informações</p>
+      <div className="p-4 rounded-xl border space-y-3" style={sectionStyle}>
+        <p style={labelStyle}>Informações</p>
         <div className="space-y-2.5">
-          <div className="flex items-start gap-2.5">
-            <Icon name="CalendarDaysIcon" size={15} variant="outline" className="text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs text-muted-foreground">Data de Submissão</p>
-              <p className="text-sm font-medium text-foreground">{submissionDate}</p>
+          {[
+            { icon: 'CalendarDaysIcon', label: 'Data de Submissão', value: submissionDate },
+            { icon: 'MusicalNoteIcon',  label: 'Gênero',            value: genre },
+            { icon: 'BuildingOfficeIcon', label: 'Gravadora / Agência', value: label },
+          ].map(({ icon, label: fieldLabel, value }) => (
+            <div key={fieldLabel} className="flex items-start gap-2.5">
+              <Icon name={icon as any} size={15} variant="outline" className="mt-0.5 shrink-0" style={{ color: 'var(--stone)' }} />
+              <div>
+                <p className="text-xs" style={metaLabelStyle}>{fieldLabel}</p>
+                <p className="text-sm font-medium" style={metaValueStyle}>{value}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <Icon name="MusicalNoteIcon" size={15} variant="outline" className="text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs text-muted-foreground">Gênero</p>
-              <p className="text-sm font-medium text-foreground">{genre}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <Icon name="BuildingOfficeIcon" size={15} variant="outline" className="text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs text-muted-foreground">Gravadora / Agência</p>
-              <p className="text-sm font-medium text-foreground">{label}</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Tags */}
-      <div className="p-4 rounded-xl border bg-white space-y-3" style={{ borderColor: 'var(--color-border)' }}>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Tags</p>
+      <div className="p-4 rounded-xl border space-y-3" style={sectionStyle}>
+        <p style={labelStyle}>Tags</p>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <span key={tag} className="px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-foreground border" style={{ borderColor: 'var(--color-border)' }}>
+            <span
+              key={tag}
+              className="px-2.5 py-1 rounded-full text-xs font-medium border"
+              style={{
+                fontFamily: 'Azeret Mono, monospace',
+                backgroundColor: 'var(--cream)',
+                borderColor: 'var(--cream)',
+                color: 'var(--ink)',
+              }}
+            >
               {tag}
             </span>
           ))}
@@ -92,23 +124,22 @@ export default function PitchMetadata({
       </div>
 
       {/* Contact */}
-      <div className="p-4 rounded-xl border bg-white space-y-3" style={{ borderColor: 'var(--color-border)' }}>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Contato</p>
+      <div className="p-4 rounded-xl border space-y-3" style={sectionStyle}>
+        <p style={labelStyle}>Contato</p>
         <div className="space-y-2.5">
-          <div className="flex items-center gap-2.5">
-            <Icon name="PhoneIcon" size={15} variant="outline" className="text-muted-foreground shrink-0" />
-            <p className="text-sm text-foreground">{contact.phone}</p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <Icon name="EnvelopeIcon" size={15} variant="outline" className="text-muted-foreground shrink-0" />
-            <p className="text-sm text-foreground">{contact.email}</p>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <Icon name="MapPinIcon" size={15} variant="outline" className="text-muted-foreground shrink-0 mt-0.5" />
-            <p className="text-sm text-foreground">{contact.address}</p>
-          </div>
+          {[
+            { icon: 'PhoneIcon',    value: contact.phone,   align: 'center' },
+            { icon: 'EnvelopeIcon', value: contact.email,   align: 'center' },
+            { icon: 'MapPinIcon',   value: contact.address, align: 'start'  },
+          ].map(({ icon, value, align }) => (
+            <div key={icon} className={`flex items-${align} gap-2.5`}>
+              <Icon name={icon as any} size={15} variant="outline" className="shrink-0" style={{ color: 'var(--stone)' }} />
+              <p className="text-sm" style={metaValueStyle}>{value}</p>
+            </div>
+          ))}
         </div>
       </div>
+
     </div>
   );
 }

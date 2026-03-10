@@ -73,10 +73,10 @@ interface NewPitchModalProps {
 
 // ─── Success View ────────────────────────────────────────────────────────────
 
-const STATUS_LABELS: Record<'draft' | 'ready' | 'sent', { label: string; bg: string; text: string; dot: string }> = {
-  draft: { label: 'Draft', bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400' },
-  ready: { label: 'Ready', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' },
-  sent:  { label: 'Sent',  bg: 'bg-blue-50',  text: 'text-blue-600',  dot: 'bg-blue-500' },
+const STATUS_LABELS: Record<'draft' | 'ready' | 'sent', { label: string; bg: string; color: string; dot: string }> = {
+  draft: { label: 'Draft', bg: 'rgba(122,116,112,0.1)',  color: '#7A7470', dot: '#7A7470' },
+  ready: { label: 'Ready', bg: 'rgba(184,98,42,0.08)',   color: '#B8622A', dot: '#B8622A' },
+  sent:  { label: 'Sent',  bg: 'rgba(72,108,227,0.08)',  color: '#486CE3', dot: '#486CE3' },
 };
 
 function formatConfirmedAt(iso: string): string {
@@ -111,58 +111,62 @@ function SuccessView({ pitchTitle, status, recipientCount, reminderDate, confirm
       {/* Icon */}
       <div
         className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-        style={{ background: 'rgba(16,185,129,0.12)' }}
+        style={{ background: 'rgba(78,94,46,0.12)' }}
       >
         <div
           className="w-12 h-12 rounded-full flex items-center justify-center"
-          style={{ background: 'rgba(16,185,129,0.18)' }}
+          style={{ background: 'rgba(78,94,46,0.18)' }}
         >
-          <Icon name="CheckCircleIcon" size={28} variant="solid" className="text-emerald-500" />
+          <Icon name="CheckCircleIcon" size={28} variant="solid" style={{ color: 'var(--olive)' }} />
         </div>
       </div>
 
       <p className="pm-kicker mb-1">Pitch Created</p>
       <h3
         className="font-bold text-lg mb-1"
-        style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}
+        style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif', letterSpacing: '-0.02em' }}
       >
-        Pitch Created Successfully
+        Pitch criado com sucesso
       </h3>
-      <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--color-muted-foreground)' }}>
-        Your pitch has been saved and recipients have been registered.
+      <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>
+        Seu pitch foi salvo e os destinatários foram registrados.
       </p>
 
       {/* Details card */}
       <div
         className="w-full text-left rounded-xl overflow-hidden mb-5"
-        style={{ border: '1px solid var(--color-border)' }}
+        style={{ border: '1px solid var(--cream)' }}
       >
         {/* Pitch title */}
-        <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-muted)' }}>
-          <p className="pm-kicker mb-0.5">Pitch Title</p>
-          <p className="text-sm font-semibold" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+        <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--cream)', backgroundColor: 'var(--cream)' }}>
+          <p className="pm-kicker mb-0.5">Título do Pitch</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
             {pitchTitle}
           </p>
         </div>
 
         {/* Status + Recipients */}
-        <div className="grid grid-cols-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-          <div className="px-4 py-3" style={{ borderRight: '1px solid var(--color-border)' }}>
+        <div className="grid grid-cols-2" style={{ borderBottom: '1px solid var(--cream)' }}>
+          <div className="px-4 py-3" style={{ borderRight: '1px solid var(--cream)' }}>
             <p className="pm-kicker mb-1.5">Status</p>
             <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text}`}
-              style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+              style={{
+                backgroundColor: cfg.bg,
+                color: cfg.color,
+                fontFamily: 'Azeret Mono, monospace',
+              }}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.dot }} />
               {cfg.label}
             </span>
           </div>
           <div className="px-4 py-3">
-            <p className="pm-kicker mb-1">Recipients</p>
+            <p className="pm-kicker mb-1">Destinatários</p>
             <div className="flex items-center gap-1.5">
-              <Icon name="UsersIcon" size={13} variant="outline" className="text-gray-400" />
-              <span className="text-sm font-semibold" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
-                {recipientCount} contact{recipientCount !== 1 ? 's' : ''}
+              <Icon name="UsersIcon" size={13} variant="outline" style={{ color: 'var(--stone)' }} />
+              <span className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
+                {recipientCount} contato{recipientCount !== 1 ? 's' : ''}
               </span>
             </div>
           </div>
@@ -172,12 +176,12 @@ function SuccessView({ pitchTitle, status, recipientCount, reminderDate, confirm
         {reminderDate ? (
           <div
             className="px-4 py-3 flex items-center gap-3"
-            style={{ background: 'rgba(59,130,246,0.04)', borderBottom: '1px solid var(--color-border)' }}
+            style={{ backgroundColor: 'rgba(72,108,227,0.04)', borderBottom: '1px solid var(--cream)' }}
           >
-            <Icon name="ClockIcon" size={14} variant="outline" className="text-blue-500 shrink-0" />
+            <Icon name="ClockIcon" size={14} variant="outline" style={{ color: 'var(--blue)', flexShrink: 0 }} />
             <div>
-              <p className="pm-kicker mb-0" style={{ color: 'rgba(59,130,246,0.8)' }}>Follow-up Reminder</p>
-              <p className="text-xs font-semibold" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+              <p className="pm-kicker mb-0" style={{ color: 'rgba(72,108,227,0.8)' }}>Follow-up Reminder</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
                 {formatReminderDate(reminderDate)}
               </p>
             </div>
@@ -185,19 +189,19 @@ function SuccessView({ pitchTitle, status, recipientCount, reminderDate, confirm
         ) : (
           <div
             className="px-4 py-3 flex items-center gap-2"
-            style={{ background: 'var(--color-muted)', borderBottom: '1px solid var(--color-border)' }}
+            style={{ backgroundColor: 'var(--cream)', borderBottom: '1px solid var(--cream)' }}
           >
-            <Icon name="ClockIcon" size={13} variant="outline" className="text-gray-300 shrink-0" />
-            <p className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>No reminder set</p>
+            <Icon name="ClockIcon" size={13} variant="outline" style={{ color: 'var(--stone)', flexShrink: 0, opacity: 0.5 }} />
+            <p className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>Nenhum lembrete definido</p>
           </div>
         )}
 
         {/* Timestamp */}
-        <div className="px-4 py-2.5 flex items-center gap-1.5" style={{ background: 'var(--color-muted)' }}>
-          <Icon name="CheckBadgeIcon" size={12} variant="outline" className="text-gray-400 shrink-0" />
+        <div className="px-4 py-2.5 flex items-center gap-1.5" style={{ backgroundColor: 'var(--cream)' }}>
+          <Icon name="CheckBadgeIcon" size={12} variant="outline" style={{ color: 'var(--stone)', flexShrink: 0 }} />
           <p
             className="text-xs"
-            style={{ color: 'var(--color-muted-foreground)', fontFamily: 'JetBrains Mono, monospace' }}
+            style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}
           >
             Confirmed {formatConfirmedAt(confirmedAt)} UTC
           </p>
@@ -212,25 +216,25 @@ function SuccessView({ pitchTitle, status, recipientCount, reminderDate, confirm
           onClick={onClose}
         >
           <Icon name="PaperAirplaneIcon" size={15} variant="outline" />
-          View Pitches
+          Ver Pitches
         </Link>
         <Link
           href="/reminders"
           className="pm-btn flex-1 justify-center border"
-          style={{ borderColor: 'var(--color-border)' }}
+          style={{ borderColor: 'var(--cream)' }}
           onClick={onClose}
         >
           <Icon name="ClockIcon" size={15} variant="outline" />
-          Reminders
+          Lembretes
         </Link>
         <button
           type="button"
           onClick={onNewPitch}
           className="pm-btn flex-1 justify-center border"
-          style={{ borderColor: 'var(--color-border)' }}
+          style={{ borderColor: 'var(--cream)' }}
         >
           <Icon name="PlusIcon" size={15} variant="outline" />
-          New Pitch
+          Novo Pitch
         </button>
       </div>
     </div>
@@ -296,7 +300,6 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     });
   }, []);
 
-  // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -306,12 +309,9 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isSubmitting) {
-        handleClose();
-      }
+      if (e.key === 'Escape' && isOpen && !isSubmitting) handleClose();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
@@ -368,17 +368,13 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     return () => clearTimeout(timer);
   }, [form, isHydrated, isOpen, triggerAutoSave]);
 
-  // Pre-fill artist when opened from a suggestion
   useEffect(() => {
     if (!isOpen || !isHydrated || !initialArtistId) return;
     const artist = artists.find((a) => a.id === initialArtistId);
-    if (artist) {
-      handleArtistSelect(artist);
-    }
+    if (artist) handleArtistSelect(artist);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isHydrated, initialArtistId, artists]);
 
-  // Pre-select contact when opened from a suggestion
   useEffect(() => {
     if (!isOpen || !isHydrated || !initialContactId) return;
     setSelectedContactIds((prev) =>
@@ -387,7 +383,6 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isHydrated, initialContactId, linkedContacts]);
 
-  // Pre-fill form when editing an existing pitch
   useEffect(() => {
     if (!isOpen || !isHydrated || !editPitch) return;
     setForm({
@@ -421,14 +416,8 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     };
     loadEditArtist();
     const statusMap: Record<string, 'draft' | 'ready' | 'sent'> = {
-      draft: 'draft',
-      new: 'draft',
-      in_review: 'ready',
-      approved: 'sent',
-      rejected: 'draft',
-      hold: 'ready',
-      sent: 'sent',
-      placed: 'sent',
+      draft: 'draft', new: 'draft', in_review: 'ready',
+      approved: 'sent', rejected: 'draft', hold: 'ready', sent: 'sent', placed: 'sent',
     };
     setFooterStatus(statusMap[editPitch.status] || 'draft');
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -477,16 +466,16 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
 
   const addExternalRecipient = () => {
     const errs: Record<string, string> = {};
-    if (!externalForm.fullName.trim()) errs.fullName = 'Name required';
+    if (!externalForm.fullName.trim()) errs.fullName = 'Nome obrigatório';
     if (!externalForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(externalForm.email))
-      errs.email = 'Valid email required';
+      errs.email = 'E-mail válido obrigatório';
     setExternalErrors(errs);
     if (Object.keys(errs).length > 0) return;
     setExternalRecipients((prev) => [...prev, { id: uid(), ...externalForm }]);
     setExternalForm({ fullName: '', email: '', role: '', company: '' });
     setShowAddExternal(false);
     setExternalErrors({});
-    showToast('Recipient added successfully', 'success');
+    showToast('Destinatário adicionado', 'success');
   };
 
   const removeExternalRecipient = (id: string) => {
@@ -508,15 +497,15 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
   const validateField = (field: string, value: string) => {
     const newErrors = { ...errors };
     if (field === 'pitchTitle') {
-      if (!value.trim()) newErrors.pitchTitle = 'Pitch title is required';
+      if (!value.trim()) newErrors.pitchTitle = 'Título do pitch é obrigatório';
       else delete newErrors.pitchTitle;
     }
     if (field === 'artistId') {
-      if (!value) newErrors.artistId = 'Select an artist';
+      if (!value) newErrors.artistId = 'Selecione um artista';
       else delete newErrors.artistId;
     }
     if (field === 'trackUrl') {
-      if (value && !/^https?:\/\/.+/.test(value)) newErrors.trackUrl = 'Enter a valid URL (https://...)';
+      if (value && !/^https?:\/\/.+/.test(value)) newErrors.trackUrl = 'URL inválida (https://...)';
       else delete newErrors.trackUrl;
     }
     setErrors(newErrors);
@@ -529,9 +518,9 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    if (!form.artistId) newErrors.artistId = 'Select an artist';
-    if (!form.pitchTitle.trim()) newErrors.pitchTitle = 'Pitch title is required';
-    if (form.trackUrl && !/^https?:\/\/.+/.test(form.trackUrl)) newErrors.trackUrl = 'Enter a valid URL (https://...)';
+    if (!form.artistId) newErrors.artistId = 'Selecione um artista';
+    if (!form.pitchTitle.trim()) newErrors.pitchTitle = 'Título do pitch é obrigatório';
+    if (form.trackUrl && !/^https?:\/\/.+/.test(form.trackUrl)) newErrors.trackUrl = 'URL inválida (https://...)';
     setErrors(newErrors);
     setTouched({ artistId: true, pitchTitle: true, trackUrl: true });
     return Object.keys(newErrors).length === 0;
@@ -539,7 +528,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
 
   const handleSaveDraft = () => {
     triggerAutoSave();
-    showToast('Draft saved', 'success');
+    showToast('Rascunho salvo', 'success');
   };
 
   const handleApplyTemplate = (templateId: string) => {
@@ -555,12 +544,12 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     }));
     templateStore.incrementUsage(templateId);
     setTemplates(templateStore.getAll());
-    showToast(`Template "${tpl.name}" applied`, 'success');
+    showToast(`Template "${tpl.name}" aplicado`, 'success');
   };
 
   const handleSaveAsTemplate = () => {
     if (!templateName.trim()) {
-      setTemplateNameError('Template name is required');
+      setTemplateNameError('Nome do template é obrigatório');
       return;
     }
     templateStore.create({
@@ -573,7 +562,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
     setShowSaveTemplate(false);
     setTemplateName('');
     setTemplateNameError('');
-    showToast('Saved as template', 'success');
+    showToast('Salvo como template', 'success');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -611,7 +600,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
         }
 
         if (!pitch) {
-          showToast('Failed to save pitch. Please try again.', 'error');
+          showToast('Falha ao salvar pitch. Tente novamente.', 'error');
           setIsSubmitting(false);
           return;
         }
@@ -645,23 +634,27 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
         setSubmitted(true);
         setIsSubmitting(false);
       } catch (error) {
-        showToast('Failed to submit pitch. Please try again.', 'error');
+        showToast('Falha ao enviar pitch. Tente novamente.', 'error');
         setIsSubmitting(false);
       }
     });
   };
 
+  // Input class — structure only; error styles applied via inputErrorStyle
   const inputClass = (field: string) =>
-    `pm-input focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-      errors[field] ? 'border-red-400 bg-red-50 focus:ring-red-300' : ''
-    }`;
+    `pm-input focus:ring-2 focus:outline-none ${errors[field] ? '' : ''}`;
+
+  const inputErrorStyle = (field: string): React.CSSProperties =>
+    errors[field]
+      ? { borderColor: 'var(--crimson)', backgroundColor: 'rgba(194,59,46,0.04)' }
+      : {};
 
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-[200] flex items-start justify-center"
-      style={{ background: 'rgba(0,0,0,0.45)' }}
+      style={{ background: 'rgba(26,26,24,0.55)' }}
       onClick={(e) => { if (e.target === e.currentTarget && !isSubmitting) handleClose(); }}
       aria-modal="true"
       role="dialog"
@@ -670,22 +663,22 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
       <div
         className="relative w-full max-w-2xl mx-4 my-8 rounded-2xl shadow-2xl flex flex-col"
         style={{
-          background: 'var(--color-card)',
-          border: '1px solid var(--color-border)',
+          backgroundColor: 'var(--ice)',
+          border: '1px solid var(--cream)',
           maxHeight: 'calc(100vh - 4rem)',
         }}
       >
         {/* Modal Header */}
         <div
           className="flex items-center justify-between px-6 py-4 shrink-0"
-          style={{ borderBottom: '1px solid var(--color-border)' }}
+          style={{ borderBottom: '1px solid var(--cream)' }}
         >
           <div className="flex items-center gap-3">
             <Image src="/assets/images/pitchhood-logo-light-1772649730204.png" alt="Pitchhood" width={24} height={24} className="h-6 w-auto" />
             <div>
-              <p className="pm-kicker mb-0">{editPitch ? 'Edit' : 'Create'}</p>
-              <h2 className="font-semibold text-base" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
-                {editPitch ? 'Edit Pitch' : 'New Pitch'}
+              <p className="pm-kicker mb-0">{editPitch ? 'Editar' : 'Criar'}</p>
+              <h2 className="font-semibold text-base" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
+                {editPitch ? 'Editar Pitch' : 'Novo Pitch'}
               </h2>
             </div>
           </div>
@@ -695,9 +688,11 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
               type="button"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="p-1.5 rounded-lg transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
-              style={{ color: 'var(--color-muted-foreground)' }}
-              aria-label="Close modal"
+              className="p-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2"
+              style={{ color: 'var(--stone)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--cream)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              aria-label="Fechar modal"
             >
               <Icon name="XMarkIcon" size={18} variant="outline" />
             </button>
@@ -745,19 +740,19 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
               {isSubmitting && (
                 <div
                   className="absolute inset-0 z-[300] flex items-center justify-center rounded-2xl"
-                  style={{ background: 'rgba(0,0,0,0.35)' }}
+                  style={{ background: 'rgba(26,26,24,0.35)' }}
                   aria-busy="true"
-                  aria-label="Submitting pitch, please wait"
+                  aria-label="Enviando pitch, aguarde"
                 >
                   <div
                     className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl shadow-2xl"
-                    style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+                    style={{ backgroundColor: 'var(--ice)', border: '1px solid var(--cream)' }}
                   >
                     <svg className="animate-spin" width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <circle cx="12" cy="12" r="10" stroke="var(--color-border)" strokeWidth="3" />
-                      <path d="M12 2a10 10 0 0 1 10 10V0C5.373 0 0 5.373 0 12h4z" stroke="var(--color-primary)" strokeWidth="3" strokeLinecap="round" />
+                      <circle cx="12" cy="12" r="10" stroke="var(--cream)" strokeWidth="3" />
+                      <path d="M12 2a10 10 0 0 1 10 10V0C5.373 0 0 5.373 0 12h4z" stroke="var(--blue)" strokeWidth="3" strokeLinecap="round" />
                     </svg>
-                    <p className="text-sm font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>Submitting pitch…</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>Enviando pitch…</p>
                   </div>
                 </div>
               )}
@@ -767,18 +762,18 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                 {templates.length > 0 && (
                   <div
                     className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                    style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+                    style={{ backgroundColor: 'var(--cream)', border: '1px solid var(--cream)' }}
                   >
-                    <Icon name="DocumentDuplicateIcon" size={15} variant="outline" style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 } as React.CSSProperties} />
+                    <Icon name="DocumentDuplicateIcon" size={15} variant="outline" style={{ color: 'var(--stone)', flexShrink: 0 } as React.CSSProperties} />
                     <div className="flex-1 min-w-0">
-                      <label className="pm-label mb-0.5" style={{ fontSize: '0.7rem' }}>Load from template</label>
+                      <label className="pm-label mb-0.5" style={{ fontSize: '0.7rem' }}>Carregar template</label>
                       <select
-                        className="pm-input text-sm py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="pm-input text-sm py-1 focus:ring-2 focus:outline-none"
                         value={selectedTemplateId}
                         onChange={(e) => handleApplyTemplate(e.target.value)}
-                        aria-label="Select a template"
+                        aria-label="Selecionar template"
                       >
-                        <option value="">Select a template…</option>
+                        <option value="">Selecionar template…</option>
                         {templates.map((t) => (
                           <option key={t.id} value={t.id}>{t.name}</option>
                         ))}
@@ -786,13 +781,13 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                     </div>
                     <Link
                       href="/templates-management"
-                      className="text-xs shrink-0 flex items-center gap-1 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                      style={{ color: 'var(--color-accent)', fontFamily: 'IBM Plex Sans, sans-serif' }}
+                      className="text-xs shrink-0 flex items-center gap-1 transition-colors focus:outline-none focus:ring-2 rounded"
+                      style={{ color: 'var(--blue)', fontFamily: 'Epilogue, sans-serif' }}
                       onClick={handleClose}
-                      title="Manage templates"
+                      title="Gerenciar templates"
                     >
                       <Icon name="Cog6ToothIcon" size={13} variant="outline" />
-                      Manage
+                      Gerenciar
                     </Link>
                   </div>
                 )}
@@ -806,13 +801,14 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                   />
                   <div className="relative">
                     <label className="pm-label">
-                      Artista <span className="text-red-500">*</span>
+                      Artista <span style={{ color: 'var(--crimson)' }}>*</span>
                     </label>
                     <div className="relative">
                       <input
                         ref={artistInputRef}
                         type="text"
                         className={inputClass('artistId')}
+                        style={inputErrorStyle('artistId')}
                         value={artistQuery}
                         onChange={(e) => {
                           setArtistQuery(e.target.value);
@@ -829,25 +825,14 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                         onBlur={() => { setTimeout(() => setArtistDropdownOpen(false), 150); handleBlur('artistId', form.artistId); }}
                         onKeyDown={(e) => {
                           if (!artistDropdownOpen || filteredArtists.length === 0) return;
-                          if (e.key === 'ArrowDown') {
-                            e.preventDefault();
-                            setArtistDropdownIndex((i) => Math.min(i + 1, filteredArtists.length - 1));
-                          } else if (e.key === 'ArrowUp') {
-                            e.preventDefault();
-                            setArtistDropdownIndex((i) => Math.max(i - 1, 0));
-                          } else if (e.key === 'Enter' && artistDropdownIndex >= 0) {
-                            e.preventDefault();
-                            handleArtistSelect(filteredArtists[artistDropdownIndex]);
-                            setArtistDropdownIndex(-1);
-                          } else if (e.key === 'Escape') {
-                            setArtistDropdownOpen(false);
-                            setArtistDropdownIndex(-1);
-                          }
+                          if (e.key === 'ArrowDown') { e.preventDefault(); setArtistDropdownIndex((i) => Math.min(i + 1, filteredArtists.length - 1)); }
+                          else if (e.key === 'ArrowUp') { e.preventDefault(); setArtistDropdownIndex((i) => Math.max(i - 1, 0)); }
+                          else if (e.key === 'Enter' && artistDropdownIndex >= 0) { e.preventDefault(); handleArtistSelect(filteredArtists[artistDropdownIndex]); setArtistDropdownIndex(-1); }
+                          else if (e.key === 'Escape') { setArtistDropdownOpen(false); setArtistDropdownIndex(-1); }
                         }}
                         placeholder="Buscar artista..."
                         autoComplete="off"
-                        aria-label="Search artist"
-                        aria-autoComplete="list"
+                        aria-label="Buscar artista"
                         aria-expanded={artistDropdownOpen}
                       />
                       {selectedArtist && (
@@ -855,8 +840,8 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                           type="button"
                           onClick={handleArtistClear}
                           className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded"
-                          style={{ color: 'var(--color-muted-foreground)' }}
-                          aria-label="Clear artist"
+                          style={{ color: 'var(--stone)' }}
+                          aria-label="Limpar artista"
                         >
                           <Icon name="XMarkIcon" size={14} variant="outline" />
                         </button>
@@ -868,8 +853,8 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                         className="absolute z-50 w-full mt-1 rounded-lg overflow-hidden shadow-lg"
                         role="listbox"
                         style={{
-                          background: 'var(--color-card)',
-                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--ice)',
+                          border: '1px solid var(--cream)',
                           maxHeight: '200px',
                           overflowY: 'auto',
                         }}
@@ -878,11 +863,11 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                           <li key={a.id} role="option" aria-selected={artistDropdownIndex === idx}>
                             <button
                               type="button"
-                              className="w-full text-left px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                              className="w-full text-left px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-inset"
                               style={{
-                                fontFamily: 'Inter, sans-serif',
-                                color: 'var(--color-foreground)',
-                                background: artistDropdownIndex === idx ? 'var(--color-muted)' : 'transparent',
+                                fontFamily: 'Epilogue, sans-serif',
+                                color: 'var(--ink)',
+                                backgroundColor: artistDropdownIndex === idx ? 'var(--cream)' : 'transparent',
                               }}
                               onMouseDown={() => handleArtistSelect(a)}
                               onMouseEnter={() => setArtistDropdownIndex(idx)}
@@ -890,7 +875,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                             >
                               {a.name}
                               {a.notes && (
-                                <span className="ml-2 text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+                                <span className="ml-2 text-xs" style={{ color: 'var(--stone)' }}>
                                   {a.notes}
                                 </span>
                               )}
@@ -904,9 +889,10 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                       <div
                         className="absolute z-50 w-full mt-1 rounded-lg px-3 py-2.5 text-sm"
                         style={{
-                          background: 'var(--color-card)',
-                          border: '1px solid var(--color-border)',
-                          color: 'var(--color-muted-foreground)',
+                          backgroundColor: 'var(--ice)',
+                          border: '1px solid var(--cream)',
+                          color: 'var(--stone)',
+                          fontFamily: 'Epilogue, sans-serif',
                         }}
                       >
                         Nenhum artista encontrado
@@ -915,7 +901,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                   </div>
 
                   {errors.artistId && (
-                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <p className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--crimson)' }}>
                       <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                       {errors.artistId}
                     </p>
@@ -935,13 +921,13 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                       <div
                         className="mb-4 px-3 py-2.5 rounded-lg text-sm"
                         style={{
-                          background: 'var(--color-muted)',
-                          border: '1px solid var(--color-border)',
-                          fontFamily: 'JetBrains Mono, monospace',
+                          backgroundColor: 'var(--cream)',
+                          border: '1px solid var(--cream)',
+                          fontFamily: 'Azeret Mono, monospace',
                         }}
                       >
-                        <span className="font-semibold mr-2" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: '0.7rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Para:</span>
-                        <span style={{ color: 'var(--color-foreground)', fontSize: '0.8125rem' }}>
+                        <span className="font-semibold mr-2" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace', fontSize: '0.7rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Para:</span>
+                        <span style={{ color: 'var(--ink)', fontSize: '0.8125rem' }}>
                           {allSelectedEmails.join(', ')}
                         </span>
                       </div>
@@ -951,13 +937,14 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                       <div
                         className="py-4 text-center text-sm rounded-lg"
                         style={{
-                          background: 'var(--color-muted)',
-                          border: '1px solid var(--color-border)',
-                          color: 'var(--color-muted-foreground)',
+                          backgroundColor: 'var(--cream)',
+                          border: '1px solid var(--cream)',
+                          color: 'var(--stone)',
+                          fontFamily: 'Epilogue, sans-serif',
                         }}
                       >
                         Nenhum contato vinculado a este artista.{' '}
-                        <Link href="/artists" className="underline" style={{ color: 'var(--color-accent)' }} onClick={handleClose}>
+                        <Link href="/artists" className="underline" style={{ color: 'var(--blue)' }} onClick={handleClose}>
                           Adicionar na página de Artistas
                         </Link>
                       </div>
@@ -970,8 +957,8 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                               key={contact.id}
                               className="flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors"
                               style={{
-                                background: checked ? 'var(--color-muted)' : 'transparent',
-                                border: `1px solid ${checked ? 'var(--color-border)' : 'transparent'}`,
+                                backgroundColor: checked ? 'var(--cream)' : 'transparent',
+                                border: `1px solid ${checked ? 'var(--cream)' : 'transparent'}`,
                               }}
                             >
                               <input
@@ -979,20 +966,20 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                                 checked={checked}
                                 onChange={() => toggleContact(contact.id)}
                                 className="mt-0.5 rounded shrink-0"
-                                style={{ accentColor: 'var(--color-accent)' }}
+                                style={{ accentColor: 'var(--blue)' }}
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-sm font-semibold" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+                                  <span className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
                                     {contact.fullName}
                                   </span>
                                   {link.isPrimary && (
                                     <span
                                       className="text-xs px-1.5 py-0.5 rounded"
                                       style={{
-                                        background: 'var(--color-accent)',
-                                        color: 'var(--color-accent-foreground)',
-                                        fontFamily: 'IBM Plex Sans, sans-serif',
+                                        backgroundColor: 'rgba(72,108,227,0.1)',
+                                        color: 'var(--blue)',
+                                        fontFamily: 'Azeret Mono, monospace',
                                         fontSize: '0.65rem',
                                         letterSpacing: '0.06em',
                                         textTransform: 'uppercase',
@@ -1003,17 +990,17 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                  <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                                  <span className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>
                                     {link.relationshipType}
                                   </span>
                                   {contact.company && (
                                     <>
-                                      <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>·</span>
-                                      <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>{contact.company}</span>
+                                      <span className="text-xs" style={{ color: 'var(--stone)' }}>·</span>
+                                      <span className="text-xs" style={{ color: 'var(--stone)' }}>{contact.company}</span>
                                     </>
                                   )}
-                                  <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>·</span>
-                                  <span className="text-xs" style={{ color: 'var(--color-accent)', fontFamily: 'JetBrains Mono, monospace' }}>
+                                  <span className="text-xs" style={{ color: 'var(--stone)' }}>·</span>
+                                  <span className="text-xs" style={{ color: 'var(--blue)', fontFamily: 'Azeret Mono, monospace' }}>
                                     {contact.email}
                                   </span>
                                 </div>
@@ -1031,20 +1018,20 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                           <div
                             key={ext.id}
                             className="flex items-start gap-3 px-3 py-2.5 rounded-lg"
-                            style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+                            style={{ backgroundColor: 'var(--cream)', border: '1px solid var(--cream)' }}
                           >
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
+                                <span className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
                                   {ext.fullName}
                                 </span>
                                 {ext.role && (
-                                  <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+                                  <span className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>
                                     {ext.role}{ext.company ? ` @ ${ext.company}` : ''}
                                   </span>
                                 )}
                               </div>
-                              <span className="text-xs" style={{ color: 'var(--color-accent)', fontFamily: 'JetBrains Mono, monospace' }}>
+                              <span className="text-xs" style={{ color: 'var(--blue)', fontFamily: 'Azeret Mono, monospace' }}>
                                 {ext.email}
                               </span>
                             </div>
@@ -1052,8 +1039,8 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                               type="button"
                               onClick={() => setConfirmRemoveExternal(ext.id)}
                               className="pm-btn p-1 shrink-0"
-                              style={{ color: 'var(--color-destructive)' }}
-                              aria-label="Remove external recipient"
+                              style={{ color: 'var(--crimson)' }}
+                              aria-label="Remover destinatário externo"
                             >
                               <Icon name="XMarkIcon" size={13} variant="outline" />
                             </button>
@@ -1066,10 +1053,10 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                       <button
                         type="button"
                         onClick={() => setShowAddExternal(true)}
-                        className="mt-3 flex items-center gap-1.5 text-xs font-medium transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none rounded"
-                        style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-foreground)'; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted-foreground)'; }}
+                        className="mt-3 flex items-center gap-1.5 text-xs font-medium transition-colors focus:ring-2 focus:outline-none rounded"
+                        style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--stone)'; }}
                       >
                         <Icon name="PlusIcon" size={13} variant="outline" />
                         Adicionar destinatário externo
@@ -1077,57 +1064,52 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                     ) : (
                       <div
                         className="mt-3 p-3 rounded-lg space-y-3"
-                        style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+                        style={{ backgroundColor: 'var(--cream)', border: '1px solid var(--cream)' }}
                         onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setShowAddExternal(false);
-                            setExternalErrors({});
-                            setExternalForm({ fullName: '', email: '', role: '', company: '' });
-                          }
-                          if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'BUTTON') {
-                            e.preventDefault();
-                            addExternalRecipient();
-                          }
+                          if (e.key === 'Escape') { setShowAddExternal(false); setExternalErrors({}); setExternalForm({ fullName: '', email: '', role: '', company: '' }); }
+                          if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'BUTTON') { e.preventDefault(); addExternalRecipient(); }
                         }}
                       >
                         <p className="pm-kicker">Novo destinatário externo</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <label className="pm-label">Nome <span className="text-red-500">*</span></label>
+                            <label className="pm-label">Nome <span style={{ color: 'var(--crimson)' }}>*</span></label>
                             <input
-                              className={`pm-input text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none${externalErrors.fullName ? ' border-red-400' : ''}`}
+                              className="pm-input text-sm focus:ring-2 focus:outline-none"
+                              style={externalErrors.fullName ? { borderColor: 'var(--crimson)', backgroundColor: 'rgba(194,59,46,0.04)' } : {}}
                               value={externalForm.fullName}
                               onChange={(e) => setExternalForm((p) => ({ ...p, fullName: e.target.value }))}
                               onBlur={(e) => {
-                                if (!e.target.value.trim()) setExternalErrors((p) => ({ ...p, fullName: 'Name required' }));
+                                if (!e.target.value.trim()) setExternalErrors((p) => ({ ...p, fullName: 'Nome obrigatório' }));
                                 else setExternalErrors((p) => { const x = { ...p }; delete x.fullName; return x; });
                               }}
                               placeholder="Nome completo"
                               autoFocus
                               aria-required="true"
                             />
-                            {externalErrors.fullName && <p className="text-xs text-red-500 mt-1">{externalErrors.fullName}</p>}
+                            {externalErrors.fullName && <p className="text-xs mt-1" style={{ color: 'var(--crimson)' }}>{externalErrors.fullName}</p>}
                           </div>
                           <div>
-                            <label className="pm-label">E-mail <span className="text-red-500">*</span></label>
+                            <label className="pm-label">E-mail <span style={{ color: 'var(--crimson)' }}>*</span></label>
                             <input
-                              className={`pm-input text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none${externalErrors.email ? ' border-red-400' : ''}`}
+                              className="pm-input text-sm focus:ring-2 focus:outline-none"
+                              style={externalErrors.email ? { borderColor: 'var(--crimson)', backgroundColor: 'rgba(194,59,46,0.04)' } : {}}
                               type="email"
                               value={externalForm.email}
                               onChange={(e) => setExternalForm((p) => ({ ...p, email: e.target.value }))}
                               onBlur={(e) => {
-                                if (!e.target.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)) setExternalErrors((p) => ({ ...p, email: 'Valid email required' }));
+                                if (!e.target.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)) setExternalErrors((p) => ({ ...p, email: 'E-mail válido obrigatório' }));
                                 else setExternalErrors((p) => { const x = { ...p }; delete x.email; return x; });
                               }}
                               placeholder="email@exemplo.com"
                               aria-required="true"
                             />
-                            {externalErrors.email && <p className="text-xs text-red-500 mt-1">{externalErrors.email}</p>}
+                            {externalErrors.email && <p className="text-xs mt-1" style={{ color: 'var(--crimson)' }}>{externalErrors.email}</p>}
                           </div>
                           <div>
                             <label className="pm-label">Cargo / Função</label>
                             <input
-                              className="pm-input text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                              className="pm-input text-sm focus:ring-2 focus:outline-none"
                               value={externalForm.role}
                               onChange={(e) => setExternalForm((p) => ({ ...p, role: e.target.value }))}
                               placeholder="Ex: A&R, Manager"
@@ -1136,7 +1118,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                           <div>
                             <label className="pm-label">Empresa</label>
                             <input
-                              className="pm-input text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                              className="pm-input text-sm focus:ring-2 focus:outline-none"
                               value={externalForm.company}
                               onChange={(e) => setExternalForm((p) => ({ ...p, company: e.target.value }))}
                               placeholder="Ex: Sony Music"
@@ -1147,14 +1129,14 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                           <button
                             type="button"
                             onClick={() => { setShowAddExternal(false); setExternalErrors({}); setExternalForm({ fullName: '', email: '', role: '', company: '' }); }}
-                            className="pm-btn text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="pm-btn text-xs focus:ring-2 focus:outline-none"
                           >
                             Cancelar
                           </button>
                           <button
                             type="button"
                             onClick={addExternalRecipient}
-                            className="pm-btn-primary text-xs px-4 min-h-[36px] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                            className="pm-btn-primary text-xs px-4 min-h-[36px] focus:ring-2 focus:ring-offset-2 focus:outline-none"
                           >
                             <Icon name="PlusIcon" size={13} variant="outline" />
                             Adicionar
@@ -1175,11 +1157,12 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                   <div className="space-y-4">
                     <div>
                       <label className="pm-label">
-                        Título do Pitch <span className="text-red-500">*</span>
+                        Título do Pitch <span style={{ color: 'var(--crimson)' }}>*</span>
                       </label>
                       <input
                         type="text"
                         className={inputClass('pitchTitle')}
+                        style={inputErrorStyle('pitchTitle')}
                         value={form.pitchTitle}
                         onChange={(e) => update('pitchTitle', e.target.value)}
                         onBlur={(e) => handleBlur('pitchTitle', e.target.value)}
@@ -1188,7 +1171,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                         aria-describedby={errors.pitchTitle ? 'pitchTitle-error' : undefined}
                       />
                       {errors.pitchTitle && (
-                        <p id="pitchTitle-error" className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <p id="pitchTitle-error" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--crimson)' }}>
                           <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                           {errors.pitchTitle}
                         </p>
@@ -1200,6 +1183,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                         <input
                           type="url"
                           className={inputClass('trackUrl')}
+                          style={inputErrorStyle('trackUrl')}
                           value={form.trackUrl}
                           onChange={(e) => update('trackUrl', e.target.value)}
                           onBlur={(e) => handleBlur('trackUrl', e.target.value)}
@@ -1207,7 +1191,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                           aria-describedby={errors.trackUrl ? 'trackUrl-error' : undefined}
                         />
                         {errors.trackUrl && (
-                          <p id="trackUrl-error" className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                          <p id="trackUrl-error" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--crimson)' }}>
                             <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                             {errors.trackUrl}
                           </p>
@@ -1216,7 +1200,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                       <div>
                         <label className="pm-label">Status</label>
                         <select
-                          className="pm-input focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          className="pm-input focus:ring-2 focus:outline-none"
                           value={form.status}
                           onChange={(e) => update('status', e.target.value as FormData['status'])}
                         >
@@ -1242,19 +1226,19 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                     subtitle="Impressões, critérios de avaliação e observações"
                   />
                   <textarea
-                    className="pm-input resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="pm-input resize-none focus:ring-2 focus:outline-none"
                     rows={4}
                     value={form.notes}
                     onChange={(e) => update('notes', e.target.value)}
                     placeholder="Impressões iniciais, potencial de mercado, próximos passos..."
                   />
-                  <p className="text-xs mt-1 text-right" style={{ color: 'var(--color-muted-foreground)' }}>
+                  <p className="text-xs mt-1 text-right" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
                     {form.notes.length} caracteres
                   </p>
                 </div>
 
-                <p className="text-xs flex items-center gap-1" style={{ color: 'var(--color-muted-foreground)' }}>
-                  <span className="text-red-500">*</span> Campos obrigatórios
+                <p className="text-xs flex items-center gap-1" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>
+                  <span style={{ color: 'var(--crimson)' }}>*</span> Campos obrigatórios
                 </p>
               </div>
             </form>
@@ -1263,26 +1247,20 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
 
         {/* Modal Footer */}
         {!submitted && (
-          <div
-            className="shrink-0"
-            style={{ borderTop: '1px solid var(--color-border)' }}
-          >
+          <div className="shrink-0" style={{ borderTop: '1px solid var(--cream)' }}>
             {/* Reminder row */}
             <div
               className="flex items-center gap-4 px-6 py-3 flex-wrap"
-              style={{ borderBottom: '1px solid var(--color-border)' }}
+              style={{ borderBottom: '1px solid var(--cream)' }}
             >
-              {/* Set Reminder toggle */}
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   role="switch"
                   aria-checked={reminderEnabled}
                   onClick={() => setReminderEnabled((v) => !v)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
-                    reminderEnabled ? 'bg-blue-600' : 'bg-gray-300'
-                  }`}
-                  style={reminderEnabled ? {} : { background: 'var(--color-border)' }}
+                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
+                  style={{ backgroundColor: reminderEnabled ? 'var(--blue)' : 'var(--cream)' }}
                 >
                   <span
                     className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
@@ -1290,12 +1268,11 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                     }`}
                   />
                 </button>
-                <span className="text-xs font-medium" style={{ color: 'var(--color-foreground)', fontFamily: 'Inter, sans-serif' }}>
-                  Set reminder
+                <span className="text-xs font-medium" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>
+                  Definir lembrete
                 </span>
               </div>
 
-              {/* Day presets — only visible when toggle is on */}
               {reminderEnabled && (
                 <div className="flex items-center gap-1.5">
                   {([7, 14, 30] as const).map((d) => (
@@ -1303,20 +1280,17 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                       key={d}
                       type="button"
                       onClick={() => setReminderDays(d)}
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        reminderDays === d
-                          ? 'bg-blue-600 text-white' :'border text-xs'
-                      }`}
+                      className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors focus:outline-none focus:ring-2"
                       style={
                         reminderDays === d
-                          ? {}
-                          : { borderColor: 'var(--color-border)', color: 'var(--color-muted-foreground)', background: 'transparent' }
+                          ? { backgroundColor: 'var(--blue)', color: 'var(--ice)', border: 'none' }
+                          : { borderColor: 'var(--cream)', color: 'var(--stone)', backgroundColor: 'transparent', border: '1px solid var(--cream)' }
                       }
                     >
                       {d}d
                     </button>
                   ))}
-                  <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+                  <span className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>
                     follow-up
                   </span>
                 </div>
@@ -1327,34 +1301,38 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
             {showSaveTemplate && (
               <div
                 className="flex items-center gap-2 px-6 py-3 flex-wrap"
-                style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-muted)' }}
+                style={{ borderBottom: '1px solid var(--cream)', backgroundColor: 'var(--cream)' }}
               >
-                <Icon name="DocumentDuplicateIcon" size={14} variant="outline" style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 } as React.CSSProperties} />
+                <Icon name="DocumentDuplicateIcon" size={14} variant="outline" style={{ color: 'var(--stone)', flexShrink: 0 } as React.CSSProperties} />
                 <div className="flex-1 min-w-[160px]">
                   <input
                     type="text"
-                    className={`pm-input text-sm py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none ${templateNameError ? 'border-red-400' : ''}`}
-                    placeholder="Template name…"
+                    className="pm-input text-sm py-1.5 focus:ring-2 focus:outline-none"
+                    style={templateNameError ? { borderColor: 'var(--crimson)' } : {}}
+                    placeholder="Nome do template…"
                     value={templateName}
                     onChange={(e) => { setTemplateName(e.target.value); if (templateNameError) setTemplateNameError(''); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSaveAsTemplate(); } if (e.key === 'Escape') { setShowSaveTemplate(false); setTemplateName(''); setTemplateNameError(''); } }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); handleSaveAsTemplate(); }
+                      if (e.key === 'Escape') { setShowSaveTemplate(false); setTemplateName(''); setTemplateNameError(''); }
+                    }}
                     autoFocus
-                    aria-label="Template name"
+                    aria-label="Nome do template"
                   />
-                  {templateNameError && <p className="text-xs text-red-500 mt-0.5">{templateNameError}</p>}
+                  {templateNameError && <p className="text-xs mt-0.5" style={{ color: 'var(--crimson)' }}>{templateNameError}</p>}
                 </div>
                 <button
                   type="button"
                   onClick={handleSaveAsTemplate}
-                  className="pm-btn-primary text-xs px-3 min-h-[34px] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                  className="pm-btn-primary text-xs px-3 min-h-[34px] focus:ring-2 focus:ring-offset-2 focus:outline-none"
                 >
                   <Icon name="CheckIcon" size={13} variant="outline" />
-                  Save
+                  Salvar
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowSaveTemplate(false); setTemplateName(''); setTemplateNameError(''); }}
-                  className="pm-btn-ghost text-xs px-2 min-h-[34px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pm-btn-ghost text-xs px-2 min-h-[34px] focus:outline-none focus:ring-2"
                 >
                   <Icon name="XMarkIcon" size={13} variant="outline" />
                 </button>
@@ -1367,24 +1345,23 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                style={{ borderColor: 'var(--color-border)' }}
+                className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:outline-none"
+                style={{ borderColor: 'var(--cream)' }}
               >
                 <Icon name="XMarkIcon" size={16} variant="outline" />
                 Cancelar
               </button>
               <div className="flex items-center gap-2 flex-wrap">
-                {/* Save as Template button */}
                 <button
                   type="button"
                   onClick={() => setShowSaveTemplate((v) => !v)}
                   disabled={isSubmitting}
-                  className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  style={{ borderColor: 'var(--color-border)' }}
-                  title="Save current pitch details as a reusable template"
+                  className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:outline-none"
+                  style={{ borderColor: 'var(--cream)' }}
+                  title="Salvar detalhes do pitch como template reutilizável"
                 >
                   <Icon name="DocumentDuplicateIcon" size={15} variant="outline" />
-                  Save as Template
+                  Salvar como Template
                 </button>
 
                 {/* Status dropdown */}
@@ -1393,14 +1370,14 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                     value={footerStatus}
                     onChange={(e) => setFooterStatus(e.target.value as typeof footerStatus)}
                     disabled={isSubmitting}
-                    className="appearance-none pl-3 pr-7 py-1.5 rounded-lg text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    className="appearance-none pl-3 pr-7 py-1.5 rounded-lg text-xs font-medium border focus:outline-none focus:ring-2 cursor-pointer"
                     style={{
-                      borderColor: 'var(--color-border)',
-                      background: 'var(--color-card)',
-                      color: 'var(--color-foreground)',
-                      fontFamily: 'Inter, sans-serif',
+                      borderColor: 'var(--cream)',
+                      backgroundColor: 'var(--ice)',
+                      color: 'var(--ink)',
+                      fontFamily: 'Epilogue, sans-serif',
                     }}
-                    aria-label="Set pitch status"
+                    aria-label="Definir status do pitch"
                   >
                     <option value="draft">Draft</option>
                     <option value="ready">Ready</option>
@@ -1408,7 +1385,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                   </select>
                   <span
                     className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--color-muted-foreground)' }}
+                    style={{ color: 'var(--stone)' }}
                   >
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
                       <path d="M1 3l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -1420,8 +1397,8 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                   type="button"
                   onClick={handleSaveDraft}
                   disabled={isSubmitting}
-                  className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  style={{ borderColor: 'var(--color-border)' }}
+                  className="pm-btn-ghost border rounded-lg text-sm focus:ring-2 focus:outline-none"
+                  style={{ borderColor: 'var(--cream)' }}
                 >
                   <Icon name="DocumentTextIcon" size={16} variant="outline" />
                   Salvar Rascunho
@@ -1430,7 +1407,7 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                   type="button"
                   onClick={(e) => handleSubmit(e as unknown as React.FormEvent)}
                   disabled={isSubmitting}
-                  className="pm-btn-primary focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                  className="pm-btn-primary focus:ring-2 focus:ring-offset-2 focus:outline-none"
                 >
                   {isSubmitting ? (
                     <>
@@ -1438,12 +1415,12 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a10 10 0 0110-10V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      {editPitch ? 'Saving…' : 'Sending…'}
+                      {editPitch ? 'Salvando…' : 'Enviando…'}
                     </>
                   ) : (
                     <>
                       <Icon name="PaperAirplaneIcon" size={16} variant="outline" />
-                      {editPitch ? 'Save Changes' : 'Enviar Pitch'}
+                      {editPitch ? 'Salvar Alterações' : 'Enviar Pitch'}
                     </>
                   )}
                 </button>
@@ -1455,9 +1432,9 @@ export default function NewPitchModal({ isOpen, onClose, initialArtistId, initia
 
       {confirmRemoveExternal && (
         <ConfirmModal
-          title="Remove Recipient"
-          message={`Remove <strong>${externalRecipients.find((r) => r.id === confirmRemoveExternal)?.fullName ?? 'this recipient'}</strong> from the pitch? This won't delete the contact.`}
-          confirmLabel="Remove"
+          title="Remover Destinatário"
+          message={`Remover <strong>${externalRecipients.find((r) => r.id === confirmRemoveExternal)?.fullName ?? 'este destinatário'}</strong> do pitch? O contato não será excluído.`}
+          confirmLabel="Remover"
           onConfirm={() => removeExternalRecipient(confirmRemoveExternal)}
           onCancel={() => setConfirmRemoveExternal(null)}
         />

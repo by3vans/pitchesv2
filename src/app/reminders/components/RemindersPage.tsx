@@ -10,43 +10,33 @@ type ReminderStatus = 'pending' | 'snoozed' | 'completed';
 type FilterType = 'all' | 'pending' | 'snoozed' | 'completed';
 
 interface Reminder {
-  id: string;
-  pitchId: string;
-  pitchTitle: string;
-  pitchStatus: string;
-  contactName: string;
-  reminderDate: string;
-  status: ReminderStatus;
-  snoozedUntil: string | null;
+  id: string; pitchId: string; pitchTitle: string; pitchStatus: string;
+  contactName: string; reminderDate: string; status: ReminderStatus; snoozedUntil: string | null;
 }
 
-const PITCH_STATUS_CONFIG: Record<string, { bg: string; text: string }> = {
-  draft:     { bg: 'bg-gray-100',    text: 'text-gray-600'   },
-  new:       { bg: 'bg-gray-100',    text: 'text-gray-600'   },
-  in_review: { bg: 'bg-amber-50',    text: 'text-amber-700'  },
-  sent:      { bg: 'bg-blue-50',     text: 'text-blue-600'   },
-  approved:  { bg: 'bg-emerald-50',  text: 'text-emerald-700'},
-  placed:    { bg: 'bg-emerald-50',  text: 'text-emerald-700'},
-  rejected:  { bg: 'bg-red-50',      text: 'text-red-600'    },
-  hold:      { bg: 'bg-amber-50',    text: 'text-amber-700'  },
+const PITCH_STATUS_CONFIG: Record<string, { bg: string; color: string }> = {
+  draft:     { bg: 'var(--cream)',               color: 'var(--stone)'   },
+  new:       { bg: 'var(--cream)',               color: 'var(--stone)'   },
+  in_review: { bg: 'rgba(184,98,42,0.1)',        color: 'var(--orange)'  },
+  sent:      { bg: 'rgba(72,108,227,0.1)',       color: 'var(--blue)'    },
+  approved:  { bg: 'rgba(78,94,46,0.1)',         color: 'var(--olive)'   },
+  placed:    { bg: 'rgba(78,94,46,0.1)',         color: 'var(--olive)'   },
+  rejected:  { bg: 'rgba(194,59,46,0.1)',        color: 'var(--crimson)' },
+  hold:      { bg: 'rgba(184,98,42,0.1)',        color: 'var(--orange)'  },
 };
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
-  const day   = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year  = d.getFullYear();
-  return `${day}/${month}/${year}`;
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
 function getDaysLabel(iso: string): { label: string; overdue: boolean } {
-  const now  = new Date();
-  const d    = new Date(iso);
+  const now = new Date(); const d = new Date(iso);
   const diff = Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff < 0)  return { label: `${Math.abs(diff)}d overdue`, overdue: true };
-  if (diff === 0) return { label: 'Today',    overdue: false };
-  if (diff === 1) return { label: 'Tomorrow', overdue: false };
-  return { label: `In ${diff} days`, overdue: false };
+  if (diff < 0)   return { label: `${Math.abs(diff)}d em atraso`, overdue: true };
+  if (diff === 0) return { label: 'Hoje',   overdue: false };
+  if (diff === 1) return { label: 'Amanhã', overdue: false };
+  return { label: `Em ${diff} dias`, overdue: false };
 }
 
 function getInitials(name: string): string {
@@ -54,7 +44,7 @@ function getInitials(name: string): string {
 }
 
 function getAvatarColor(name: string): string {
-  const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'];
+  const colors = ['#486CE3', '#4E5E2E', '#B8622A', '#C23B2E', '#7A7470', '#1A1A18'];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];
@@ -68,12 +58,9 @@ export default function RemindersPage() {
   const [snoozeMenuId, setSnoozeMenuId] = useState<string | null>(null);
   const snoozeRef = useRef<HTMLDivElement>(null);
 
-  // Close snooze menu on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (snoozeRef.current && !snoozeRef.current.contains(e.target as Node)) {
-        setSnoozeMenuId(null);
-      }
+      if (snoozeRef.current && !snoozeRef.current.contains(e.target as Node)) setSnoozeMenuId(null);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -84,20 +71,15 @@ export default function RemindersPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setReminders([]); return; }
-
       const { data, error } = await supabase
         .from('reminders')
         .select('id, pitch_id, contact_name, reminder_date, status, snoozed_until, pitches(title, status)')
-        .eq('user_id', user.id)
-        .order('reminder_date', { ascending: true });
-
+        .eq('user_id', user.id).order('reminder_date', { ascending: true });
       if (error) throw error;
-
       const mapped: Reminder[] = (data ?? []).map((row) => {
         const pitch = Array.isArray(row.pitches) ? row.pitches[0] : row.pitches;
         return {
-          id: row.id,
-          pitchId: row.pitch_id,
+          id: row.id, pitchId: row.pitch_id,
           pitchTitle: pitch?.title ?? 'Pitch desconhecido',
           pitchStatus: pitch?.status ?? 'draft',
           contactName: row.contact_name ?? '—',
@@ -106,12 +88,9 @@ export default function RemindersPage() {
           snoozedUntil: row.snoozed_until ?? null,
         };
       });
-
       setReminders(mapped);
     } catch (err: unknown) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[RemindersPage] fetch error:', err instanceof Error ? err.message : err);
-      }
+      if (process.env.NODE_ENV === 'development') console.error('[RemindersPage]', err instanceof Error ? err.message : err);
     } finally {
       setLoading(false);
     }
@@ -121,33 +100,18 @@ export default function RemindersPage() {
 
   const markComplete = async (id: string) => {
     setSnoozeMenuId(null);
-    // Optimistic update
     setReminders((prev) => prev.map((r) => r.id === id ? { ...r, status: 'completed' } : r));
-    const { error } = await supabase
-      .from('reminders')
-      .update({ status: 'completed' })
-      .eq('id', id);
-    if (error) {
-      if (process.env.NODE_ENV === 'development') console.error('[RemindersPage] markComplete error:', error.message);
-      fetchReminders(); // revert on error
-    }
+    const { error } = await supabase.from('reminders').update({ status: 'completed' }).eq('id', id);
+    if (error) { if (process.env.NODE_ENV === 'development') console.error(error.message); fetchReminders(); }
   };
 
   const snooze = async (id: string, days: number) => {
     setSnoozeMenuId(null);
-    const newDate = new Date();
-    newDate.setDate(newDate.getDate() + days);
+    const newDate = new Date(); newDate.setDate(newDate.getDate() + days);
     const iso = newDate.toISOString();
-    // Optimistic update
     setReminders((prev) => prev.map((r) => r.id === id ? { ...r, status: 'snoozed', reminderDate: iso, snoozedUntil: iso } : r));
-    const { error } = await supabase
-      .from('reminders')
-      .update({ status: 'snoozed', reminder_date: iso, snoozed_until: iso })
-      .eq('id', id);
-    if (error) {
-      if (process.env.NODE_ENV === 'development') console.error('[RemindersPage] snooze error:', error.message);
-      fetchReminders();
-    }
+    const { error } = await supabase.from('reminders').update({ status: 'snoozed', reminder_date: iso, snoozed_until: iso }).eq('id', id);
+    if (error) { if (process.env.NODE_ENV === 'development') console.error(error.message); fetchReminders(); }
   };
 
   const filtered = reminders.filter((r) => filter === 'all' || r.status === filter);
@@ -155,43 +119,46 @@ export default function RemindersPage() {
   const overdue   = filtered.filter((r) => r.status !== 'completed' && new Date(r.reminderDate) < now);
   const upcoming  = filtered.filter((r) => r.status !== 'completed' && new Date(r.reminderDate) >= now);
   const completed = filtered.filter((r) => r.status === 'completed');
-
   const overdueCount = reminders.filter((r) => r.status !== 'completed' && new Date(r.reminderDate) < now).length;
 
   // ── ReminderRow ──────────────────────────────────────────────────────────────
   const ReminderRow = ({ reminder }: { reminder: Reminder }) => {
-    const isOverdue   = new Date(reminder.reminderDate) < now && reminder.status !== 'completed';
-    const daysInfo    = getDaysLabel(reminder.reminderDate);
-    const pitchCfg    = PITCH_STATUS_CONFIG[reminder.pitchStatus] ?? PITCH_STATUS_CONFIG.draft;
+    const isOverdue    = new Date(reminder.reminderDate) < now && reminder.status !== 'completed';
+    const daysInfo     = getDaysLabel(reminder.reminderDate);
+    const pitchCfg     = PITCH_STATUS_CONFIG[reminder.pitchStatus] ?? PITCH_STATUS_CONFIG.draft;
     const isSnoozeOpen = snoozeMenuId === reminder.id;
-    const initials    = getInitials(reminder.contactName);
-    const avatarColor = getAvatarColor(reminder.contactName);
+    const initials     = getInitials(reminder.contactName);
+    const avatarColor  = getAvatarColor(reminder.contactName);
 
     return (
-      <div className={`group flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-200 ${
-        reminder.status === 'completed'
-          ? 'opacity-60'
-          : isOverdue
-          ? 'border-red-100 bg-red-50/30 hover:border-red-200'
-          : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
-      }`}>
+      <div className="group flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-200"
+        style={{
+          backgroundColor: isOverdue ? 'rgba(194,59,46,0.03)' : 'var(--ice)',
+          borderColor: reminder.status === 'completed' ? 'var(--cream)' : isOverdue ? 'rgba(194,59,46,0.2)' : 'var(--cream)',
+          opacity: reminder.status === 'completed' ? 0.6 : 1,
+        }}>
+
         {/* Status dot */}
         <div className="shrink-0">
           {reminder.status === 'completed' ? (
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-              <Icon name="CheckIcon" size={14} variant="solid" className="text-emerald-600" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(78,94,46,0.1)' }}>
+              <Icon name="CheckIcon" size={14} variant="solid" style={{ color: 'var(--olive)' }} />
             </div>
           ) : isOverdue ? (
-            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-              <Icon name="ExclamationCircleIcon" size={14} variant="solid" className="text-red-500" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(194,59,46,0.1)' }}>
+              <Icon name="ExclamationCircleIcon" size={14} variant="solid" style={{ color: 'var(--crimson)' }} />
             </div>
           ) : reminder.status === 'snoozed' ? (
-            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-              <Icon name="ClockIcon" size={14} variant="outline" className="text-amber-600" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(184,98,42,0.1)' }}>
+              <Icon name="ClockIcon" size={14} variant="outline" style={{ color: 'var(--orange)' }} />
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <Icon name="ClockIcon" size={14} variant="outline" className="text-blue-500" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(72,108,227,0.1)' }}>
+              <Icon name="ClockIcon" size={14} variant="outline" style={{ color: 'var(--blue)' }} />
             </div>
           )}
         </div>
@@ -199,42 +166,41 @@ export default function RemindersPage() {
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
-            <Link
-              href={`/pitch-detail-management?id=${reminder.pitchId}`}
-              className={`text-sm font-semibold truncate hover:underline ${
-                reminder.status === 'completed' ? 'line-through text-gray-400' : 'text-gray-900'
-              }`}
-              style={{ fontFamily: 'Inter, sans-serif' }}>
+            <Link href={`/pitch-detail-management?id=${reminder.pitchId}`}
+              className="text-sm font-semibold truncate hover:underline"
+              style={{
+                fontFamily: 'Epilogue, sans-serif',
+                color: reminder.status === 'completed' ? 'var(--stone)' : 'var(--ink)',
+                textDecoration: reminder.status === 'completed' ? 'line-through' : 'none',
+              }}>
               {reminder.pitchTitle}
             </Link>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-medium ${pitchCfg.bg} ${pitchCfg.text}`}
-              style={{ fontFamily: 'IBM Plex Sans, sans-serif', fontSize: '0.68rem' }}>
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ fontFamily: 'Azeret Mono, monospace', fontSize: '0.68rem', backgroundColor: pitchCfg.bg, color: pitchCfg.color }}>
               {reminder.pitchStatus}
             </span>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5">
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center text-white shrink-0"
-                style={{ background: avatarColor, fontSize: '0.55rem', fontWeight: 700 }}
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-white shrink-0"
+                style={{ backgroundColor: avatarColor, fontSize: '0.55rem', fontWeight: 700 }}
                 aria-hidden="true">
                 {initials}
               </div>
-              <span className="text-xs" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
+              <span className="text-xs" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
                 {reminder.contactName}
               </span>
             </div>
-            <span className="text-xs text-gray-300">·</span>
-            <span className="text-xs font-mono" style={{ color: 'var(--color-muted-foreground)' }}>
+            <span style={{ color: 'var(--cream)' }}>·</span>
+            <span className="text-xs" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
               {formatDate(reminder.reminderDate)}
             </span>
-            <span
-              className={`text-xs font-medium ${
-                daysInfo.overdue ? 'text-red-500' : reminder.status === 'snoozed' ? 'text-amber-600' : 'text-blue-500'
-              }`}
-              style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-              {reminder.status === 'snoozed' ? `Snoozed · ${daysInfo.label}` : daysInfo.label}
+            <span className="text-xs font-medium"
+              style={{
+                fontFamily: 'Azeret Mono, monospace',
+                color: daysInfo.overdue ? 'var(--crimson)' : reminder.status === 'snoozed' ? 'var(--orange)' : 'var(--blue)',
+              }}>
+              {reminder.status === 'snoozed' ? `Adiado · ${daysInfo.label}` : daysInfo.label}
             </span>
           </div>
         </div>
@@ -242,43 +208,36 @@ export default function RemindersPage() {
         {/* Actions */}
         {reminder.status !== 'completed' && (
           <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              type="button"
-              onClick={() => markComplete(reminder.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              style={{ background: 'rgba(16,185,129,0.08)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)', fontFamily: 'IBM Plex Sans, sans-serif' }}
-              aria-label={`Mark ${reminder.pitchTitle} as complete`}>
+            <button type="button" onClick={() => markComplete(reminder.id)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none"
+              style={{ fontFamily: 'Epilogue, sans-serif', backgroundColor: 'rgba(78,94,46,0.08)', color: 'var(--olive)', border: '1px solid rgba(78,94,46,0.2)' }}
+              aria-label={`Marcar ${reminder.pitchTitle} como concluído`}>
               <Icon name="CheckIcon" size={12} variant="solid" />
-              Complete
+              Concluir
             </button>
 
-            {/* Snooze dropdown */}
             <div className="relative" ref={isSnoozeOpen ? snoozeRef : undefined}>
-              <button
-                type="button"
+              <button type="button"
                 onClick={() => setSnoozeMenuId(isSnoozeOpen ? null : reminder.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-400"
-                style={{ background: 'rgba(245,158,11,0.08)', color: '#d97706', border: '1px solid rgba(245,158,11,0.2)', fontFamily: 'IBM Plex Sans, sans-serif' }}
-                aria-label={`Snooze ${reminder.pitchTitle}`}
-                aria-expanded={isSnoozeOpen}
-                aria-haspopup="true">
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none"
+                style={{ fontFamily: 'Epilogue, sans-serif', backgroundColor: 'rgba(184,98,42,0.08)', color: 'var(--orange)', border: '1px solid rgba(184,98,42,0.2)' }}
+                aria-label={`Adiar ${reminder.pitchTitle}`}
+                aria-expanded={isSnoozeOpen} aria-haspopup="true">
                 <Icon name="ClockIcon" size={12} variant="outline" />
-                Snooze
+                Adiar
                 <Icon name="ChevronDownIcon" size={10} variant="outline" />
               </button>
 
               {isSnoozeOpen && (
-                <div
-                  className="absolute right-0 top-full mt-1 z-50 rounded-xl shadow-lg overflow-hidden"
-                  style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', minWidth: '140px' }}
+                <div className="absolute right-0 top-full mt-1 z-50 rounded-xl shadow-lg overflow-hidden"
+                  style={{ backgroundColor: 'var(--ice)', border: '1px solid var(--cream)', minWidth: '140px' }}
                   role="menu">
-                  {[{ days: 1, label: '+1 day' }, { days: 3, label: '+3 days' }, { days: 7, label: '+7 days' }].map((opt) => (
-                    <button
-                      key={opt.days}
-                      type="button"
-                      onClick={() => snooze(reminder.id, opt.days)}
-                      className="w-full text-left px-4 py-2.5 text-xs font-medium transition-colors hover:bg-muted focus:outline-none"
-                      style={{ color: 'var(--color-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}
+                  {[{ days: 1, label: '+1 dia' }, { days: 3, label: '+3 dias' }, { days: 7, label: '+7 dias' }].map((opt) => (
+                    <button key={opt.days} type="button" onClick={() => snooze(reminder.id, opt.days)}
+                      className="w-full text-left px-4 py-2.5 text-xs font-medium transition-colors focus:outline-none"
+                      style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--cream)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       role="menuitem">
                       {opt.label}
                     </button>
@@ -298,18 +257,19 @@ export default function RemindersPage() {
     if (items.length === 0) return null;
     return (
       <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setCollapsed((v) => !v)}
-          className="flex items-center gap-2 mb-3 w-full text-left focus:outline-none group">
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: accent }} />
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
+        <button type="button" onClick={() => setCollapsed((v) => !v)}
+          className="flex items-center gap-2 mb-3 w-full text-left focus:outline-none">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accent }} />
+          <span className="text-xs font-semibold uppercase tracking-widest"
+            style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
             {title}
           </span>
-          <span className="text-xs px-1.5 py-0.5 rounded-full ml-1" style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
+          <span className="text-xs px-1.5 py-0.5 rounded-full ml-1"
+            style={{ fontFamily: 'Azeret Mono, monospace', backgroundColor: 'var(--cream)', color: 'var(--stone)' }}>
             {items.length}
           </span>
-          <Icon name={collapsed ? 'ChevronRightIcon' : 'ChevronDownIcon'} size={14} variant="outline" className="ml-auto text-gray-400 group-hover:text-gray-600 transition-colors" />
+          <Icon name={collapsed ? 'ChevronRightIcon' : 'ChevronDownIcon'} size={14} variant="outline"
+            className="ml-auto transition-colors" style={{ color: 'var(--stone)' }} />
         </button>
         {!collapsed && (
           <div className="space-y-2">
@@ -321,7 +281,7 @@ export default function RemindersPage() {
   };
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--color-background)' }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: 'var(--ice)' }}>
       <Sidebar />
       <main className="flex-1 md:pl-56 pt-16 md:pt-0">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -330,33 +290,35 @@ export default function RemindersPage() {
           <div className="flex items-start justify-between gap-4 mb-8">
             <div>
               <p className="pm-kicker mb-1">Follow-ups</p>
-              <h1 className="pm-h1">Reminders</h1>
+              <h1 className="pm-h1">Lembretes</h1>
               {overdueCount > 0 && (
-                <p className="text-sm mt-1" style={{ color: '#ef4444', fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                  {overdueCount} overdue reminder{overdueCount !== 1 ? 's' : ''} need attention
+                <p className="text-sm mt-1" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--crimson)' }}>
+                  {overdueCount} lembrete{overdueCount !== 1 ? 's' : ''} em atraso
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Link href="/pitch-creation-workflow" className="pm-btn border" style={{ borderColor: 'var(--color-border)' }}>
+              <Link href="/pitch-creation-workflow" className="pm-btn border"
+                style={{ borderColor: 'var(--cream)' }}>
                 <Icon name="PlusIcon" size={15} variant="outline" />
-                Add Reminder
+                Adicionar
               </Link>
             </div>
           </div>
 
-          {/* Stats row */}
+          {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-6">
             {[
-              { label: 'Pending',   value: reminders.filter((r) => r.status === 'pending').length,   color: '#3b82f6', bg: 'rgba(59,130,246,0.06)'  },
-              { label: 'Overdue',   value: overdueCount,                                              color: '#ef4444', bg: 'rgba(239,68,68,0.06)'   },
-              { label: 'Completed', value: reminders.filter((r) => r.status === 'completed').length,  color: '#10b981', bg: 'rgba(16,185,129,0.06)'  },
+              { label: 'Pendentes',  value: reminders.filter((r) => r.status === 'pending').length,   accent: 'var(--blue)',    bg: 'rgba(72,108,227,0.06)',  border: 'rgba(72,108,227,0.15)'  },
+              { label: 'Em atraso',  value: overdueCount,                                              accent: 'var(--crimson)', bg: 'rgba(194,59,46,0.06)',   border: 'rgba(194,59,46,0.15)'  },
+              { label: 'Concluídos', value: reminders.filter((r) => r.status === 'completed').length,  accent: 'var(--olive)',   bg: 'rgba(78,94,46,0.06)',    border: 'rgba(78,94,46,0.15)'   },
             ].map((stat) => (
-              <div key={stat.label} className="px-4 py-3 rounded-xl text-center" style={{ background: stat.bg, border: `1px solid ${stat.color}22` }}>
-                <p className="text-2xl font-bold" style={{ color: stat.color, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.03em' }}>
+              <div key={stat.label} className="px-4 py-3 rounded-xl text-center"
+                style={{ backgroundColor: stat.bg, border: `1px solid ${stat.border}` }}>
+                <p className="text-2xl font-bold" style={{ fontFamily: 'Azeret Mono, monospace', color: stat.accent, letterSpacing: '-0.03em' }}>
                   {stat.value}
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                <p className="text-xs mt-0.5" style={{ fontFamily: 'Azeret Mono, monospace', color: 'var(--stone)' }}>
                   {stat.label}
                 </p>
               </div>
@@ -364,43 +326,51 @@ export default function RemindersPage() {
           </div>
 
           {/* Filter toggles */}
-          <div
-            className="flex items-center gap-1 p-1 rounded-xl mb-6 w-fit"
-            style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
-            {(['all', 'pending', 'snoozed', 'completed'] as FilterType[]).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                  filter === f ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-                }`}
-                style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                {f === 'all' ? `All (${reminders.length})` : f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ))}
+          <div className="flex items-center gap-1 p-1 rounded-xl mb-6 w-fit"
+            style={{ backgroundColor: 'var(--cream)', border: '1px solid var(--cream)' }}>
+            {(['all', 'pending', 'snoozed', 'completed'] as FilterType[]).map((f) => {
+              const labels: Record<FilterType, string> = { all: `Todos (${reminders.length})`, pending: 'Pendentes', snoozed: 'Adiados', completed: 'Concluídos' };
+              return (
+                <button key={f} type="button" onClick={() => setFilter(f)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none"
+                  style={{
+                    fontFamily: 'Epilogue, sans-serif',
+                    backgroundColor: filter === f ? 'var(--ice)' : 'transparent',
+                    color: filter === f ? 'var(--ink)' : 'var(--stone)',
+                    boxShadow: filter === f ? '0 1px 3px rgba(26,26,24,0.08)' : 'none',
+                  }}>
+                  {labels[f]}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Loading */}
+          {/* Content */}
           {loading ? (
             <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-16 rounded-xl border border-gray-100 bg-white animate-pulse" />
+                <div key={i} className="h-16 rounded-xl animate-pulse" style={{ backgroundColor: 'var(--cream)' }} />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 rounded-2xl" style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: 'var(--color-muted)' }}>
-                <Icon name="ClockIcon" size={22} variant="outline" className="text-gray-400" />
+            <div className="flex flex-col items-center justify-center py-16 rounded-2xl"
+              style={{ backgroundColor: 'var(--ice)', border: '1px solid var(--cream)' }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+                style={{ backgroundColor: 'var(--cream)' }}>
+                <Icon name="ClockIcon" size={22} variant="outline" style={{ color: 'var(--stone)' }} />
               </div>
-              <p className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'Inter, sans-serif' }}>No reminders found</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--color-muted-foreground)' }}>Create a pitch with a reminder to see it here.</p>
+              <p className="text-sm font-semibold" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}>
+                Nenhum lembrete encontrado
+              </p>
+              <p className="text-xs mt-1" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
+                Crie um pitch com lembrete para ver aqui.
+              </p>
             </div>
           ) : (
             <>
-              <Section title="Overdue"   items={overdue}   accent="#ef4444" />
-              <Section title="Upcoming"  items={upcoming}  accent="#3b82f6" />
-              <Section title="Completed" items={completed} accent="#10b981" />
+              <Section title="Em Atraso"  items={overdue}   accent="var(--crimson)" />
+              <Section title="Próximos"   items={upcoming}  accent="var(--blue)"    />
+              <Section title="Concluídos" items={completed} accent="var(--olive)"   />
             </>
           )}
         </div>

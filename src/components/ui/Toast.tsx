@@ -29,26 +29,14 @@ function uid() {
 
 const ICON_MAP: Record<ToastType, string> = {
   success: 'CheckCircleIcon',
-  error: 'XCircleIcon',
-  info: 'InformationCircleIcon',
+  error:   'XCircleIcon',
+  info:    'InformationCircleIcon',
 };
 
-const STYLE_MAP: Record<ToastType, { bg: string; border: string; icon: string }> = {
-  success: {
-    bg: 'var(--color-card)',
-    border: 'rgba(16,185,129,0.35)',
-    icon: 'var(--color-success)',
-  },
-  error: {
-    bg: 'var(--color-card)',
-    border: 'rgba(239,68,68,0.35)',
-    icon: 'var(--color-destructive)',
-  },
-  info: {
-    bg: 'var(--color-card)',
-    border: 'rgba(59,130,246,0.35)',
-    icon: 'var(--color-accent)',
-  },
+const STYLE_MAP: Record<ToastType, { border: string; icon: string }> = {
+  success: { border: 'rgba(78,94,46,0.35)',    icon: '#4E5E2E' },
+  error:   { border: 'rgba(194,59,46,0.35)',   icon: '#C23B2E' },
+  info:    { border: 'rgba(72,108,227,0.35)',  icon: '#486CE3' },
 };
 
 function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: string) => void }) {
@@ -56,9 +44,7 @@ function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Trigger enter animation
     const enterTimer = setTimeout(() => setVisible(true), 10);
-    // Auto-dismiss after 3.5s
     timerRef.current = setTimeout(() => {
       setVisible(false);
       setTimeout(() => onDismiss(toast.id), 300);
@@ -80,10 +66,10 @@ function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: 
         setTimeout(() => onDismiss(toast.id), 300);
       }}
       style={{
-        background: styles.bg,
+        backgroundColor: 'var(--ice)',
         border: `1px solid ${styles.border}`,
         borderRadius: '12px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+        boxShadow: '0 4px 20px rgba(26,26,24,0.12)',
         padding: '12px 14px',
         display: 'flex',
         alignItems: 'center',
@@ -105,10 +91,10 @@ function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: 
       />
       <p
         style={{
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'Epilogue, sans-serif',
           fontSize: '0.8125rem',
           fontWeight: 500,
-          color: 'var(--color-foreground)',
+          color: 'var(--ink)',
           lineHeight: 1.4,
           flex: 1,
         }}
@@ -119,7 +105,7 @@ function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: 
         name="XMarkIcon"
         size={14}
         variant="outline"
-        style={{ color: 'var(--color-muted-foreground)', flexShrink: 0 }}
+        style={{ color: 'var(--stone)', flexShrink: 0 }}
       />
     </div>
   );
@@ -140,7 +126,6 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Toast container */}
       <div
         role="status"
         aria-live="polite"

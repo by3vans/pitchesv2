@@ -3,7 +3,7 @@
    Tailwind + Design Tokens + Base Styles + Components
    ════════════════════════════════════════════════════ */
 
-   @import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Epilogue:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,700&family=Azeret+Mono:wght@400;500&family=Playfair+Display:ital,wght@1,700;1,800;1,900&display=swap');
+   @import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Epilogue:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,700&family=Azeret+Mono:wght@400;500&display=swap');
 
    @tailwind base;
    @tailwind components;
@@ -12,7 +12,15 @@
    /* ── DESIGN TOKENS ──────────────────────────────────── */
    @layer base {
      :root {
-       /* ── Cores fixas — nunca mudam entre modos ── */
+       /* ── Paleta de marca — nomes canônicos ── */
+       --ink:            #1A1A18;
+       --ink-2:          #3A3836;
+       --ice:            #F8F5F0;
+       --ice-2:          #F0ECE6;
+       --ice-3:          #E8E3DC;
+       --cream:          #DDD8CF;
+       --stone:          #7A7470;
+   
        --blue:           #486CE3;
        --blue-lt:        #6692EA;
        --blue-dk:        #3558C8;
@@ -30,61 +38,55 @@
        --crimson-lt:     #D4504A;
        --crimson-bg:     rgba(194, 59, 46, 0.10);
    
-       --cream:          #DDD8CF;
-       --stone:          #7A7470;
+       /* ── Superfícies (light mode) ── */
+       --surface:        #FFFFFF;
+       --surface-raised: var(--ice-2);
    
-       /* ── Light mode (default) ── */
-       --bg:             #F8F5F0;
-       --bg-surface:     #F0ECE6;
-       --bg-raised:      #E8E3DC;
-       --bg-card:        #FFFFFF;
-       --text:           #1A1A18;
-       --text-2:         #3A3836;
-       --muted:          #7A7470;
+       /* ── Bordas ── */
        --border:         rgba(107, 101, 80, 0.16);
        --border-2:       rgba(107, 101, 80, 0.09);
    
        /* ── Tailwind compat aliases ── */
-       --color-background:           var(--bg);
-       --color-foreground:           var(--text);
-       --color-card:                 var(--bg-card);
-       --color-card-foreground:      var(--text);
-       --color-border:               var(--border);
-       --color-input:                var(--bg-card);
-       --color-ring:                 var(--blue);
-       --color-primary:              var(--text);
-       --color-primary-foreground:   #F0ECE6;
-       --color-secondary:            var(--text-2);
-       --color-secondary-foreground: #F0ECE6;
-       --color-accent:               var(--blue);
-       --color-accent-foreground:    #ffffff;
-       --color-muted:                var(--bg-surface);
-       --color-muted-foreground:     var(--muted);
-       --color-destructive:          var(--crimson);
+       --color-background:             var(--ice);
+       --color-foreground:             var(--ink);
+       --color-card:                   var(--surface);
+       --color-card-foreground:        var(--ink);
+       --color-border:                 var(--border);
+       --color-input:                  var(--surface);
+       --color-ring:                   var(--blue);
+       --color-primary:                var(--ink);
+       --color-primary-foreground:     var(--ice-2);
+       --color-secondary:              var(--ink-2);
+       --color-secondary-foreground:   var(--ice-2);
+       --color-accent:                 var(--blue);
+       --color-accent-foreground:      #ffffff;
+       --color-muted:                  var(--ice-2);
+       --color-muted-foreground:       var(--stone);
+       --color-destructive:            var(--crimson);
        --color-destructive-foreground: #ffffff;
-       --color-success:              var(--olive);
-       --color-success-foreground:   #ffffff;
-       --color-warning:              var(--orange);
-       --color-warning-foreground:   #ffffff;
-       --color-error:                var(--crimson);
-       --color-error-foreground:     #ffffff;
+       --color-success:                var(--olive);
+       --color-success-foreground:     #ffffff;
+       --color-warning:                var(--orange);
+       --color-warning-foreground:     #ffffff;
+       --color-error:                  var(--crimson);
+       --color-error-foreground:       #ffffff;
+       --color-surface:                var(--ice-2);
    
        /* ── Fonts ── */
-       --font-display:   'Cabinet Grotesk', sans-serif;
-       --font-body:      'Epilogue', sans-serif;
-       --font-mono:      'Azeret Mono', monospace;
-       --font-serif:     'Playfair Display', serif;
+       --font-display: 'Cabinet Grotesk', sans-serif;
+       --font-body:    'Epilogue', sans-serif;
+       --font-mono:    'Azeret Mono', monospace;
      }
    
      /* ── Dark mode ── */
      .dark {
-       --bg:             #1A1A18;
-       --bg-surface:     #252522;
-       --bg-raised:      #2E2D2A;
-       --bg-card:        rgba(255, 255, 255, 0.04);
-       --text:           #F0ECE6;
-       --text-2:         #C8C2BA;
-       --muted:          #7A7470;
+       --ink:            #F0ECE6;
+       --ink-2:          #C8C2BA;
+       --ice:            #1A1A18;
+       --ice-2:          #252522;
+       --ice-3:          #2E2D2A;
+       --surface:        rgba(255, 255, 255, 0.04);
+       --surface-raised: #1E1E1C;
        --border:         rgba(221, 216, 207, 0.14);
        --border-2:       rgba(221, 216, 207, 0.07);
        --blue-bg:        rgba(72, 108, 227, 0.14);
@@ -92,18 +94,19 @@
        --orange-bg:      rgba(184, 98, 42, 0.16);
        --crimson-bg:     rgba(194, 59, 46, 0.16);
    
-       --color-background:           var(--bg);
-       --color-foreground:           var(--text);
-       --color-card:                 #1E1E1C;
-       --color-card-foreground:      var(--text);
+       --color-background:           var(--ice);
+       --color-foreground:           var(--ink);
+       --color-card:                 var(--surface-raised);
+       --color-card-foreground:      var(--ink);
        --color-border:               var(--border);
-       --color-input:                #252522;
-       --color-muted:                var(--bg-surface);
-       --color-muted-foreground:     var(--muted);
+       --color-input:                var(--ice-2);
+       --color-muted:                var(--ice-2);
+       --color-muted-foreground:     var(--stone);
        --color-accent:               var(--blue-lt);
        --color-accent-foreground:    #1A1A18;
-       --color-primary:              var(--text);
+       --color-primary:              var(--ink);
        --color-primary-foreground:   #1A1A18;
+       --color-surface:              var(--ice-2);
      }
    
      /* ── Base reset ── */
@@ -114,8 +117,8 @@
      }
    
      body {
-       background-color: var(--bg);
-       color: var(--text);
+       background-color: var(--ice);
+       color: var(--ink);
        font-family: var(--font-body);
        font-weight: 300;
        font-size: 16px;
@@ -129,7 +132,7 @@
        font-weight: 800;
        letter-spacing: -0.03em;
        line-height: 1.05;
-       color: var(--text);
+       color: var(--ink);
      }
    
      code, pre, kbd, .mono, .data-text {
@@ -150,18 +153,18 @@
      /* ── Topbar ── */
      .pm-topbar {
        @apply fixed top-0 left-0 right-0 z-[100] flex items-center h-16;
-       background: var(--bg-card);
+       background: var(--surface);
        border-bottom: 1px solid var(--border);
        box-shadow: 0 1px 3px rgba(26,26,24,0.06);
      }
    
      /* ── Panel / Card ── */
      .pm-panel {
-       background: var(--bg-card);
+       background: var(--surface);
        border: 1px solid var(--border);
        border-radius: 14px;
        padding: 18px;
-       color: var(--text);
+       color: var(--ink);
      }
    
      /* ── Typography helpers ── */
@@ -171,7 +174,7 @@
        font-weight: 500;
        letter-spacing: 0.16em;
        text-transform: uppercase;
-       color: var(--muted);
+       color: var(--stone);
        margin-bottom: 2px;
      }
    
@@ -179,13 +182,13 @@
        font-family: var(--font-display);
        font-size: 1.5rem;
        font-weight: 800;
-       color: var(--text);
+       color: var(--ink);
        letter-spacing: -0.03em;
        line-height: 1.1;
      }
    
      .pm-muted {
-       color: var(--muted);
+       color: var(--stone);
        font-weight: 300;
      }
    
@@ -196,7 +199,7 @@
        font-weight: 500;
        letter-spacing: 0.12em;
        text-transform: uppercase;
-       color: var(--text-2);
+       color: var(--ink-2);
        margin-bottom: 6px;
      }
    
@@ -209,8 +212,8 @@
        font-weight: 300;
        border: 1px solid var(--border);
        border-radius: 8px;
-       background: var(--bg-card);
-       color: var(--text);
+       background: var(--surface);
+       color: var(--ink);
        outline: none;
        transition: border-color 150ms, box-shadow 150ms;
      }
@@ -218,7 +221,7 @@
        border-color: var(--blue);
        box-shadow: 0 0 0 3px rgba(72,108,227,0.12);
      }
-     .pm-input::placeholder { color: var(--muted); }
+     .pm-input::placeholder { color: var(--stone); }
    
      /* ── Buttons ── */
      .pm-btn {
@@ -232,13 +235,13 @@
        border-radius: 8px;
        border: 1px solid var(--border);
        background: transparent;
-       color: var(--muted);
+       color: var(--stone);
        cursor: pointer;
        transition: all 150ms;
      }
      .pm-btn:hover {
-       background: var(--bg-surface);
-       color: var(--text);
+       background: var(--ice-2);
+       color: var(--ink);
      }
    
      .pm-btn-primary {
@@ -259,13 +262,13 @@
      .pm-btn-ghost {
        @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 min-h-[44px];
        font-family: var(--font-display);
-       color: var(--muted);
+       color: var(--stone);
        border: 1px solid var(--border);
        background: transparent;
      }
      .pm-btn-ghost:hover {
-       color: var(--text);
-       background: var(--bg-surface);
+       color: var(--ink);
+       background: var(--ice-2);
        border-color: var(--blue);
      }
    
@@ -273,15 +276,15 @@
      .pm-nav-link {
        @apply relative flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200;
        font-family: var(--font-body);
-       color: var(--muted);
+       color: var(--stone);
      }
      .pm-nav-link:hover {
-       color: var(--text);
-       background: var(--bg-surface);
+       color: var(--ink);
+       background: var(--ice-2);
      }
      .pm-nav-link.active {
-       color: var(--text);
-       background: var(--bg-surface);
+       color: var(--ink);
+       background: var(--ice-2);
        font-weight: 600;
      }
      .pm-nav-link.active::after {
@@ -293,7 +296,7 @@
      /* ── Sidebar ── */
      .pm-sidebar {
        @apply fixed top-0 left-0 bottom-0 z-[100] flex-col w-56;
-       background: var(--bg-card);
+       background: var(--surface);
        border-right: 1px solid var(--border);
        padding-top: 20px;
        padding-bottom: 24px;
@@ -303,11 +306,11 @@
      .pm-sidebar-link {
        @apply flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200;
        font-family: var(--font-body);
-       color: var(--muted);
+       color: var(--stone);
      }
      .pm-sidebar-link:hover {
-       background: var(--bg-surface);
-       color: var(--text);
+       background: var(--ice-2);
+       color: var(--ink);
      }
      .pm-sidebar-link.active {
        background: var(--blue-bg);
@@ -318,9 +321,9 @@
      .pm-sidebar-quick-action {
        @apply flex items-center px-3 py-1.5 text-xs transition-all duration-200 rounded-lg;
        font-family: var(--font-mono);
-       color: var(--muted);
+       color: var(--stone);
      }
-     .pm-sidebar-quick-action:hover { color: var(--text); }
+     .pm-sidebar-quick-action:hover { color: var(--ink); }
    
      /* ── Status badges ── */
      .pm-status-badge {
@@ -330,9 +333,9 @@
        text-transform: uppercase;
      }
    
-     .badge-blue    { background: var(--blue-bg);    color: var(--blue); }
-     .badge-olive   { background: var(--olive-bg);   color: var(--olive); }
-     .badge-orange  { background: var(--orange-bg);  color: var(--orange); }
+     .badge-blue    { background: var(--blue-bg);    color: var(--blue);    }
+     .badge-olive   { background: var(--olive-bg);   color: var(--olive);   }
+     .badge-orange  { background: var(--orange-bg);  color: var(--orange);  }
      .badge-crimson { background: var(--crimson-bg); color: var(--crimson); }
      .badge-stone   { background: rgba(122,116,112,0.12); color: var(--stone); }
    
@@ -340,7 +343,7 @@
      .pm-breadcrumb {
        @apply flex items-center gap-1.5 text-xs;
        font-family: var(--font-mono);
-       color: var(--muted);
+       color: var(--stone);
        letter-spacing: 0.06em;
      }
    
@@ -368,7 +371,7 @@
      /* ── Mobile menu ── */
      .pm-mobile-menu {
        @apply fixed inset-0 z-[150] flex flex-col;
-       background: var(--bg-card);
+       background: var(--surface);
      }
    }
    
@@ -391,8 +394,8 @@
        100% { transform: translateX(-50%); }
      }
    
-     .animate-fade-up  { animation: fadeUp 0.6s ease forwards; }
-     .animate-fade-in  { animation: fadeIn 0.4s ease forwards; }
+     .animate-fade-up   { animation: fadeUp 0.6s ease forwards; }
+     .animate-fade-in   { animation: fadeIn 0.4s ease forwards; }
      .animate-pulse-dot { animation: pulse-dot 2.6s ease-in-out infinite; }
-     .marquee-track    { display: flex; animation: marquee 28s linear infinite; }
+     .marquee-track     { display: flex; animation: marquee 28s linear infinite; }
    }

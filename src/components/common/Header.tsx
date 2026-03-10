@@ -17,30 +17,30 @@ interface HeaderProps {
 }
 
 const navItems = [
-  { label: 'Artists', path: '/artists', icon: 'MusicalNoteIcon' },
-  { label: 'Artist Detail', path: '/artist-detail-management', icon: 'UserCircleIcon' },
-  { label: 'Contacts', path: '/contacts', icon: 'UsersIcon' },
-  { label: 'Pitches', path: '/pitches', icon: 'PaperAirplaneIcon' },
-  { label: 'Settings', path: '/settings', icon: 'Cog6ToothIcon' },
+  { label: 'Artists',       path: '/artists',                   icon: 'MusicalNoteIcon'  },
+  { label: 'Artist Detail', path: '/artist-detail-management',  icon: 'UserCircleIcon'   },
+  { label: 'Contacts',      path: '/contacts',                  icon: 'UsersIcon'        },
+  { label: 'Pitches',       path: '/pitches',                   icon: 'PaperAirplaneIcon'},
+  { label: 'Settings',      path: '/settings',                  icon: 'Cog6ToothIcon'    },
 ];
 
 const Header = ({ isOpen = false, onMenuToggle }: HeaderProps) => {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted]       = useState(false);
   const [mobileOpen, setMobileOpen] = useState(isOpen);
   const { resolvedTheme, toggleTheme } = useThemeContext();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  const handleEvent = useCallback((event: import('@/hooks/useRealtimeSubscriptions').RealtimeEvent) => {
-    showToast(event.message, event.toastType);
-  }, [showToast]);
+  const handleEvent = useCallback(
+    (event: import('@/hooks/useRealtimeSubscriptions').RealtimeEvent) => {
+      showToast(event.message, event.toastType);
+    },
+    [showToast]
+  );
 
   const handleRefresh = useCallback(() => {
-    // Trigger a soft refresh by dispatching a custom event that pages can listen to
     window.dispatchEvent(new CustomEvent('realtime-refresh'));
   }, []);
 
@@ -60,17 +60,32 @@ const Header = ({ isOpen = false, onMenuToggle }: HeaderProps) => {
     onMenuToggle?.(false);
   };
 
-  const isActive = (path: string) => mounted && (pathname === path || pathname.startsWith(path + '/'));
+  const isActive = (path: string) =>
+    mounted && (pathname === path || pathname.startsWith(path + '/'));
 
   return (
     <>
       <header className="pm-topbar px-0">
         <div className="flex items-center w-full px-6 gap-8">
-          <Link href="/pitches" className="flex items-center gap-2.5 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-lg">
-            <Image src="/assets/images/pitchhood-logo-light-1772649730204.png" alt="Pitchhood" width={140} height={32} className="hidden sm:block h-8 w-auto" priority />
-            <Image src="/assets/images/pitchhood-logo-light-1772649730204.png" alt="Pitchhood" width={32} height={32} className="sm:hidden h-8 w-auto" priority />
+          {/* Logo */}
+          <Link
+            href="/pitches"
+            className="flex items-center gap-2.5 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-lg"
+            style={{ ['--tw-ring-color' as any]: 'var(--blue)' }}
+          >
+            <Image
+              src="/assets/images/pitchhood-logo-light-1772649730204.png"
+              alt="Pitchhood" width={140} height={32}
+              className="hidden sm:block h-8 w-auto" priority
+            />
+            <Image
+              src="/assets/images/pitchhood-logo-light-1772649730204.png"
+              alt="Pitchhood" width={32} height={32}
+              className="sm:hidden h-8 w-auto" priority
+            />
           </Link>
 
+          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1 flex-1" aria-label="Main navigation">
             {navItems.map((item) => (
               <Link
@@ -85,6 +100,7 @@ const Header = ({ isOpen = false, onMenuToggle }: HeaderProps) => {
             ))}
           </nav>
 
+          {/* Desktop right */}
           <div className="hidden md:flex items-center gap-2 ml-auto">
             <RealtimeBadge status={realtimeStatus} />
             <ConnectionStatus />
@@ -94,11 +110,10 @@ const Header = ({ isOpen = false, onMenuToggle }: HeaderProps) => {
               aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               type="button"
             >
-              {resolvedTheme === 'dark' ? (
-                <Icon name="SunIcon" size={18} variant="outline" />
-              ) : (
-                <Icon name="MoonIcon" size={18} variant="outline" />
-              )}
+              <Icon
+                name={resolvedTheme === 'dark' ? 'SunIcon' : 'MoonIcon'}
+                size={18} variant="outline"
+              />
             </button>
             <Link href="/pitches" className="pm-btn-primary" aria-label="Go to pitches">
               <Icon name="PlusIcon" size={16} variant="outline" />
@@ -106,6 +121,7 @@ const Header = ({ isOpen = false, onMenuToggle }: HeaderProps) => {
             </Link>
           </div>
 
+          {/* Mobile hamburger */}
           <button
             className="md:hidden ml-auto pm-btn-ghost min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg"
             onClick={handleMenuToggle}
@@ -118,12 +134,19 @@ const Header = ({ isOpen = false, onMenuToggle }: HeaderProps) => {
         </div>
       </header>
 
+      {/* Mobile drawer */}
       {mobileOpen && (
         <div className="pm-mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation menu">
-          <div className="flex items-center justify-between px-6 h-16 border-b" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="flex items-center gap-2.5">
-              <Image src="/assets/images/pitchhood-logo-light-1772649730204.png" alt="Pitchhood" width={140} height={32} className="h-8 w-auto" priority />
-            </div>
+          {/* Drawer header */}
+          <div
+            className="flex items-center justify-between px-6 h-16 border-b"
+            style={{ borderColor: 'var(--cream)' }}
+          >
+            <Image
+              src="/assets/images/pitchhood-logo-light-1772649730204.png"
+              alt="Pitchhood" width={140} height={32}
+              className="h-8 w-auto" priority
+            />
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleTheme}
@@ -131,41 +154,64 @@ const Header = ({ isOpen = false, onMenuToggle }: HeaderProps) => {
                 aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 type="button"
               >
-                {resolvedTheme === 'dark' ? (
-                  <Icon name="SunIcon" size={20} variant="outline" />
-                ) : (
-                  <Icon name="MoonIcon" size={20} variant="outline" />
-                )}
+                <Icon
+                  name={resolvedTheme === 'dark' ? 'SunIcon' : 'MoonIcon'}
+                  size={20} variant="outline"
+                />
               </button>
-              <button className="pm-btn-ghost min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg" onClick={handleMobileClose} aria-label="Close menu" type="button">
+              <button
+                className="pm-btn-ghost min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg"
+                onClick={handleMobileClose}
+                aria-label="Close menu"
+                type="button"
+              >
                 <Icon name="XMarkIcon" size={22} variant="outline" />
               </button>
             </div>
           </div>
 
+          {/* Mobile nav links */}
           <nav className="flex flex-col px-4 pt-4 gap-1 flex-1" aria-label="Mobile navigation">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 href={item.path}
                 onClick={handleMobileClose}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm font-medium transition-all duration-250 min-h-[52px] ${
-                  isActive(item.path) ? 'bg-muted text-foreground font-semibold' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm font-medium transition-all duration-200 min-h-[52px]"
+                style={{
+                  fontFamily: 'Epilogue, sans-serif',
+                  backgroundColor: isActive(item.path) ? 'var(--cream)' : 'transparent',
+                  color: isActive(item.path) ? 'var(--ink)' : 'var(--stone)',
+                  fontWeight: isActive(item.path) ? 600 : 400,
+                }}
                 aria-current={isActive(item.path) ? 'page' : undefined}
               >
                 <Icon name={item.icon as any} size={20} variant="outline" />
                 {item.label}
-                {isActive(item.path) && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-accent" aria-hidden="true" />}
+                {isActive(item.path) && (
+                  <span
+                    className="ml-auto w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: 'var(--blue)' }}
+                    aria-hidden="true"
+                  />
+                )}
               </Link>
             ))}
           </nav>
 
-          <div className="px-4 pb-8 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
+          {/* Drawer footer */}
+          <div
+            className="px-4 pb-8 pt-4 border-t"
+            style={{ borderColor: 'var(--cream)' }}
+          >
             <div className="mb-3">
               <ConnectionStatus />
             </div>
-            <Link href="/pitches" onClick={handleMobileClose} className="pm-btn-primary w-full justify-center">
+            <Link
+              href="/pitches"
+              onClick={handleMobileClose}
+              className="pm-btn-primary w-full justify-center"
+            >
               <Icon name="PlusIcon" size={18} variant="outline" />
               New Pitch
             </Link>

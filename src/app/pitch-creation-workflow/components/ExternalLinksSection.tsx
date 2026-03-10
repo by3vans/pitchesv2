@@ -17,9 +17,9 @@ interface ExternalLinksSectionProps {
 
 const linkPlaceholders = [
   { label: 'Demo / SoundCloud', placeholder: 'https://soundcloud.com/artista/demo' },
-  { label: 'Portfólio / Site',  placeholder: 'https://artista.com.br' },
-  { label: 'Instagram',         placeholder: 'https://instagram.com/artista' },
-  { label: 'YouTube',           placeholder: 'https://youtube.com/@artista' },
+  { label: 'Portfólio / Site',  placeholder: 'https://artista.com.br'              },
+  { label: 'Instagram',         placeholder: 'https://instagram.com/artista'       },
+  { label: 'YouTube',           placeholder: 'https://youtube.com/@artista'        },
   { label: 'Spotify',           placeholder: 'https://open.spotify.com/artist/...' },
 ];
 
@@ -28,10 +28,10 @@ function isValidUrl(url: string): boolean {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: 'var(--color-muted)',
-  border: '1px solid var(--color-border)',
-  color: 'var(--color-foreground)',
-  fontFamily: 'var(--font-body)',
+  backgroundColor: 'var(--cream)',
+  border: '1px solid var(--cream)',
+  color: 'var(--ink)',
+  fontFamily: 'Epilogue, sans-serif',
 };
 
 export default function ExternalLinksSection({ links, onChange }: ExternalLinksSectionProps) {
@@ -71,7 +71,7 @@ export default function ExternalLinksSection({ links, onChange }: ExternalLinksS
                 value={link.label}
                 onChange={(e) => updateLink(link.id, 'label', e.target.value)}
                 placeholder="Rótulo (ex: Demo)"
-                className="sm:col-span-2 px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 transition-all"
+                className="sm:col-span-2 px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-all"
                 style={inputStyle}
                 aria-label={`Rótulo do link ${idx + 1}`}
               />
@@ -81,16 +81,16 @@ export default function ExternalLinksSection({ links, onChange }: ExternalLinksS
                   value={link.url}
                   onChange={(e) => updateLink(link.id, 'url', e.target.value)}
                   placeholder={linkPlaceholders[idx % linkPlaceholders.length].placeholder}
-                  className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 transition-all"
+                  className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-all"
                   style={{
                     ...inputStyle,
-                    background: link.error ? 'rgba(194,59,46,.06)' : 'var(--color-muted)',
-                    borderColor: link.error ? '#C23B2E' : 'var(--color-border)',
+                    backgroundColor: link.error ? 'rgba(194,59,46,0.04)' : 'var(--cream)',
+                    borderColor:     link.error ? 'var(--crimson)'        : 'var(--cream)',
                   }}
                   aria-label={`URL do link ${idx + 1}`}
                 />
                 {link.error && (
-                  <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#C23B2E', fontFamily: 'var(--font-mono)' }}>
+                  <p className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--crimson)', fontFamily: 'Azeret Mono, monospace' }}>
                     <Icon name="ExclamationCircleIcon" size={12} variant="outline" />
                     {link.error}
                   </p>
@@ -104,7 +104,7 @@ export default function ExternalLinksSection({ links, onChange }: ExternalLinksS
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-0.5 w-9 h-9 flex items-center justify-center rounded-lg transition-colors shrink-0"
-                style={{ border: '1px solid var(--color-border)', color: 'var(--color-muted-foreground)' }}
+                style={{ border: '1px solid var(--cream)', color: 'var(--stone)' }}
                 aria-label="Abrir link"
               >
                 <Icon name="ArrowTopRightOnSquareIcon" size={15} variant="outline" />
@@ -115,7 +115,7 @@ export default function ExternalLinksSection({ links, onChange }: ExternalLinksS
               type="button"
               onClick={() => removeLink(link.id)}
               className="mt-0.5 w-9 h-9 flex items-center justify-center rounded-lg transition-colors shrink-0"
-              style={{ border: '1px solid var(--color-border)', color: 'var(--color-muted-foreground)' }}
+              style={{ border: '1px solid var(--cream)', color: 'var(--stone)' }}
               aria-label="Remover link"
             >
               <Icon name="TrashIcon" size={15} variant="outline" />
@@ -127,9 +127,9 @@ export default function ExternalLinksSection({ links, onChange }: ExternalLinksS
           <p
             className="text-sm text-center py-4 rounded-lg"
             style={{
-              color: 'var(--color-muted-foreground)',
-              border: '1px dashed var(--color-border)',
-              fontFamily: 'var(--font-body)',
+              color: 'var(--stone)',
+              border: '1px dashed var(--cream)',
+              fontFamily: 'Epilogue, sans-serif',
             }}
           >
             Nenhum link adicionado ainda
@@ -141,7 +141,7 @@ export default function ExternalLinksSection({ links, onChange }: ExternalLinksS
         type="button"
         onClick={addLink}
         className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
-        style={{ color: '#486CE3', fontFamily: 'var(--font-mono)' }}
+        style={{ color: 'var(--blue)', fontFamily: 'Azeret Mono, monospace' }}
       >
         <Icon name="PlusCircleIcon" size={16} variant="outline" />
         Adicionar link
