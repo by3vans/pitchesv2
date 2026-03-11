@@ -34,9 +34,9 @@ const ICON_MAP: Record<ToastType, string> = {
 };
 
 const STYLE_MAP: Record<ToastType, { border: string; icon: string }> = {
-  success: { border: 'rgba(78,94,46,0.35)',    icon: '#4E5E2E' },
-  error:   { border: 'rgba(194,59,46,0.35)',   icon: '#C23B2E' },
-  info:    { border: 'rgba(72,108,227,0.35)',  icon: '#486CE3' },
+  success: { border: 'rgba(78,94,46,0.35)',    icon: 'var(--olive)' },
+  error:   { border: 'rgba(194,59,46,0.35)',   icon: 'var(--crimson)' },
+  info:    { border: 'rgba(72,108,227,0.35)',  icon: 'var(--blue)' },
 };
 
 function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: string) => void }) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/common/Sidebar';
 import Breadcrumb from '@/components/common/Breadcrumb';
@@ -9,7 +9,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import Icon from '@/components/ui/AppIcon';
 import PitchMetadata from './PitchMetadata';
 import NotesSection from './NotesSection';
-import ExternalLinks from './ExternalLinks';
+import ExternalLinks from './ExternalLinksSection';
 import StatusWorkflow from './StatusWorkflow';
 import { pitchRecipientStore, contactStore, artistStore, pitchStore } from '@/lib/store';
 import type { Contact, Artist } from '@/lib/types';
@@ -64,7 +64,7 @@ const fallbackPitch: PitchData = {
     email: 'marina@tropico.com.br',
     address: 'Rua Augusta, 1200, Consolação, São Paulo - SP, 01304-001',
   },
-  imageUrl: 'https://img.rocket.new/generatedImages/rocket_gen_img_18514a9a5-1772212833651.png',
+  imageUrl: '',
   imageAlt: 'Young Brazilian woman with curly dark hair holding a guitar in a warmly lit studio',
   description: `Marina Cavalcanti é uma cantora e compositora paulistana que une a tradição da MPB com influências contemporâneas de soul e R&B. Com mais de 500 mil streams mensais no Spotify e uma base de fãs engajada nas redes sociais, Marina representa uma nova geração de artistas brasileiros que dialogam com o passado sem abrir mão da modernidade.\n\nSeu álbum de estreia "Novas Fronteiras" foi gravado ao vivo no estúdio com uma banda de 7 músicos, capturando a energia e espontaneidade de suas performances ao vivo. O projeto conta com 10 faixas autorais que exploram temas como identidade, pertencimento e transformação pessoal.`,
 };
@@ -179,7 +179,8 @@ function PitchDetailEmptyState({ reason, pitchId, onRetry }: PitchDetailEmptySta
 
 export default function PitchDetailInteractive() {
   const searchParams = useSearchParams();
-  const pitchId = searchParams.get('id');
+  const params = useParams();
+  const pitchId = (params?.id as string) || searchParams.get('id');
 
   const [pitchData, setPitchData] = useState<PitchData>(fallbackPitch);
   const [currentStatus, setCurrentStatus] = useState<PitchStatus>(fallbackPitch.status);
@@ -228,7 +229,7 @@ export default function PitchDetailInteractive() {
               submissionDate: createdDate,
               tags: [],
               contact: { phone: '—', email: '—', address: '—' },
-              imageUrl: 'https://img.rocket.new/generatedImages/rocket_gen_img_18514a9a5-1772212833651.png',
+              imageUrl: artist?.avatarUrl || '',
               imageAlt: `Artist profile image for ${artist?.name || 'unknown artist'}`,
               description: pitch.notes || 'Sem descrição disponível.',
             });
@@ -388,7 +389,7 @@ export default function PitchDetailInteractive() {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 flex-wrap">
-              <Link href="/pitch-creation-workflow" className="pm-btn-ghost text-sm">
+              <Link href="/pitches/new" className="pm-btn-ghost text-sm">
                 <Icon name="PencilSquareIcon" size={16} variant="outline" />
                 Editar
               </Link>

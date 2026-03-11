@@ -74,9 +74,9 @@ interface NewPitchModalProps {
 // ─── Success View ────────────────────────────────────────────────────────────
 
 const STATUS_LABELS: Record<'draft' | 'ready' | 'sent', { label: string; bg: string; color: string; dot: string }> = {
-  draft: { label: 'Draft', bg: 'rgba(122,116,112,0.1)',  color: '#7A7470', dot: '#7A7470' },
-  ready: { label: 'Ready', bg: 'rgba(184,98,42,0.08)',   color: '#B8622A', dot: '#B8622A' },
-  sent:  { label: 'Sent',  bg: 'rgba(72,108,227,0.08)',  color: '#486CE3', dot: '#486CE3' },
+  draft: { label: 'Draft', bg: 'rgba(122,116,112,0.1)',  color: 'var(--stone)', dot: 'var(--stone)' },
+  ready: { label: 'Ready', bg: 'rgba(184,98,42,0.08)',   color: 'var(--orange)', dot: 'var(--orange)' },
+  sent:  { label: 'Sent',  bg: 'rgba(72,108,227,0.08)',  color: 'var(--blue)', dot: 'var(--blue)' },
 };
 
 function formatConfirmedAt(iso: string): string {

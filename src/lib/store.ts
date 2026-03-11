@@ -15,6 +15,7 @@ function toArtist(row: Record<string, unknown>): Artist {
     genre: row.genre as string | undefined,
     location: row.location as string | undefined,
     notes: (row.notes as string) ?? '',
+    avatarUrl: (row.avatar_url as string) ?? '',
     createdAt: row.created_at as string,
   };
 }

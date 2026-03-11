@@ -4,8 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import dynamic from 'next/dynamic';
-import StaggeredMenu from './StaggeredMenu';
-import './StaggeredMenu.css';
+import LandingDock from '@/components/landing/LandingDock';
 
 const AnimatedPitchDemo = dynamic(() => import('./AnimatedPitchDemo'), { ssr: false });
 
@@ -324,26 +323,7 @@ export default function LandingPage() {
       <div id="cursor-dot" />
       <div id="cursor-ring" />
 
-      <StaggeredMenu
-        isFixed
-        position="right"
-        colors={['#B8622A', '#486CE3']}
-        accentColor={T.blue}
-        menuButtonColor={navDark ? '#F0ECE6' : T.text}
-        openMenuButtonColor="#fff"
-        changeMenuColorOnOpen={true}
-        logoUrl={navDark ? '/pitchhood-logo-white.svg' : '/pitchhood-logo-dark.svg'}
-        items={[
-          { label: 'Features', link: '#features' },
-          { label: 'Pricing', link: '#pricing' },
-          { label: 'Login', link: '/login' },
-          { label: 'Sign up', link: '/login?tab=signup' },
-        ]}
-        socialItems={[
-          { label: 'Instagram', link: 'https://instagram.com' },
-          { label: 'Twitter', link: 'https://twitter.com' },
-        ]}
-      />
+      <LandingDock />
 
       {/* ── HERO ── */}
       <section style={{ background: T.bg, position: 'relative', overflow: 'hidden', minHeight: 680 }}>

@@ -151,7 +151,7 @@ function EmptyPitchesState({ hasFilters, onClearFilters }: { hasFilters: boolean
         style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--stone)' }}>
         Crie seu primeiro pitch para começar a acompanhar suas submissões.
       </p>
-      <Link href="/pitch-creation-workflow"
+      <Link href="/pitches/new"
         className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all"
         style={{ backgroundColor: 'var(--blue)', color: 'var(--ice)', fontFamily: 'Epilogue, sans-serif' }}>
         <Icon name="PlusIcon" size={16} variant="outline" />
@@ -516,7 +516,7 @@ export default function PitchesInteractive() {
   const isBulkProcessing = isBulkDeleting || isBulkUpdating;
 
   useKeyboardShortcuts({
-    onNewPitch: () => router.push('/pitch-creation-workflow'),
+    onNewPitch: () => router.push('/pitches/new'),
     onSearch: () => { const el = document.querySelector<HTMLInputElement>('input[placeholder*="Buscar"]'); if (el) { el.focus(); el.select(); } },
     onFilter: () => setFiltersOpen((prev) => !prev),
     onHelp: () => setShowHelpModal(true),
@@ -579,7 +579,7 @@ export default function PitchesInteractive() {
                   <Icon name="QuestionMarkCircleIcon" size={15} variant="outline" />
                   <span className="hidden lg:inline">Atalhos</span>
                 </button>
-                <Link href="/pitch-creation-workflow" className="pm-btn-primary text-sm min-h-[36px] flex items-center gap-1.5">
+                <Link href="/pitches/new" className="pm-btn-primary text-sm min-h-[36px] flex items-center gap-1.5">
                   <Icon name="PlusIcon" size={16} variant="outline" />
                   <span className="hidden sm:inline">Novo Pitch</span>
                   <span className="sm:hidden">Novo</span>
@@ -733,8 +733,8 @@ export default function PitchesInteractive() {
           <p>&copy; {new Date().getFullYear()} Pitchhood. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/pitches-listing-dashboard" className="transition-colors hover:opacity-70">Dashboard</Link>
-            <Link href="/pitch-creation-workflow" className="transition-colors hover:opacity-70">Novo Pitch</Link>
-            <Link href="/pitch-detail-management" className="transition-colors hover:opacity-70">Detalhes</Link>
+            <Link href="/pitches/new" className="transition-colors hover:opacity-70">Novo Pitch</Link>
+            <Link href="/pitches" className="transition-colors hover:opacity-70">Detalhes</Link>
           </div>
         </div>
       </footer>

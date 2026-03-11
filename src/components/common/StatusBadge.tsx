@@ -1,3 +1,4 @@
+'use client';
 import Icon from '@/components/ui/AppIcon';
 
 type StatusType =
@@ -18,43 +19,43 @@ const statusConfig: Record<
     label: 'Draft',
     icon: 'SparklesIcon',
     bg: 'rgba(72,108,227,0.08)',
-    color: '#486CE3',
-    dot: '#486CE3',
+    color: 'var(--blue)',
+    dot: 'var(--blue)',
   },
   em_analise: {
     label: 'Ready',
     icon: 'MagnifyingGlassIcon',
     bg: 'rgba(184,98,42,0.08)',
-    color: '#B8622A',
-    dot: '#B8622A',
+    color: 'var(--orange)',
+    dot: 'var(--orange)',
   },
   aprovado: {
     label: 'Placed',
     icon: 'CheckCircleIcon',
     bg: 'rgba(78,94,46,0.08)',
-    color: '#4E5E2E',
-    dot: '#4E5E2E',
+    color: 'var(--olive)',
+    dot: 'var(--olive)',
   },
   rejeitado: {
     label: 'Hold',
     icon: 'PauseCircleIcon',
     bg: 'rgba(194,59,46,0.08)',
-    color: '#C23B2E',
-    dot: '#C23B2E',
+    color: 'var(--crimson)',
+    dot: 'var(--crimson)',
   },
   pendente: {
     label: 'Sent',
     icon: 'PaperAirplaneIcon',
     bg: 'rgba(72,108,227,0.08)',
-    color: '#486CE3',
-    dot: '#486CE3',
+    color: 'var(--blue)',
+    dot: 'var(--blue)',
   },
   arquivado: {
     label: 'Archived',
     icon: 'ArchiveBoxIcon',
     bg: 'rgba(122,116,112,0.1)',
-    color: '#7A7470',
-    dot: '#7A7470',
+    color: 'var(--stone)',
+    dot: 'var(--stone)',
   },
 };
 

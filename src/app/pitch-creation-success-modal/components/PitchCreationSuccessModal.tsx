@@ -191,7 +191,7 @@ function SuccessModalContent() {
               <Icon name="PaperAirplaneIcon" size={16} variant="outline" />
               Continue
             </Link>
-            <Link href={`/pitch-detail-management?pitchId=${pitch.id}`} className="pm-btn flex-1 justify-center border" style={{ borderColor: 'var(--pm-border)' }}>
+            <Link href={`/pitches/${pitch.id}`} className="pm-btn flex-1 justify-center border" style={{ borderColor: 'var(--pm-border)' }}>
               <Icon name="ArrowTopRightOnSquareIcon" size={15} variant="outline" />
               View Pitch
             </Link>

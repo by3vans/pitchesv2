@@ -43,8 +43,8 @@ export default function BillingPage() {
   // Badge style per plan
   const planBadgeStyle = (p: string) => {
     if (p === 'free')     return { backgroundColor: 'var(--cream)',            color: 'var(--stone)' };
-    if (p === 'pro')      return { backgroundColor: 'rgba(72,108,227,0.12)',   color: '#486CE3'      };
-    return                       { backgroundColor: 'rgba(184,98,42,0.12)',    color: '#B8622A'      };
+    if (p === 'pro')      return { backgroundColor: 'rgba(72,108,227,0.12)',   color: 'var(--blue)'      };
+    return                       { backgroundColor: 'rgba(184,98,42,0.12)',    color: 'var(--orange)'      };
   };
 
   const planBadgeLabel = (p: string) => p === 'free' ? 'Gratuito' : p === 'pro' ? 'Pro' : 'Business';

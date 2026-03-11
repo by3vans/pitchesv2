@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
 
@@ -44,7 +45,7 @@ export default function EmptyState({ hasFilters }: EmptyStateProps) {
           >
             Crie seu primeiro pitch para começar a gerenciar artistas e acompanhar seu progresso.
           </p>
-          <Link href="/pitch-creation-workflow" className="pm-btn-primary flex items-center gap-2">
+          <Link href="/pitches/new" className="pm-btn-primary flex items-center gap-2">
             <Icon name="PlusIcon" size={16} variant="outline" />
             Criar Primeiro Pitch
           </Link>

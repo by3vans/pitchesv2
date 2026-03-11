@@ -1,3 +1,4 @@
+'use client';
 interface StatsBarProps {
   stats: {
     total: number;
@@ -11,11 +12,11 @@ interface StatsBarProps {
 
 const statItems = [
   { key: 'total',      label: 'Total',      bg: 'var(--cream)',              color: 'var(--ink)'     },
-  { key: 'novo',       label: 'Novos',      bg: 'rgba(72,108,227,0.12)',     color: '#486CE3'        },
-  { key: 'em_analise', label: 'Em Análise', bg: 'rgba(184,98,42,0.12)',      color: '#B8622A'        },
-  { key: 'aprovado',   label: 'Aprovados',  bg: 'rgba(78,94,46,0.12)',       color: '#4E5E2E'        },
-  { key: 'rejeitado',  label: 'Rejeitados', bg: 'rgba(194,59,46,0.12)',      color: '#C23B2E'        },
-  { key: 'pendente',   label: 'Pendentes',  bg: 'rgba(122,116,112,0.12)',    color: '#7A7470'        },
+  { key: 'novo',       label: 'Novos',      bg: 'rgba(72,108,227,0.12)',     color: 'var(--blue)'        },
+  { key: 'em_analise', label: 'Em Análise', bg: 'rgba(184,98,42,0.12)',      color: 'var(--orange)'        },
+  { key: 'aprovado',   label: 'Aprovados',  bg: 'rgba(78,94,46,0.12)',       color: 'var(--olive)'        },
+  { key: 'rejeitado',  label: 'Rejeitados', bg: 'rgba(194,59,46,0.12)',      color: 'var(--crimson)'        },
+  { key: 'pendente',   label: 'Pendentes',  bg: 'rgba(122,116,112,0.12)',    color: 'var(--stone)'        },
 ] as const;
 
 export default function PitchesStatsBar({ stats }: StatsBarProps) {

@@ -1,13 +1,4 @@
-import { Suspense } from 'react';
-import ErrorBoundary from '@/components/ui/ErrorBoundary';
-import PitchCreationForm from './components/PitchCreationForm';
-
+import { redirect } from 'next/navigation';
 export default function PitchCreationWorkflowPage() {
-  return (
-    <ErrorBoundary label="Pitch Creation">
-      <Suspense>
-        <PitchCreationForm />
-      </Suspense>
-    </ErrorBoundary>
-  );
+  redirect('/pitches/new');
 }

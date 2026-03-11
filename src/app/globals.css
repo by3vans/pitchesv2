@@ -399,3 +399,47 @@
      .animate-pulse-dot { animation: pulse-dot 2.6s ease-in-out infinite; }
      .marquee-track     { display: flex; animation: marquee 28s linear infinite; }
    }
+
+   /* PAGE TRANSITIONS */
+.page-stack {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.page-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  overflow-y: auto;
+}
+
+@keyframes page-enter-fwd {
+  from { transform: translateX(-100vw); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes page-exit-fwd {
+  from { transform: translateX(0); }
+  to   { transform: translateX(6vw); }
+}
+
+@keyframes page-enter-back {
+  from { transform: translateX(6vw); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes page-exit-back {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100vw); }
+}
+
+.page-enter-forward { animation: page-enter-fwd  0.6s cubic-bezier(0.77,0,0.18,1) forwards; z-index: 200; }
+.page-exit-forward  { animation: page-exit-fwd   0.6s cubic-bezier(0.77,0,0.18,1) forwards; z-index: 1; }
+.page-enter-back    { animation: page-enter-back 0.6s cubic-bezier(0.77,0,0.18,1) forwards; z-index: 2; }
+.page-exit-back     { animation: page-exit-back  0.6s cubic-bezier(0.77,0,0.18,1) forwards; z-index: 1; }
+
+.page-layer { background: var(--ice, #F8F5F0); }

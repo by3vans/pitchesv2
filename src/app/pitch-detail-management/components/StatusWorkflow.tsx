@@ -1,3 +1,4 @@
+'use client';
 import Icon from '@/components/ui/AppIcon';
 
 interface WorkflowStep {

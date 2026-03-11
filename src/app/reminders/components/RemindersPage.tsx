@@ -44,7 +44,7 @@ function getInitials(name: string): string {
 }
 
 function getAvatarColor(name: string): string {
-  const colors = ['#486CE3', '#4E5E2E', '#B8622A', '#C23B2E', '#7A7470', '#1A1A18'];
+  const colors = ['var(--blue)', 'var(--olive)', 'var(--orange)', 'var(--crimson)', 'var(--stone)', 'var(--ink)'];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];
@@ -166,7 +166,7 @@ export default function RemindersPage() {
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
-            <Link href={`/pitch-detail-management?id=${reminder.pitchId}`}
+            <Link href={`/pitches/${reminder.pitchId}`}
               className="text-sm font-semibold truncate hover:underline"
               style={{
                 fontFamily: 'Epilogue, sans-serif',
@@ -298,7 +298,7 @@ export default function RemindersPage() {
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Link href="/pitch-creation-workflow" className="pm-btn border"
+              <Link href="/pitches/new" className="pm-btn border"
                 style={{ borderColor: 'var(--cream)' }}>
                 <Icon name="PlusIcon" size={15} variant="outline" />
                 Adicionar

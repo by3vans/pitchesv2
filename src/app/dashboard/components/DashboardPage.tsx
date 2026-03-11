@@ -36,30 +36,30 @@ interface TopArtist {
   approvalRate: number;
 }
 
-const AVATAR_COLORS = ['#486CE3', '#4E5E2E', '#B8622A', '#C23B2E', '#7A7470', '#486CE3', '#4E5E2E'];
+const AVATAR_COLORS = ['var(--blue)', 'var(--olive)', 'var(--orange)', 'var(--crimson)', 'var(--stone)', 'var(--blue)', 'var(--olive)'];
 
 function getInitials(name: string): string {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
 const statusConfig: Record<string, { label: string; bg: string; color: string; icon: string }> = {
-  draft:     { label: 'Draft',     bg: 'rgba(122,116,112,0.1)',  color: '#7A7470', icon: 'DocumentIcon'       },
-  new:       { label: 'New',       bg: 'rgba(72,108,227,0.12)',  color: '#486CE3', icon: 'PaperAirplaneIcon'  },
-  in_review: { label: 'In Review', bg: 'rgba(184,98,42,0.12)',   color: '#B8622A', icon: 'EnvelopeIcon'       },
-  approved:  { label: 'Approved',  bg: 'rgba(78,94,46,0.12)',    color: '#4E5E2E', icon: 'CheckCircleIcon'    },
-  rejected:  { label: 'Rejected',  bg: 'rgba(194,59,46,0.12)',   color: '#C23B2E', icon: 'XCircleIcon'        },
-  submitted: { label: 'Submitted', bg: 'rgba(72,108,227,0.12)',  color: '#486CE3', icon: 'PaperAirplaneIcon'  },
-  added:     { label: 'Added',     bg: 'rgba(72,108,227,0.12)',  color: '#486CE3', icon: 'PlusCircleIcon'     },
-  placed:    { label: 'Placed',    bg: 'rgba(78,94,46,0.12)',    color: '#4E5E2E', icon: 'StarIcon'           },
-  sent:      { label: 'Sent',      bg: 'rgba(184,98,42,0.12)',   color: '#B8622A', icon: 'EnvelopeIcon'       },
-  hold:      { label: 'Hold',      bg: 'rgba(184,98,42,0.12)',   color: '#B8622A', icon: 'PauseCircleIcon'    },
+  draft:     { label: 'Draft',     bg: 'rgba(122,116,112,0.1)',  color: 'var(--stone)', icon: 'DocumentIcon'       },
+  new:       { label: 'New',       bg: 'rgba(72,108,227,0.12)',  color: 'var(--blue)', icon: 'PaperAirplaneIcon'  },
+  in_review: { label: 'In Review', bg: 'rgba(184,98,42,0.12)',   color: 'var(--orange)', icon: 'EnvelopeIcon'       },
+  approved:  { label: 'Approved',  bg: 'rgba(78,94,46,0.12)',    color: 'var(--olive)', icon: 'CheckCircleIcon'    },
+  rejected:  { label: 'Rejected',  bg: 'rgba(194,59,46,0.12)',   color: 'var(--crimson)', icon: 'XCircleIcon'        },
+  submitted: { label: 'Submitted', bg: 'rgba(72,108,227,0.12)',  color: 'var(--blue)', icon: 'PaperAirplaneIcon'  },
+  added:     { label: 'Added',     bg: 'rgba(72,108,227,0.12)',  color: 'var(--blue)', icon: 'PlusCircleIcon'     },
+  placed:    { label: 'Placed',    bg: 'rgba(78,94,46,0.12)',    color: 'var(--olive)', icon: 'StarIcon'           },
+  sent:      { label: 'Sent',      bg: 'rgba(184,98,42,0.12)',   color: 'var(--orange)', icon: 'EnvelopeIcon'       },
+  hold:      { label: 'Hold',      bg: 'rgba(184,98,42,0.12)',   color: 'var(--orange)', icon: 'PauseCircleIcon'    },
 };
 
 const quickActions = [
-  { label: 'New Pitch',     icon: 'PaperAirplaneIcon',         href: '/pitch-creation-workflow',   color: '#486CE3' },
-  { label: 'Add Artist',    icon: 'MusicalNoteIcon',            href: '/artists',                   color: '#4E5E2E' },
-  { label: 'View Pitches',  icon: 'ClipboardDocumentListIcon', href: '/pitches-listing-dashboard', color: '#B8622A' },
-  { label: 'Notifications', icon: 'BellIcon',                  href: '/notifications-center',      color: '#C23B2E' },
+  { label: 'New Pitch',     icon: 'PaperAirplaneIcon',         href: '/pitches/new',   color: 'var(--blue)' },
+  { label: 'Add Artist',    icon: 'MusicalNoteIcon',            href: '/artists',                   color: 'var(--olive)' },
+  { label: 'View Pitches',  icon: 'ClipboardDocumentListIcon', href: '/pitches-listing-dashboard', color: 'var(--orange)' },
+  { label: 'Notifications', icon: 'BellIcon',                  href: '/notifications-center',      color: 'var(--crimson)' },
 ];
 
 export default function DashboardPage() {
@@ -122,7 +122,7 @@ export default function DashboardPage() {
           description: `"${p.title}" by ${artistName}`,
           timestamp: new Date(p.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
           status: statusMap[p.status] ?? 'submitted',
-          href: '/pitch-detail-management',
+          href: '/pitches',
         };
       });
       setActivityFeed(activity);
@@ -183,7 +183,7 @@ export default function DashboardPage() {
       sub: 'All time submissions',
       trendValue: `+${stats.pitchesThisMonth} this month`,
       icon: 'PaperAirplaneIcon',
-      color: '#486CE3',
+      color: 'var(--blue)',
       progress: Math.min(stats.totalPitches, 100),
     },
     {
@@ -192,7 +192,7 @@ export default function DashboardPage() {
       sub: 'Active roster',
       trendValue: `+${stats.artistsThisMonth} this month`,
       icon: 'MusicalNoteIcon',
-      color: '#4E5E2E',
+      color: 'var(--olive)',
       progress: Math.min(stats.totalArtists * 2, 100),
     },
     {
@@ -201,7 +201,7 @@ export default function DashboardPage() {
       sub: 'Pitches placed / submitted',
       trendValue: 'Based on placements',
       icon: 'CheckCircleIcon',
-      color: '#B8622A',
+      color: 'var(--orange)',
       progress: stats.approvalRate,
     },
   ];
@@ -253,8 +253,8 @@ export default function DashboardPage() {
                       <Icon name={card.icon as any} size={18} variant="outline" style={{ color: card.color }} />
                     </div>
                     <div className="flex items-center gap-1">
-                      <Icon name="ArrowTrendingUpIcon" size={13} variant="outline" style={{ color: '#4E5E2E' }} />
-                      <span className="text-xs font-medium" style={{ color: '#4E5E2E', fontFamily: 'Azeret Mono, monospace' }}>
+                      <Icon name="ArrowTrendingUpIcon" size={13} variant="outline" style={{ color: 'var(--olive)' }} />
+                      <span className="text-xs font-medium" style={{ color: 'var(--olive)', fontFamily: 'Azeret Mono, monospace' }}>
                         {card.trendValue}
                       </span>
                     </div>
@@ -324,7 +324,7 @@ export default function DashboardPage() {
               ) : activityFeed.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(72,108,227,0.1)' }}>
-                    <Icon name="PaperAirplaneIcon" size={22} variant="outline" style={{ color: '#486CE3' }} />
+                    <Icon name="PaperAirplaneIcon" size={22} variant="outline" style={{ color: 'var(--blue)' }} />
                   </div>
                   <p className="text-sm font-semibold mb-1" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>Your pipeline is empty</p>
                   <p className="text-xs mb-4" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>Add artists and pitches to see your stats and activity here.</p>
@@ -463,7 +463,7 @@ export default function DashboardPage() {
               ) : topArtists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(78,94,46,0.1)' }}>
-                    <Icon name="MusicalNoteIcon" size={22} variant="outline" style={{ color: '#4E5E2E' }} />
+                    <Icon name="MusicalNoteIcon" size={22} variant="outline" style={{ color: 'var(--olive)' }} />
                   </div>
                   <p className="text-sm font-semibold mb-1" style={{ color: 'var(--ink)', fontFamily: 'Epilogue, sans-serif' }}>No artists yet</p>
                   <p className="text-xs mb-4" style={{ color: 'var(--stone)', fontFamily: 'Epilogue, sans-serif' }}>Add artists and create pitches to see your top performers here.</p>
@@ -486,7 +486,7 @@ export default function DashboardPage() {
                       <span
                         className="text-xs font-bold w-4 text-center shrink-0"
                         style={{
-                          color: idx < 3 ? '#B8622A' : 'var(--stone)',
+                          color: idx < 3 ? 'var(--orange)' : 'var(--stone)',
                           fontFamily: 'Azeret Mono, monospace',
                         }}
                       >
@@ -539,7 +539,7 @@ export default function DashboardPage() {
                   Ranked by placement rate
                 </p>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#4E5E2E' }} />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--olive)' }} />
                   <span className="text-xs" style={{ color: 'var(--stone)', fontFamily: 'Azeret Mono, monospace' }}>
                     {topArtists.length > 0
                       ? `Avg ${Math.round(topArtists.reduce((s, a) => s + a.approvalRate, 0) / topArtists.length)}%`

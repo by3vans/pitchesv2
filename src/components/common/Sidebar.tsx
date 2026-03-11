@@ -8,7 +8,7 @@ import UsageBar from '@/components/billing/UsageBar';
 
 const coreItems = [
   { label: 'Dashboard', path: '/dashboard',                icon: 'Squares2X2Icon'       },
-  { label: 'Pitches',   path: '/pitches-listing-dashboard', icon: 'PaperAirplaneIcon'   },
+  { label: 'Pitches',   path: '/pitches', icon: 'PaperAirplaneIcon'   },
   { label: 'Artists',   path: '/artists',                  icon: 'MusicalNoteIcon'      },
   { label: 'Contacts',  path: '/contacts',                 icon: 'UsersIcon'            },
 ];
@@ -38,7 +38,7 @@ function LogoMark() {
   return (
     <svg width="18" height="26" viewBox="0 0 18 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect x="0" y="0" width="4" height="26" rx="2" fill="var(--ink)" />
-      <path d="M4 2 L18 10 L4 18 Z" fill="#486CE3" />
+      <path d="M4 2 L18 10 L4 18 Z" fill="var(--blue)" />
     </svg>
   );
 }
@@ -357,7 +357,7 @@ const Sidebar = () => {
             {/* Drawer footer */}
             <div className="px-4 pb-8 pt-4 border-t shrink-0" style={{ borderColor: 'var(--cream)' }}>
               <Link
-                href="/pitch-creation-workflow"
+                href="/pitches/new"
                 onClick={closeDrawer}
                 className="pm-btn-primary w-full justify-center"
               >

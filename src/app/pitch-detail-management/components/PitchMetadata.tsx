@@ -1,3 +1,4 @@
+'use client';
 import StatusBadge from '@/components/common/StatusBadge';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
@@ -60,8 +61,12 @@ export default function PitchMetadata({
 
       {/* Artist Card */}
       <div className="flex items-center gap-4 p-4 rounded-xl border" style={sectionStyle}>
-        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
-          <AppImage src={imageUrl} alt={imageAlt} width={64} height={64} className="w-full h-full object-cover" />
+        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center"
+          style={{ background: imageUrl ? 'transparent' : 'var(--ink)' }}>
+          {imageUrl
+            ? <AppImage src={imageUrl} alt={imageAlt} width={64} height={64} className="w-full h-full object-cover" fallbackSrc="" />
+            : <span style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: 700, color: 'var(--ice)' }}>{artist.slice(0,2).toUpperCase()}</span>
+          }
         </div>
         <div>
           <p className="font-semibold text-base" style={{ fontFamily: 'Epilogue, sans-serif', color: 'var(--ink)' }}>

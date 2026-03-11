@@ -437,8 +437,8 @@ function AddArtistModal({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
-              <Icon name="PlusIcon" size={18} variant="outline" className="text-purple-600" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{background:"rgba(72,108,227,0.1)"}}>
+              <Icon name="PlusIcon" size={18} variant="outline" style={{color:"var(--blue)"}} />
             </div>
             <div>
               <h2 className="text-base font-semibold text-gray-900">Add Artist</h2>
@@ -608,7 +608,7 @@ function AddArtistModal({
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all flex items-center gap-2 disabled:opacity-60"
+              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-all flex items-center gap-2 disabled:opacity-60" style={{background:"var(--blue)"}}
             >
               {saving ? (
                 <>
@@ -885,7 +885,7 @@ function ArtistCardView({
             <Icon name="UserIcon" size={13} variant="outline" />
           </Link>
           <Link
-            href="/pitch-creation-workflow"
+            href="/pitches/new"
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
             aria-label={`Create pitch for ${artist.name}`}
             onClick={(e) => e.stopPropagation()}
@@ -1976,12 +1976,12 @@ export default function ArtistsListingDashboard() {
             </div>
           ) : paginatedArtists.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{background:"rgba(72,108,227,0.08)"}}>
                 <Icon
                   name="MusicalNoteIcon"
                   size={28}
                   variant="outline"
-                  className="text-purple-400"
+                  style={{color:"var(--blue)",opacity:0.5}}
                 />
               </div>
               <h3 className="text-base font-semibold text-gray-900 mb-1">
@@ -2003,7 +2003,7 @@ export default function ArtistsListingDashboard() {
               ) : (
                 <button
                   onClick={() => setShowAddArtist(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all" style={{background:"var(--blue)"}}
                 >
                   <Icon name="PlusIcon" size={16} variant="outline" />+ Add Artist
                 </button>

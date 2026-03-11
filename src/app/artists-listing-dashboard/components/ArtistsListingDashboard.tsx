@@ -520,7 +520,7 @@ function ArtistCardView({ artist, isSelected, onToggleSelect, selectionMode, onE
             onClick={(e) => e.stopPropagation()}>
             <Icon name="UserIcon" size={13} variant="outline" />
           </Link>
-          <Link href="/pitch-creation-workflow"
+          <Link href="/pitches/new"
             className="p-1.5 rounded-lg transition-all focus:outline-none"
             style={{ color: 'var(--stone)' }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--cream)')}

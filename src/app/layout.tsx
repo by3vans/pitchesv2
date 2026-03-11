@@ -5,6 +5,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { PostHogProvider } from '@/providers/PostHogProvider';
+import { TransitionProvider } from '@/contexts/TransitionContext';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -76,7 +77,9 @@ export default function RootLayout({
           <ToastProvider>
             <PostHogProvider>
               <AuthProvider>
-                {children}
+                <TransitionProvider>
+                  {children}
+                </TransitionProvider>
               </AuthProvider>
             </PostHogProvider>
           </ToastProvider>

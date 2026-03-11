@@ -39,7 +39,7 @@ function ReminderBadge({ date }: { date: string }) {
       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
       style={{
         background: isOverdue ? 'rgba(194,59,46,.1)' : 'rgba(72,108,227,.1)',
-        color: isOverdue ? '#C23B2E' : '#486CE3',
+        color: isOverdue ? 'var(--crimson)' : 'var(--blue)',
         border: `1px solid ${isOverdue ? 'rgba(194,59,46,.2)' : 'rgba(72,108,227,.2)'}`,
         fontFamily: 'var(--font-mono)',
         fontSize: '0.7rem',
@@ -73,7 +73,7 @@ export default function PitchCard({ pitch, viewMode, isSelected = false, onToggl
         className="group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200"
         style={{
           background: isSelected ? 'rgba(72,108,227,.06)' : 'var(--color-surface)',
-          border: `1px solid ${isSelected ? '#486CE3' : 'var(--color-border)'}`,
+          border: `1px solid ${isSelected ? 'var(--blue)' : 'var(--color-border)'}`,
         }}
       >
         {/* Checkbox */}
@@ -87,17 +87,21 @@ export default function PitchCard({ pitch, viewMode, isSelected = false, onToggl
             onKeyDown={handleCheckboxKeyDown}
             className="w-4 h-4 rounded flex items-center justify-center cursor-pointer transition-all focus:outline-none"
             style={{
-              background: isSelected ? '#1A1A18' : 'transparent',
-              border: `2px solid ${isSelected ? '#1A1A18' : 'var(--color-border)'}`,
+              background: isSelected ? 'var(--ink)' : 'transparent',
+              border: `2px solid ${isSelected ? 'var(--ink)' : 'var(--color-border)'}`,
             }}
           >
             {isSelected && <Icon name="CheckIcon" size={10} variant="solid" className="text-white" aria-hidden="true" />}
           </div>
         </div>
 
-        <Link href={`/pitch-detail-management?id=${pitch.id}`} className="flex-1 flex items-center gap-4 min-w-0">
-          <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
-            <AppImage src={pitch.artistImage} alt={pitch.artistImageAlt} width={40} height={40} className="w-full h-full object-cover" />
+        <Link href={`/pitches/${pitch.id}`} className="flex-1 flex items-center gap-4 min-w-0">
+          <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center shrink-0"
+            style={{ background: pitch.artistImage ? 'transparent' : 'var(--ink)' }}>
+            {pitch.artistImage
+              ? <AppImage src={pitch.artistImage} alt={pitch.artistImageAlt} width={40} height={40} className="w-full h-full object-cover" fallbackSrc="" />
+              : <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--ice)' }}>{pitch.artist.slice(0,2).toUpperCase()}</span>
+            }
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -150,7 +154,7 @@ export default function PitchCard({ pitch, viewMode, isSelected = false, onToggl
       className="group relative rounded-xl p-4 transition-all duration-200 h-full flex flex-col"
       style={{
         background: isSelected ? 'rgba(72,108,227,.06)' : 'var(--color-surface)',
-        border: `1px solid ${isSelected ? '#486CE3' : 'var(--color-border)'}`,
+        border: `1px solid ${isSelected ? 'var(--blue)' : 'var(--color-border)'}`,
       }}
     >
       {/* Checkbox overlay */}
@@ -164,20 +168,24 @@ export default function PitchCard({ pitch, viewMode, isSelected = false, onToggl
           onKeyDown={handleCheckboxKeyDown}
           className="w-4 h-4 rounded flex items-center justify-center cursor-pointer transition-all focus:outline-none"
           style={{
-            background: isSelected ? '#1A1A18' : 'var(--color-surface)',
-            border: `2px solid ${isSelected ? '#1A1A18' : 'var(--color-border)'}`,
+            background: isSelected ? 'var(--ink)' : 'var(--color-surface)',
+            border: `2px solid ${isSelected ? 'var(--ink)' : 'var(--color-border)'}`,
           }}
         >
           {isSelected && <Icon name="CheckIcon" size={10} variant="solid" className="text-white" aria-hidden="true" />}
         </div>
       </div>
 
-      <Link href={`/pitch-detail-management?id=${pitch.id}`} className="flex flex-col flex-1">
+      <Link href={`/pitches/${pitch.id}`} className="flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
-              <AppImage src={pitch.artistImage} alt={pitch.artistImageAlt} width={36} height={36} className="w-full h-full object-cover" />
+            <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center"
+              style={{ background: pitch.artistImage ? 'transparent' : 'var(--ink)' }}>
+              {pitch.artistImage
+                ? <AppImage src={pitch.artistImage} alt={pitch.artistImageAlt} width={36} height={36} className="w-full h-full object-cover" fallbackSrc="" />
+                : <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: 'var(--ice)' }}>{pitch.artist.slice(0,2).toUpperCase()}</span>
+              }
             </div>
             <div className="min-w-0">
               <p className="text-xs truncate" style={{ color: 'var(--color-muted-foreground)', fontFamily: 'var(--font-body)' }}>{pitch.artist}</p>

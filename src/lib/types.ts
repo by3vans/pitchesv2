@@ -4,6 +4,7 @@ export interface Artist {
   genre?: string;
   location?: string;
   notes: string;
+  avatarUrl?: string;
   createdAt: string;
 }
 

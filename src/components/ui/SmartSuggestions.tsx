@@ -56,10 +56,10 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Reconnect with contact',
         body: `You haven't pitched to ${contact.fullName} at ${contact.company} yet — a great opportunity to reach out.`,
         icon: 'ClockIcon',
-        iconColor: '#B8622A',
+        iconColor: 'var(--orange)',
         iconBg: 'rgba(184,98,42,0.1)',
         pitchContext: { contactId: contact.id },
-        primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
+        primaryAction: { label: 'Pitch now', href: '/pitches/new' },
         secondaryAction: { label: 'View contact', href: '/contacts' },
       });
     } else {
@@ -77,10 +77,10 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
             title: 'Inactive contact',
             body: `You haven't pitched to ${contact.fullName} (${contact.company}) in ${months} month${months !== 1 ? 's' : ''} — time to reconnect.`,
             icon: 'ClockIcon',
-            iconColor: '#B8622A',
+            iconColor: 'var(--orange)',
             iconBg: 'rgba(184,98,42,0.1)',
             pitchContext: { contactId: contact.id },
-            primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
+            primaryAction: { label: 'Pitch now', href: '/pitches/new' },
             secondaryAction: { label: 'View contact', href: '/contacts' },
           });
         }
@@ -105,10 +105,10 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Tracks ready to pitch',
         body: `${artist.name} has ${draftCount} draft pitch${draftCount !== 1 ? 'es' : ''} waiting — time to send them out.`,
         icon: 'MusicalNoteIcon',
-        iconColor: '#486CE3',
+        iconColor: 'var(--blue)',
         iconBg: 'rgba(72,108,227,0.1)',
         pitchContext: { artistId: artist.id },
-        primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
+        primaryAction: { label: 'Pitch now', href: '/pitches/new' },
         secondaryAction: { label: 'View artist', href: `/artist-detail-management?artistId=${artist.id}` },
       });
     } else if (totalCount === 0) {
@@ -118,10 +118,10 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Artist not yet pitched',
         body: `${artist.name} hasn't been pitched to anyone yet — create their first pitch to get started.`,
         icon: 'MusicalNoteIcon',
-        iconColor: '#486CE3',
+        iconColor: 'var(--blue)',
         iconBg: 'rgba(72,108,227,0.1)',
         pitchContext: { artistId: artist.id },
-        primaryAction: { label: 'Create pitch', href: '/pitch-creation-workflow' },
+        primaryAction: { label: 'Create pitch', href: '/pitches/new' },
         secondaryAction: { label: 'View artist', href: `/artist-detail-management?artistId=${artist.id}` },
       });
     }
@@ -158,10 +158,10 @@ async function generateSuggestions(filterArtistId?: string): Promise<Suggestion[
         title: 'Similar artist placed',
         body: `${placedArtist.name} was placed with ${contact.fullName} (${contact.company}) — ${similar.name} has a similar sound and might be a great fit too.`,
         icon: 'SparklesIcon',
-        iconColor: '#4E5E2E',
+        iconColor: 'var(--olive)',
         iconBg: 'rgba(78,94,46,0.1)',
         pitchContext: { artistId: similar.id, contactId: contact.id },
-        primaryAction: { label: 'Pitch now', href: '/pitch-creation-workflow' },
+        primaryAction: { label: 'Pitch now', href: '/pitches/new' },
         secondaryAction: { label: 'View artist', href: `/artist-detail-management?artistId=${similar.id}` },
       });
     });

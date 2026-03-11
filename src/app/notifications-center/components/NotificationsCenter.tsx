@@ -17,15 +17,15 @@ interface Notification {
 const TYPE_CONFIG: Record<NotificationType, { label: string; icon: string; accent: string; bg: string; border: string; dotColor: string }> = {
   activity: {
     label: 'Activity', icon: 'BoltIcon',
-    accent: '#486CE3', bg: 'rgba(72,108,227,0.08)', border: 'rgba(72,108,227,0.2)', dotColor: '#486CE3',
+    accent: 'var(--blue)', bg: 'rgba(72,108,227,0.08)', border: 'rgba(72,108,227,0.2)', dotColor: 'var(--blue)',
   },
   status_change: {
     label: 'Status Change', icon: 'ArrowPathIcon',
-    accent: '#4E5E2E', bg: 'rgba(78,94,46,0.08)', border: 'rgba(78,94,46,0.2)', dotColor: '#4E5E2E',
+    accent: 'var(--olive)', bg: 'rgba(78,94,46,0.08)', border: 'rgba(78,94,46,0.2)', dotColor: 'var(--olive)',
   },
   reconnection: {
     label: 'Connection', icon: 'WifiIcon',
-    accent: '#B8622A', bg: 'rgba(184,98,42,0.08)', border: 'rgba(184,98,42,0.2)', dotColor: '#B8622A',
+    accent: 'var(--orange)', bg: 'rgba(184,98,42,0.08)', border: 'rgba(184,98,42,0.2)', dotColor: 'var(--orange)',
   },
 };
 

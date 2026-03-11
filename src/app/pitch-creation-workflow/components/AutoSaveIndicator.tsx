@@ -1,3 +1,4 @@
+'use client';
 interface AutoSaveIndicatorProps {
   status: 'idle' | 'saving' | 'saved' | 'error';
 }

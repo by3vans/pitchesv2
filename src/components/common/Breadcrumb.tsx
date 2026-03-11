@@ -15,9 +15,9 @@ interface BreadcrumbProps {
 }
 
 const routeLabels: Record<string, string> = {
-  'pitches-listing-dashboard': 'Dashboard',
-  'pitch-detail-management':   'Detalhes do Pitch',
-  'pitch-creation-workflow':   'Novo Pitch',
+  'pitches': 'Pitches',
+  'pitches': 'Pitches',
+  'new': 'New Pitch',
 };
 
 const Breadcrumb = ({ items, className = '' }: BreadcrumbProps) => {
@@ -25,7 +25,7 @@ const Breadcrumb = ({ items, className = '' }: BreadcrumbProps) => {
 
   const resolvedItems: BreadcrumbItem[] = items ?? (() => {
     const segments = pathname.split('/').filter(Boolean);
-    const crumbs: BreadcrumbItem[] = [{ label: 'Início', path: '/pitches-listing-dashboard' }];
+    const crumbs: BreadcrumbItem[] = [{ label: 'Home', path: '/pitches' }];
     segments.forEach((seg, idx) => {
       const label = routeLabels[seg] ?? seg.replace(/-/g, ' ');
       const path  = '/' + segments.slice(0, idx + 1).join('/');
